@@ -1,5 +1,11 @@
 /*
 Theme Name: DKG Shop Theme
-Description: Custom WooCommerce theme
+Text Domain: dkg-shop-theme
+Author: DKG
 Version: 1.0.0
 */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}

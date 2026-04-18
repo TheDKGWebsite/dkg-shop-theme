@@ -1,9 +1,26 @@
-<!doctype html>
+<!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-<meta charset="<?php bloginfo('charset'); ?>">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<?php wp_head(); ?>
+  <meta charset="<?php bloginfo('charset'); ?>">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
-<header><h1><?php bloginfo('name'); ?></h1></header>
+<?php wp_body_open(); ?>
+
+<header class="site-header">
+  <div class="container">
+    <a class="site-logo" href="<?php echo esc_url(home_url('/')); ?>">
+      <?php bloginfo('name'); ?>
+    </a>
+
+    <?php
+    wp_nav_menu([
+        'theme_location' => 'primary',
+        'container'      => 'nav',
+        'container_class'=> 'site-nav',
+        'fallback_cb'    => false,
+    ]);
+    ?>
+  </div>
+</header>
