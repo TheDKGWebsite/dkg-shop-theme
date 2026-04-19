@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
   <meta charset="<?php bloginfo('charset'); ?>">
@@ -9,18 +9,13 @@
 <?php wp_body_open(); ?>
 
 <header class="site-header">
-  <div class="container">
-    <a class="site-logo" href="<?php echo esc_url(home_url('/')); ?>">
-      <?php bloginfo('name'); ?>
-    </a>
-
-    <?php
-    wp_nav_menu([
-        'theme_location' => 'primary',
-        'container'      => 'nav',
-        'container_class'=> 'site-nav',
-        'fallback_cb'    => false,
-    ]);
-    ?>
-  </div>
-</header>
+      <div class="header-inner">
+        <div class="logo">Your Store</div>
+        <nav class="nav">
+          <a href="#">Home</a>
+          <a href="#">Shop</a>
+          <a href="#">Collections</a>
+          <a href="#">Cart</a>
+        </nav>
+      </div>
+    </header>
