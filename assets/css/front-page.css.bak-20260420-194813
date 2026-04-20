@@ -333,15 +333,3 @@
   color: inherit;
   display: inline-block;
 }
-
-/* alignment fix for collection preview mode */
-.product-viewport {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.product-track {
-  justify-content: flex-start !important;
-  margin-right: auto !important;
-}
-
