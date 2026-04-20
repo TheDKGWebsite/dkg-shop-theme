@@ -302,8 +302,6 @@
       
       
       
-      
-      
       .product-card {
         flex: 0 0 100%;
       }

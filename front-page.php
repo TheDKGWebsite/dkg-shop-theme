@@ -64,8 +64,10 @@ $home_collections = array(
             'orderby'        => 'menu_order title',
             'order'          => 'ASC',
         ));
-                    $product_count = (int) $products->post_count;
         ?>
+
+        <a class="collection-link" href="<?php echo esc_url($term_link); ?>" aria-label="<?php echo esc_attr($collection['label']); ?>">
+
 
         <section class="collection-box <?php echo esc_attr($collection['class']); ?>">
             <div class="collection-bg">
@@ -73,11 +75,11 @@ $home_collections = array(
             </div>
 
             <div class="collection-content">
-              <a class="collection-label" href="<?php echo esc_url($term_link); ?>"><?php echo esc_html($collection['label']); ?></a>
+              <div class="collection-label"><?php echo esc_html($collection['label']); ?></div>
 
               <div class="carousel-shell auto-loop">
                 <div class="product-viewport">
-                  <div class="product-track count-<?php echo (int) $product_count; ?>">
+                  <div class="product-track">
 
                     <?php if ($products->have_posts()) : ?>
                       <?php while ($products->have_posts()) : $products->the_post(); ?>
@@ -107,7 +109,7 @@ $home_collections = array(
                             <img class="product-image" src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
                             <div class="product-stock"><?php echo esc_html($stock_text); ?></div>
                           </div>
-                        </a>
+                        </div>
                       <?php endwhile; ?>
                       <?php wp_reset_postdata(); ?>
                     <?php else : ?>
@@ -126,6 +128,9 @@ $home_collections = array(
               </div>
             </div>
           </section>
+
+
+        </a>
 
       <?php endforeach; ?>
 
