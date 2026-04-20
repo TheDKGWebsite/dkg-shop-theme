@@ -300,8 +300,6 @@
       }
 
       
-      
-      
       .product-card {
         flex-basis: 80%;
         max-width: 80%;
