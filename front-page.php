@@ -102,25 +102,12 @@ $home_collections = array(
                         }
                         ?>
 						<div class="product-card" aria-label="<?php the_title_attribute(); ?>">
-						  <div class="product-titlebar">
-							<div class="product-title"><?php the_title(); ?></div>
-						  </div>
-						  <div class="product-meta">
-							<img class="product-image" src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
-							<div class="product-stock"><?php echo esc_html($stock_text); ?></div>
-						  </div>
+						  <img class="product-image" src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
 						</div>
                       <?php endwhile; ?>
                       <?php wp_reset_postdata(); ?>
                     <?php else : ?>
-                      <div class="product-card product-card--empty">
-                        <div class="product-titlebar">
-                          <div class="product-title">No products yet</div>
-                        </div>
-                        <div class="product-meta">
-                          <div class="product-stock">Add products to <?php echo esc_html($collection['label']); ?></div>
-                        </div>
-                      </div>
+						<div class="product-card product-card--empty"></div>
                     <?php endif; ?>
 
                   </div>

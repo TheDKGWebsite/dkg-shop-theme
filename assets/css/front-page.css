@@ -210,60 +210,19 @@ body {
   height: 100%;
   border-radius: 22px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  flex-direction: column;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
   pointer-events: none;
-}
-
-.product-titlebar {
-  flex: 0 0 auto;
-  padding: 8px 10px 6px;
-  background: rgba(0, 0, 0, 0.45);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.product-title {
-  color: #ffffff;
-  font-size: 0.88rem;
-  line-height: 1.1;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.product-meta {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
   display: block;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255,255,255,0.06);
 }
 
-.product-stock {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  max-width: calc(100% - 20px);
-  padding: 4px 8px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.78rem;
-  line-height: 1.1;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .product-card--empty {
   justify-content: center;
