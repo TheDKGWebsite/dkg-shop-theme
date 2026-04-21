@@ -101,15 +101,15 @@ $home_collections = array(
                             $stock_text = $product->is_in_stock() ? 'Available' : 'Out of stock';
                         }
                         ?>
-                        <a class="product-card" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
-                          <div class="product-titlebar">
-                            <div class="product-title"><?php the_title(); ?></div>
-                          </div>
-                          <div class="product-meta">
-                            <img class="product-image" src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
-                            <div class="product-stock"><?php echo esc_html($stock_text); ?></div>
-                          </div>
-                        </div>
+						<div class="product-card" aria-label="<?php the_title_attribute(); ?>">
+						  <div class="product-titlebar">
+							<div class="product-title"><?php the_title(); ?></div>
+						  </div>
+						  <div class="product-meta">
+							<img class="product-image" src="<?php echo esc_url($image_url); ?>" alt="<?php the_title_attribute(); ?>">
+							<div class="product-stock"><?php echo esc_html($stock_text); ?></div>
+						  </div>
+						</div>
                       <?php endwhile; ?>
                       <?php wp_reset_postdata(); ?>
                     <?php else : ?>
