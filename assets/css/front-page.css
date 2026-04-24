@@ -60,10 +60,15 @@ body {
 }
 
 .logo img {
-  height: 100%;
+  height: auto;
   max-height: 100px;
   width: auto;
-  padding: 4px 0;
+  display: block;
+}
+
+.home .logo img,
+.front-page .logo img {
+  max-height: 90px;
 }
 
 .nav {
