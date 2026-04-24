@@ -10,7 +10,9 @@
 
 <header class="site-header">
       <div class="header-inner">
-        <div class="logo">Your Store</div>
+        <div class="logo">
+		  <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo.png" alt="Your Store">
+		</div>
         <nav class="nav">
           <a href="#">Home</a>
           <a href="#">Shop</a>
