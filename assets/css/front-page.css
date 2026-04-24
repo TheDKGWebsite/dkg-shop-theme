@@ -59,6 +59,12 @@ body {
   letter-spacing: 0.08em;
 }
 
+.logo img {
+  height: 50px; /* adjust as needed */
+  width: auto;
+  display: block;
+}
+
 .nav {
   display: flex;
   gap: 20px;
