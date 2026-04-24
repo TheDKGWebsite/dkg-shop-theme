@@ -307,11 +307,11 @@ body {
 }
 
 /* === DKG GLOBAL HEADER LOGO FIX START === */
-
-/*
-  This block must be available on every page, not just the homepage.
-  It prevents oversized WordPress/custom-logo images on WooCommerce pages.
-*/
+/* =========================================================
+   GLOBAL HEADER / LOGO SAFETY FIX
+   Prevents the site logo from becoming huge on WooCommerce,
+   product category, product, cart, checkout, and other pages.
+   ========================================================= */
 
 .site-header {
   min-height: 100px;
@@ -342,7 +342,6 @@ body {
   display: flex;
   align-items: center;
   max-height: 100px;
-  line-height: 1;
 }
 
 .site-header .logo img,
@@ -383,5 +382,4 @@ body {
     max-height: 50px !important;
   }
 }
-
 /* === DKG GLOBAL HEADER LOGO FIX END === */
