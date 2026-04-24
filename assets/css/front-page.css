@@ -25,13 +25,9 @@ body {
   background: rgba(0, 0, 0, 0.45);
 }
 
-/* =========================
-   HEADER (DEFAULT = ALL PAGES)
-========================= */
-
 .site-header {
-  height: 70px;
-  padding: 0 40px;
+  height: 100px;              /* lock the header height */
+  padding: 0 40px;           /* remove vertical padding */
   display: flex;
   align-items: center;
 
@@ -53,15 +49,16 @@ body {
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* ADD THIS */
 }
 
 .logo {
-  display: flex;
-  align-items: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-/* Default logo (ALL pages) */
 .logo img {
   height: auto;
   max-height: 55px;
@@ -69,23 +66,10 @@ body {
   display: block;
 }
 
-/* =========================
-   HOMEPAGE OVERRIDES ONLY
-========================= */
-
-body.home .site-header,
-body.front-page .site-header {
-  height: 100px;
-}
-
-body.home .logo img,
-body.front-page .logo img {
+.home .logo img,
+.front-page .logo img {
   max-height: 90px;
 }
-
-/* =========================
-   NAV
-========================= */
 
 .nav {
   display: flex;
@@ -102,10 +86,6 @@ body.front-page .logo img {
 .nav a:hover {
   opacity: 0.6;
 }
-
-/* =========================
-   HERO
-========================= */
 
 .hero {
   text-align: center;
@@ -124,10 +104,6 @@ body.front-page .logo img {
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.6;
 }
-
-/* =========================
-   COLLECTIONS
-========================= */
 
 .collections-section {
   max-width: 1400px;
@@ -149,6 +125,14 @@ body.front-page .logo img {
   text-decoration: none;
 }
 
+.collection-link:hover,
+.collection-link:focus,
+.collection-link:active,
+.collection-link:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
 .collection-box {
   position: relative;
   width: 100%;
@@ -163,7 +147,8 @@ body.front-page .logo img {
   transition: transform 0.18s ease, background 0.18s ease;
 }
 
-.collection-link:hover .collection-box {
+.collection-link:hover .collection-box,
+.collection-link:focus .collection-box {
   transform: translateY(-2px);
   background: rgba(0, 0, 0, 0.55);
 }
@@ -207,11 +192,8 @@ body.front-page .logo img {
   z-index: 4;
 }
 
-/* =========================
-   PRODUCT CAROUSEL
-========================= */
-
 .carousel-shell {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -222,59 +204,94 @@ body.front-page .logo img {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  position: relative;
   border-radius: 22px;
   display: flex;
+  justify-content: flex-start;
 }
 
 .product-track {
   display: flex;
   gap: 14px;
   transition: transform 0.5s ease;
+  will-change: transform;
   align-items: stretch;
   height: 100%;
+  width: 100%;
+  justify-content: flex-start !important;
+  margin-right: auto !important;
 }
 
 .product-card {
   flex: 0 0 calc((100% - 56px) / 5);
+  width: calc((100% - 56px) / 5);
+  min-width: calc((100% - 56px) / 5);
   height: 100%;
   border-radius: 22px;
   overflow: hidden;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.12);
+  pointer-events: none;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  background: rgba(255,255,255,0.06);
 }
 
-/* =========================
-   COLORS
-========================= */
 
-.red { border-color: #ff4d4d; color: #ff4d4d; }
-.blue { border-color: #4da6ff; color: #4da6ff; }
-.green { border-color: #49d17d; color: #49d17d; }
-.yellow { border-color: #ffd84d; color: #ffd84d; }
+.product-card--empty {
+  justify-content: center;
+}
 
-/* =========================
-   FOOTER
-========================= */
+.product-card--empty .product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.red {
+  border-color: #ff4d4d;
+  color: #ff4d4d;
+}
+
+.blue {
+  border-color: #4da6ff;
+  color: #4da6ff;
+}
+
+.green {
+  border-color: #49d17d;
+  color: #49d17d;
+}
+
+.yellow {
+  border-color: #ffd84d;
+  color: #ffd84d;
+}
 
 .site-footer {
   text-align: center;
   padding: 20px;
   background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
-/* =========================
-   MOBILE
-========================= */
+@media (max-width: 980px) {
+  .product-card {
+    flex: 0 0 calc((100% - 14px) / 2);
+  }
+}
 
 @media (max-width: 640px) {
   .site-header {
-    height: auto;
+    height: auto;          /* allow growth on mobile */
     padding: 12px 20px;
   }
 
