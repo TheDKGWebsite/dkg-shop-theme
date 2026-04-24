@@ -26,7 +26,7 @@ body {
 }
 
 .site-header {
-  height: 80px;              /* lock the header height */
+  height: 100px;              /* lock the header height */
   padding: 0 40px;           /* remove vertical padding */
   display: flex;
   align-items: center;
