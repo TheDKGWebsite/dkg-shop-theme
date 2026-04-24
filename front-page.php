@@ -10,7 +10,7 @@ $home_collections = array(
         'slug'  => 'shirts',
         'class' => 'red',
         'label' => 'Shirts',
-        'bg'    => get_template_directory_uri() . '/assets/images/bricks.png',
+        'bg'    => get_template_directory_uri() . '/assets/images/col1.png',
     ),
     array(
         'slug'  => 'posters',
