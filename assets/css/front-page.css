@@ -26,8 +26,10 @@ body {
 }
 
 .site-header {
-  width: 100%;
-  padding: 24px 40px;
+  height: 80px;              /* lock the header height */
+  padding: 0 40px;           /* remove vertical padding */
+  display: flex;
+  align-items: center;
 
   background-image: url("../images/header.png");
   background-size: cover;
@@ -44,12 +46,9 @@ body {
 }
 
 .header-inner {
-  max-width: 1400px;
-  margin: 0 auto;
+  height: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 20px;
 }
 
 .logo {
@@ -60,9 +59,9 @@ body {
 }
 
 .logo img {
-  height: 100px; /* adjust as needed */
+  height: 100%;      /* fills header height */
+  max-height: 70px;  /* keeps a little margin */
   width: auto;
-  display: block;
 }
 
 .nav {
