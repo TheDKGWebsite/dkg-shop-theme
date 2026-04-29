@@ -39,3 +39,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* DKG custom shop collection ordering */
+.dkg-shop-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 20px 100px;
+    color: #fff;
+}
+
+.dkg-shop-section {
+    margin-bottom: 70px;
+    padding: 28px;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 30px;
+    background: rgba(0,0,0,0.45);
+}
+
+.dkg-shop-section h1,
+.dkg-shop-section h2 {
+    margin: 0 0 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dkg-featured-collection {
+    border-color: rgba(255,255,255,0.35);
+}
+
+.dkg-more-products {
+    opacity: 0.95;
+}
