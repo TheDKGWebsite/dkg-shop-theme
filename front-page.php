@@ -45,10 +45,13 @@ $home_collections = array(
             continue;
         }
 
-        $term_link = get_term_link($term);
-        if (is_wp_error($term_link)) {
-            continue;
-        }
+		$shop_url = get_permalink(wc_get_page_id('shop'));
+
+		$term_link = add_query_arg(
+			'featured_collection',
+			$collection['slug'],
+			$shop_url
+		);
 
         $products = new WP_Query(array(
             'post_type'      => 'product',
