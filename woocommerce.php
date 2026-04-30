@@ -27,6 +27,8 @@ if ($featured_collection && isset($collection_backgrounds[$featured_collection])
     }
 }
 
+}
+
 
 
 if (is_shop() && $featured_collection) {

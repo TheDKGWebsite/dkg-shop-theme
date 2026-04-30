@@ -214,3 +214,16 @@ body:has(.dkg-shop-main)::after {
     content: none !important;
 }
 /* === DKG REAL SHOP BACKGROUND DIV FIX END === */
+
+
+/* === DKG CLEANUP: disable old dynamic background layering attempts === */
+.dkg-shop-main::before,
+.dkg-shop-main::after,
+.dkg-real-shop-bg,
+.dkg-real-shop-bg-overlay,
+body:has(.dkg-shop-main)::before,
+body:has(.dkg-shop-main)::after {
+    display: none !important;
+    content: none !important;
+}
+/* === DKG CLEANUP END === */
