@@ -22,11 +22,13 @@ if ($featured_collection && isset($collection_backgrounds[$featured_collection])
     $shop_bg = $collection_backgrounds[$featured_collection];
 }
 
-$bg_style = $shop_bg
-    ? ' style="--dkg-shop-bg: url(' . esc_url($shop_bg) . ');"'
-    : '';
+if ($shop_bg) {
+    echo '<style id="dkg-dynamic-shop-bg">';
+    echo 'body { --dkg-shop-bg: url("' . esc_url($shop_bg) . '"); }';
+    echo '</style>';
+}
 
-echo '<main class="dkg-shop-main"' . $bg_style . '>';
+echo '<main class="dkg-shop-main">';
 
 if (is_shop() && $featured_collection) {
     $term = get_term_by('slug', $featured_collection, 'product_cat');

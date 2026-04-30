@@ -124,3 +124,52 @@ body.woocommerce .dkg-shop-section {
     z-index: 3;
 }
 /* === DKG FIX END === */
+
+
+/* === DKG FORCE SHOP BACKGROUND FIX === */
+
+/* Hide default brick background only when a dynamic shop background exists */
+body:has(.dkg-shop-main) {
+    background-image: none !important;
+    background-color: #000 !important;
+}
+
+/* Full-window dynamic collection background */
+body:has(.dkg-shop-main)::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--dkg-shop-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.45;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Dark overlay */
+body:has(.dkg-shop-main)::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Keep actual shop content above the background */
+.dkg-shop-main,
+.site-header,
+.site-footer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Disable older main-based pseudo background so it does not conflict */
+.dkg-shop-main::before,
+.dkg-shop-main::after {
+    content: none !important;
+}
+
+/* === DKG FORCE SHOP BACKGROUND FIX END === */
