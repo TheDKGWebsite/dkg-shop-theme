@@ -99,3 +99,28 @@
     z-index: -1;
     pointer-events: none;
 }
+
+
+/* === DKG FIX: make dynamic shop background visible above body bricks === */
+body.woocommerce {
+    background-image: none !important;
+}
+
+body.woocommerce .dkg-shop-main {
+    position: relative;
+    z-index: 2;
+}
+
+body.woocommerce .dkg-shop-main::before {
+    z-index: 0;
+}
+
+body.woocommerce .dkg-shop-main::after {
+    z-index: 1;
+}
+
+body.woocommerce .dkg-shop-section {
+    position: relative;
+    z-index: 3;
+}
+/* === DKG FIX END === */
