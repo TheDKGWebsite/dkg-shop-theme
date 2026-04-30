@@ -43,41 +43,83 @@ if ($shop_bg_url) {
     <?php
 }
 
+/**
+ * Returns product IDs with in-stock products first and out-of-stock products last.
+ */
+function dkg_get_sorted_product_ids($args = array()) {
+    $base_args = array_merge(array(
+        'status'  => 'publish',
+        'limit'   => -1,
+        'return'  => 'ids',
+        'orderby' => 'menu_order title',
+        'order'   => 'ASC',
+    ), $args);
+
+    $in_stock_args = array_merge($base_args, array(
+        'stock_status' => array('instock', 'onbackorder'),
+    ));
+
+    $out_stock_args = array_merge($base_args, array(
+        'stock_status' => 'outofstock',
+    ));
+
+    $in_stock_ids = wc_get_products($in_stock_args);
+    $out_stock_ids = wc_get_products($out_stock_args);
+
+    return array_values(array_unique(array_merge($in_stock_ids, $out_stock_ids)));
+}
+
+/**
+ * Prints a WooCommerce product grid from sorted IDs.
+ */
+function dkg_print_sorted_products($product_ids) {
+    if (empty($product_ids)) {
+        echo '<p class="dkg-no-products">No products found.</p>';
+        return;
+    }
+
+    echo do_shortcode('[products ids="' . esc_attr(implode(',', $product_ids)) . '" columns="4" limit="-1" orderby="post__in"]');
+}
+
 echo '<main class="dkg-shop-main">';
+echo '<section class="dkg-shop-plate">';
 
 if (is_shop() && $featured_collection) {
     $term = get_term_by('slug', $featured_collection, 'product_cat');
 
     if ($term && !is_wp_error($term)) {
-        echo '<section class="dkg-shop-section dkg-featured-collection">';
-        echo '<h1>' . esc_html($term->name) . '</h1>';
-        echo do_shortcode('[products category="' . esc_attr($term->slug) . '" columns="4" limit="-1"]');
-        echo '</section>';
-
-        $featured_ids = wc_get_products(array(
-            'status'   => 'publish',
-            'limit'    => -1,
+        $featured_ids = dkg_get_sorted_product_ids(array(
             'category' => array($term->slug),
-            'return'   => 'ids',
         ));
 
-        echo '<section class="dkg-shop-section dkg-more-products">';
-        echo '<h2>More Products</h2>';
+        echo '<div class="dkg-shop-block dkg-featured-collection">';
+        echo '<h1>' . esc_html($term->name) . '</h1>';
+        dkg_print_sorted_products($featured_ids);
+        echo '</div>';
 
-        if (!empty($featured_ids)) {
-            echo do_shortcode('[products columns="4" limit="-1" exclude="' . esc_attr(implode(',', $featured_ids)) . '"]');
-        } else {
-            echo do_shortcode('[products columns="4" limit="-1"]');
-        }
+        $all_ids = dkg_get_sorted_product_ids();
 
-        echo '</section>';
+        $other_ids = array_values(array_diff($all_ids, $featured_ids));
+
+        echo '<div class="dkg-shop-divider-title">Shop Products</div>';
+
+        echo '<div class="dkg-shop-block dkg-all-products">';
+        dkg_print_sorted_products($other_ids);
+        echo '</div>';
     } else {
-        woocommerce_content();
+        echo '<div class="dkg-shop-divider-title">Shop Products</div>';
+        echo '<div class="dkg-shop-block dkg-all-products">';
+        dkg_print_sorted_products(dkg_get_sorted_product_ids());
+        echo '</div>';
     }
 } else {
-    woocommerce_content();
+    echo '<div class="dkg-shop-divider-title">Shop Products</div>';
+    echo '<div class="dkg-shop-block dkg-all-products">';
+    dkg_print_sorted_products(dkg_get_sorted_product_ids());
+    echo '</div>';
 }
 
+echo '</section>';
 echo '</main>';
 
 get_footer();
