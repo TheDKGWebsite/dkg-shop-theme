@@ -317,3 +317,42 @@ body:has(.dkg-shop-main)::after {
 }
 
 /* === DKG SHOP PLATE LAYOUT END === */
+
+
+/* === DKG NARROW SHOP PLATE START === */
+
+/*
+  Keeps the shop products on one gray bordered plate,
+  but leaves visible background gaps on the left and right.
+*/
+
+.dkg-shop-main {
+    max-width: 100%;
+    width: 100%;
+    padding: 70px 20px 110px;
+}
+
+.dkg-shop-plate {
+    max-width: 1180px;
+    width: min(1180px, calc(100vw - 120px));
+    margin: 0 auto;
+    padding: 34px;
+    border: 2px solid rgba(255,255,255,0.20);
+    border-radius: 34px;
+    background: rgba(0,0,0,0.58);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.38);
+}
+
+@media (max-width: 900px) {
+    .dkg-shop-plate {
+        width: min(100%, calc(100vw - 36px));
+        padding: 22px;
+        border-radius: 26px;
+    }
+
+    .dkg-shop-main {
+        padding: 38px 0 80px;
+    }
+}
+
+/* === DKG NARROW SHOP PLATE END === */
