@@ -9,15 +9,17 @@
 <?php wp_body_open(); ?>
 
 <header class="site-header">
-      <div class="header-inner">
-        <div class="logo">
-		  <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo.png" alt="Your Store">
-		</div>
-        <nav class="nav">
-          <a href="#">Home</a>
-          <a href="#">Shop</a>
-          <a href="#">Collections</a>
-          <a href="#">Cart</a>
-        </nav>
-      </div>
-    </header>
+  <div class="header-inner">
+    <div class="logo">
+      <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="DKG ZONE Home">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.png'); ?>" alt="DKG ZONE">
+      </a>
+    </div>
+
+    <nav class="nav" aria-label="Main navigation">
+      <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
+      <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>
+      <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>
+    </nav>
+  </div>
+</header>
