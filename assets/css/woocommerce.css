@@ -70,3 +70,32 @@
 .dkg-more-products {
     opacity: 0.95;
 }
+
+
+/* DKG dynamic shop background by selected collection */
+.dkg-shop-main {
+    position: relative;
+    isolation: isolate;
+}
+
+.dkg-shop-main::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--dkg-shop-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+    z-index: -2;
+    pointer-events: none;
+}
+
+.dkg-shop-main::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+    pointer-events: none;
+}
