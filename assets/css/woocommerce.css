@@ -173,3 +173,44 @@ body:has(.dkg-shop-main)::after {
 }
 
 /* === DKG FORCE SHOP BACKGROUND FIX END === */
+
+
+/* === DKG REAL SHOP BACKGROUND DIV FIX === */
+body:has(.dkg-shop-main) {
+    background-image: none !important;
+    background-color: #000 !important;
+}
+
+.dkg-real-shop-bg {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    opacity: 0.55 !important;
+    pointer-events: none !important;
+}
+
+.dkg-real-shop-bg-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: rgba(0,0,0,0.55) !important;
+    pointer-events: none !important;
+}
+
+.site-header,
+.dkg-shop-main,
+.site-footer {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.dkg-shop-main::before,
+.dkg-shop-main::after,
+body:has(.dkg-shop-main)::before,
+body:has(.dkg-shop-main)::after {
+    content: none !important;
+}
+/* === DKG REAL SHOP BACKGROUND DIV FIX END === */

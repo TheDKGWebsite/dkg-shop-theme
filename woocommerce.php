@@ -10,25 +10,24 @@ $featured_collection = isset($_GET['featured_collection'])
 
 
 $collection_backgrounds = array(
-    'shirts'   => get_template_directory_uri() . '/assets/images/col1.png',
-    'posters'  => get_template_directory_uri() . '/assets/images/collection-bg-2.jpg',
-    'stickers' => get_template_directory_uri() . '/assets/images/collection-bg-3.jpg',
-    'hats'     => get_template_directory_uri() . '/assets/images/collection-bg-4.jpg',
+    'shirts'   => 'col1.png',
+    'posters'  => 'col1.png',
+    'stickers' => 'col1.png',
+    'hats'     => 'col1.png',
 );
 
 $shop_bg = '';
 
 if ($featured_collection && isset($collection_backgrounds[$featured_collection])) {
-    $shop_bg = $collection_backgrounds[$featured_collection];
+    $bg_file = $collection_backgrounds[$featured_collection];
+    $bg_path = get_template_directory() . '/assets/images/' . $bg_file;
+
+    if (file_exists($bg_path)) {
+        $shop_bg = get_template_directory_uri() . '/assets/images/' . $bg_file;
+    }
 }
 
-if ($shop_bg) {
-    echo '<style id="dkg-dynamic-shop-bg">';
-    echo 'body { --dkg-shop-bg: url("' . esc_url($shop_bg) . '"); }';
-    echo '</style>';
-}
 
-echo '<main class="dkg-shop-main">';
 
 if (is_shop() && $featured_collection) {
     $term = get_term_by('slug', $featured_collection, 'product_cat');
