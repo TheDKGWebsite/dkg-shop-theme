@@ -18,16 +18,39 @@ $shop_bg_url = '';
 
 if ($featured_collection && isset($collection_backgrounds[$featured_collection])) {
     $bg_file = $collection_backgrounds[$featured_collection];
-    $bg_path = get_template_directory() . '/assets/images/' . $bg_file;
 
-    if (file_exists($bg_path)) {
-        $shop_bg_url = get_template_directory_uri() . '/assets/images/' . $bg_file;
+    // Use WordPress theme helpers so the URL works correctly on the live server.
+    if (file_exists(get_theme_file_path('/assets/images/' . $bg_file))) {
+        $shop_bg_url = get_theme_file_uri('/assets/images/' . $bg_file);
     }
+}
+
+// Fallback: if a featured collection is selected but something went wrong,
+// still force col1.png instead of black.
+if ($featured_collection && !$shop_bg_url && file_exists(get_theme_file_path('/assets/images/col1.png'))) {
+    $shop_bg_url = get_theme_file_uri('/assets/images/col1.png');
 }
 
 if ($shop_bg_url) {
     ?>
-    <!-- DKG DEBUG: dynamic shop background loaded -->
+    <!-- DKG DEBUG: dynamic shop background loaded: <?php echo esc_url($shop_bg_url); ?> -->
+    <style id="dkg-force-shop-bg">
+        html,
+        body {
+            background-image:
+                linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
+                url("<?php echo esc_url($shop_bg_url); ?>") !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
+            background-color: #000 !important;
+        }
+    </style>
+    <?php
+}
+
+<!-- DKG DEBUG: dynamic shop background loaded -->
     <style id="dkg-force-shop-bg">
         body {
             background-image:
