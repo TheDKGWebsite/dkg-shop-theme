@@ -14,135 +14,57 @@ $collection_backgrounds = array(
     'hats'     => 'col1.png',
 );
 
-$shop_bg_url = '';
+$shop_bg = '';
 
 if ($featured_collection && isset($collection_backgrounds[$featured_collection])) {
     $bg_file = $collection_backgrounds[$featured_collection];
+    $bg_path = get_template_directory() . '/assets/images/' . $bg_file;
 
-    // Use WordPress theme helpers so the URL works correctly on the live server.
-    if (file_exists(get_theme_file_path('/assets/images/' . $bg_file))) {
-        $shop_bg_url = get_theme_file_uri('/assets/images/' . $bg_file);
+    if (file_exists($bg_path)) {
+        $shop_bg = get_template_directory_uri() . '/assets/images/' . $bg_file;
     }
 }
 
-// Fallback: if a featured collection is selected but something went wrong,
-// still force col1.png instead of black.
-if ($featured_collection && !$shop_bg_url && file_exists(get_theme_file_path('/assets/images/col1.png'))) {
-    $shop_bg_url = get_theme_file_uri('/assets/images/col1.png');
-}
-
-if ($shop_bg_url) {
-    ?>
-    <!-- DKG DEBUG: dynamic shop background loaded: <?php echo esc_url($shop_bg_url); ?> -->
-    <style id="dkg-force-shop-bg">
-        html,
-        body {
-            background-image:
-                linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
-                url("<?php echo esc_url($shop_bg_url); ?>") !important;
-            background-size: cover !important;
-            background-position: center center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-            background-color: #000 !important;
-        }
-    </style>
-    <?php
-}
-
-<!-- DKG DEBUG: dynamic shop background loaded -->
-    <style id="dkg-force-shop-bg">
-        body {
-            background-image:
-                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                url("<?php echo esc_url($shop_bg_url); ?>") !important;
-            background-size: cover !important;
-            background-position: center center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-            background-color: #000 !important;
-        }
-    </style>
-    <?php
-}
-
-/**
- * Returns product IDs with in-stock products first and out-of-stock products last.
- */
-function dkg_get_sorted_product_ids($args = array()) {
-    $base_args = array_merge(array(
-        'status'  => 'publish',
-        'limit'   => -1,
-        'return'  => 'ids',
-        'orderby' => 'menu_order title',
-        'order'   => 'ASC',
-    ), $args);
-
-    $in_stock_args = array_merge($base_args, array(
-        'stock_status' => array('instock', 'onbackorder'),
-    ));
-
-    $out_stock_args = array_merge($base_args, array(
-        'stock_status' => 'outofstock',
-    ));
-
-    $in_stock_ids = wc_get_products($in_stock_args);
-    $out_stock_ids = wc_get_products($out_stock_args);
-
-    return array_values(array_unique(array_merge($in_stock_ids, $out_stock_ids)));
-}
-
-/**
- * Prints a WooCommerce product grid from sorted IDs.
- */
-function dkg_print_sorted_products($product_ids) {
-    if (empty($product_ids)) {
-        echo '<p class="dkg-no-products">No products found.</p>';
-        return;
-    }
-
-    echo do_shortcode('[products ids="' . esc_attr(implode(',', $product_ids)) . '" columns="4" limit="-1" orderby="post__in"]');
+if ($shop_bg) {
+    echo '<div class="dkg-real-shop-bg" style="background-image: url(' . esc_url($shop_bg) . ');"></div>';
+    echo '<div class="dkg-real-shop-bg-overlay"></div>';
 }
 
 echo '<main class="dkg-shop-main">';
-echo '<section class="dkg-shop-plate">';
 
 if (is_shop() && $featured_collection) {
     $term = get_term_by('slug', $featured_collection, 'product_cat');
 
     if ($term && !is_wp_error($term)) {
-        $featured_ids = dkg_get_sorted_product_ids(array(
+        echo '<section class="dkg-shop-section dkg-featured-collection">';
+        echo '<h1>' . esc_html($term->name) . '</h1>';
+        echo do_shortcode('[products category="' . esc_attr($term->slug) . '" columns="4" limit="-1"]');
+        echo '</section>';
+
+        $featured_ids = wc_get_products(array(
+            'status'   => 'publish',
+            'limit'    => -1,
             'category' => array($term->slug),
+            'return'   => 'ids',
         ));
 
-        echo '<div class="dkg-shop-block dkg-featured-collection">';
-        echo '<h1>' . esc_html($term->name) . '</h1>';
-        dkg_print_sorted_products($featured_ids);
-        echo '</div>';
+        echo '<section class="dkg-shop-section dkg-more-products">';
+        echo '<h2>More Products</h2>';
 
-        $all_ids = dkg_get_sorted_product_ids();
+        if (!empty($featured_ids)) {
+            echo do_shortcode('[products columns="4" limit="-1" exclude="' . esc_attr(implode(',', $featured_ids)) . '"]');
+        } else {
+            echo do_shortcode('[products columns="4" limit="-1"]');
+        }
 
-        $other_ids = array_values(array_diff($all_ids, $featured_ids));
-
-        echo '<div class="dkg-shop-divider-title">Shop Products</div>';
-
-        echo '<div class="dkg-shop-block dkg-all-products">';
-        dkg_print_sorted_products($other_ids);
-        echo '</div>';
+        echo '</section>';
     } else {
-        echo '<div class="dkg-shop-divider-title">Shop Products</div>';
-        echo '<div class="dkg-shop-block dkg-all-products">';
-        dkg_print_sorted_products(dkg_get_sorted_product_ids());
-        echo '</div>';
+        woocommerce_content();
     }
 } else {
-    echo '<div class="dkg-shop-divider-title">Shop Products</div>';
-    echo '<div class="dkg-shop-block dkg-all-products">';
-    dkg_print_sorted_products(dkg_get_sorted_product_ids());
-    echo '</div>';
+    woocommerce_content();
 }
 
-echo '</section>';
 echo '</main>';
 
 get_footer();
