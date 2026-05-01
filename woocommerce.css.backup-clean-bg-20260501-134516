@@ -1,0 +1,358 @@
+.woocommerce ul.products {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.woocommerce ul.products li.product {
+  width: auto !important;
+  margin: 0 !important;
+  float: none !important;
+}
+
+.woocommerce ul.products li.product a img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.woocommerce ul.products li.product .button {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+.single-product div.product {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+@media (max-width: 900px) {
+  .woocommerce ul.products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .single-product div.product {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* DKG custom shop collection ordering */
+.dkg-shop-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 20px 100px;
+    color: #fff;
+}
+
+.dkg-shop-section {
+    margin-bottom: 70px;
+    padding: 28px;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 30px;
+    background: rgba(0,0,0,0.45);
+}
+
+.dkg-shop-section h1,
+.dkg-shop-section h2 {
+    margin: 0 0 28px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dkg-featured-collection {
+    border-color: rgba(255,255,255,0.35);
+}
+
+.dkg-more-products {
+    opacity: 0.95;
+}
+
+
+/* DKG dynamic shop background by selected collection */
+.dkg-shop-main {
+    position: relative;
+    isolation: isolate;
+}
+
+.dkg-shop-main::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--dkg-shop-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+    z-index: -2;
+    pointer-events: none;
+}
+
+.dkg-shop-main::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+    pointer-events: none;
+}
+
+
+/* === DKG FIX: make dynamic shop background visible above body bricks === */
+body.woocommerce {
+    background-image: none !important;
+}
+
+body.woocommerce .dkg-shop-main {
+    position: relative;
+    z-index: 2;
+}
+
+body.woocommerce .dkg-shop-main::before {
+    z-index: 0;
+}
+
+body.woocommerce .dkg-shop-main::after {
+    z-index: 1;
+}
+
+body.woocommerce .dkg-shop-section {
+    position: relative;
+    z-index: 3;
+}
+/* === DKG FIX END === */
+
+
+/* === DKG FORCE SHOP BACKGROUND FIX === */
+
+/* Hide default brick background only when a dynamic shop background exists */
+body:has(.dkg-shop-main) {
+    background-image: none !important;
+    background-color: #000 !important;
+}
+
+/* Full-window dynamic collection background */
+body:has(.dkg-shop-main)::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--dkg-shop-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.45;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Dark overlay */
+body:has(.dkg-shop-main)::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Keep actual shop content above the background */
+.dkg-shop-main,
+.site-header,
+.site-footer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Disable older main-based pseudo background so it does not conflict */
+.dkg-shop-main::before,
+.dkg-shop-main::after {
+    content: none !important;
+}
+
+/* === DKG FORCE SHOP BACKGROUND FIX END === */
+
+
+/* === DKG REAL SHOP BACKGROUND DIV FIX === */
+body:has(.dkg-shop-main) {
+    background-image: none !important;
+    background-color: #000 !important;
+}
+
+.dkg-real-shop-bg {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    opacity: 0.55 !important;
+    pointer-events: none !important;
+}
+
+.dkg-real-shop-bg-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: rgba(0,0,0,0.55) !important;
+    pointer-events: none !important;
+}
+
+.site-header,
+.dkg-shop-main,
+.site-footer {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.dkg-shop-main::before,
+.dkg-shop-main::after,
+body:has(.dkg-shop-main)::before,
+body:has(.dkg-shop-main)::after {
+    content: none !important;
+}
+/* === DKG REAL SHOP BACKGROUND DIV FIX END === */
+
+
+/* === DKG CLEANUP: disable old dynamic background layering attempts === */
+.dkg-shop-main::before,
+.dkg-shop-main::after,
+.dkg-real-shop-bg,
+.dkg-real-shop-bg-overlay,
+body:has(.dkg-shop-main)::before,
+body:has(.dkg-shop-main)::after {
+    display: none !important;
+    content: none !important;
+}
+/* === DKG CLEANUP END === */
+
+
+/* === DKG SHOP PLATE LAYOUT START === */
+
+.dkg-shop-main {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 60px 20px 100px;
+    color: #fff;
+}
+
+.dkg-shop-plate {
+    width: 100%;
+    padding: 34px;
+    border: 2px solid rgba(255,255,255,0.16);
+    border-radius: 34px;
+    background: rgba(0,0,0,0.58);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    backdrop-filter: blur(2px);
+}
+
+.dkg-shop-block {
+    width: 100%;
+}
+
+.dkg-shop-block h1 {
+    margin: 0 0 26px;
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dkg-shop-divider-title {
+    margin: 48px 0 28px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: clamp(1.5rem, 2.5vw, 2.6rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dkg-shop-plate .woocommerce ul.products {
+    margin-bottom: 0;
+}
+
+.dkg-shop-plate .woocommerce ul.products li.product,
+.dkg-shop-plate ul.products li.product {
+    padding: 14px !important;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+.dkg-shop-plate ul.products li.product a img {
+    border-radius: 16px;
+}
+
+.dkg-shop-plate ul.products li.product .woocommerce-loop-product__title {
+    color: #fff;
+}
+
+.dkg-shop-plate ul.products li.product .price {
+    color: rgba(255,255,255,0.85);
+}
+
+.dkg-no-products {
+    margin: 0;
+    color: rgba(255,255,255,0.7);
+}
+
+@media (max-width: 700px) {
+    .dkg-shop-main {
+        padding: 30px 12px 70px;
+    }
+
+    .dkg-shop-plate {
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .dkg-shop-divider-title {
+        margin-top: 34px;
+        padding-top: 24px;
+    }
+}
+
+/* === DKG SHOP PLATE LAYOUT END === */
+
+
+/* === DKG NARROW SHOP PLATE START === */
+
+/*
+  Keeps the shop products on one gray bordered plate,
+  but leaves visible background gaps on the left and right.
+*/
+
+.dkg-shop-main {
+    max-width: 100%;
+    width: 100%;
+    padding: 70px 20px 110px;
+}
+
+.dkg-shop-plate {
+    max-width: 1180px;
+    width: min(1180px, calc(100vw - 120px));
+    margin: 0 auto;
+    padding: 34px;
+    border: 2px solid rgba(255,255,255,0.20);
+    border-radius: 34px;
+    background: rgba(0,0,0,0.58);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.38);
+}
+
+@media (max-width: 900px) {
+    .dkg-shop-plate {
+        width: min(100%, calc(100vw - 36px));
+        padding: 22px;
+        border-radius: 26px;
+    }
+
+    .dkg-shop-main {
+        padding: 38px 0 80px;
+    }
+}
+
+/* === DKG NARROW SHOP PLATE END === */
