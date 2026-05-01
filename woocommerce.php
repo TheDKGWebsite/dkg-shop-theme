@@ -14,10 +14,6 @@ $collection_backgrounds = array(
     'hats'     => 'col1.png',
 );
 
-/*
- * Default shop background.
- * This makes /shop/ have a background too, not just /shop/?featured_collection=shirts.
- */
 $bg_file = 'col1.png';
 
 if ($featured_collection && isset($collection_backgrounds[$featured_collection])) {
@@ -31,9 +27,79 @@ if (file_exists($bg_path)) {
     $shop_bg = get_template_directory_uri() . '/assets/images/' . $bg_file;
 }
 
+/*
+ * Fully inline background system.
+ * This avoids broken/old CSS rules in woocommerce.css hiding the background.
+ */
 if ($shop_bg) {
-    echo '<div class="dkg-real-shop-bg" style="background-image: url(' . esc_url($shop_bg) . ');"></div>';
-    echo '<div class="dkg-real-shop-bg-overlay"></div>';
+    echo '<style id="dkg-inline-shop-bg-force">
+        html, body {
+            background: #000 !important;
+            background-image: none !important;
+        }
+
+        .dkg-inline-shop-bg {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 0 !important;
+            background-image: url(' . esc_url($shop_bg) . ') !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+            opacity: 0.85 !important;
+            pointer-events: none !important;
+        }
+
+        .dkg-inline-shop-bg-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 1 !important;
+            background: rgba(0,0,0,0.38) !important;
+            pointer-events: none !important;
+        }
+
+        .site-header,
+        .dkg-shop-main,
+        .site-footer {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+
+        .dkg-real-shop-bg,
+        .dkg-real-shop-bg-overlay,
+        .dkg-shop-main::before,
+        .dkg-shop-main::after {
+            display: none !important;
+            content: none !important;
+        }
+
+        .dkg-shop-main {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 70px 20px 110px !important;
+            color: #fff !important;
+        }
+
+        .dkg-shop-plate,
+        .dkg-shop-section {
+            width: min(1180px, calc(100vw - 80px)) !important;
+            margin: 0 auto 70px !important;
+            padding: 34px !important;
+            border: 2px solid rgba(255,255,255,0.22) !important;
+            border-radius: 34px !important;
+            background: rgba(20,20,20,0.72) !important;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.45) !important;
+        }
+    </style>';
+
+    echo '<div class="dkg-inline-shop-bg"></div>';
+    echo '<div class="dkg-inline-shop-bg-overlay"></div>';
 }
 
 echo '<main class="dkg-shop-main">';
