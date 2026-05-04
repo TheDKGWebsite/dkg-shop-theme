@@ -98,7 +98,7 @@ if ($shop_bg) {
         }
 
         body.single-product .dkg-shop-plate {
-            background-image: url(' . esc_url(get_template_directory_uri() . '/assets/images/product-plate-bg.png') . ') !important;
+            background-image: url(' . esc_url(get_template_directory_uri() . '/assets/images/plate-bg.png') . ') !important;
             background-color: #000 !important;
             background-size: cover !important;
             background-position: center center !important;
