@@ -107,21 +107,6 @@ if ($shop_bg) {
             list-style: none !important;
         }
 
-        /*
-         * WooCommerce adds clearfix pseudo-elements to product grids.
-         * In CSS grid, those can appear as ghost grid items/gaps.
-         */
-        .dkg-mobile-shop-main ul.products::before,
-        .dkg-mobile-shop-main ul.products::after {
-            content: none !important;
-            display: none !important;
-        }
-
-        .dkg-mobile-shop-main ul.products li.product.first,
-        .dkg-mobile-shop-main ul.products li.product.last {
-            clear: none !important;
-        }
-
         .dkg-mobile-shop-main ul.products li.product {
             width: auto !important;
             float: none !important;
