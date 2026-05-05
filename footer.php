@@ -6,22 +6,14 @@
         DKG ZONE
       </a>
       <p>
-        Independent online shop for DKG Zone products, apparel, posters, and custom items.
+        Independent online shop for important DKG.ZONE products
       </p>
-    </div>
-
-    <div class="dkg-footer-column">
-      <h3>Shop</h3>
-      <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>
-      <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>
-      <a href="<?php echo esc_url(wc_get_checkout_url()); ?>">Checkout</a>
-      <a href="<?php echo esc_url(get_permalink(get_option('woocommerce_myaccount_page_id'))); ?>">My Account</a>
     </div>
 
     <div class="dkg-footer-column">
       <h3>Policies</h3>
       <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a>
-      <a href="<?php echo esc_url(home_url('/refund-and-returns-policy/')); ?>">Refund and Returns Policy</a>
+      <a href="<?php echo esc_url(home_url('/refund_returns/')); ?>">Refund and Returns Policy</a>
       <a href="<?php echo esc_url(home_url('/shipping-policy/')); ?>">Shipping Policy</a>
       <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms of Service</a>
     </div>
