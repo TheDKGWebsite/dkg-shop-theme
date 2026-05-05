@@ -47,4 +47,46 @@ body {
 .site-header .site-logo {
   line-height: 1;
 }
-/* === END DKG logo fixed header sizing === */
+
+/* === DKG SINGLE PRODUCT PAGE IMAGE SIZE START === */
+
+.single-product .woocommerce div.product {
+  display: flex;
+  gap: 56px;
+  align-items: flex-start;
+  max-width: 1300px;
+  margin: 50px auto;
+  padding: 0 40px;
+}
+
+.single-product .woocommerce div.product div.images {
+  width: 62% !important;
+  max-width: 850px;
+}
+
+.single-product .woocommerce div.product div.summary {
+  width: 38% !important;
+}
+
+.single-product .woocommerce div.product div.images img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* Mobile: stack image above details */
+@media (max-width: 768px) {
+  .single-product .woocommerce div.product {
+    display: block;
+    margin: 25px auto;
+    padding: 0 18px;
+  }
+
+  .single-product .woocommerce div.product div.images,
+  .single-product .woocommerce div.product div.summary {
+    width: 100% !important;
+    max-width: none;
+  }
+}
+
+/* === DKG SINGLE PRODUCT PAGE IMAGE SIZE END === */
