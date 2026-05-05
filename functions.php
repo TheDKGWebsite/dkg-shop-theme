@@ -164,7 +164,7 @@ add_action('wp_head', 'dkg_force_cart_background_inline_style', 999);
  * Force the checkout page to use a solid black background.
  * This overrides the globally loaded bricks.png background.
  */
-function dkg_force_checkout_black_background() {
+function dkg_force_checkout_white_background() {
     if (!function_exists('is_checkout') || !is_checkout()) {
         return;
     }
@@ -173,17 +173,14 @@ function dkg_force_checkout_black_background() {
         return;
     }
     ?>
-    <style id="dkg-checkout-black-bg-force">
+    <style id="dkg-checkout-white-bg-force">
       html,
       body,
       body.woocommerce-checkout {
-        background: #000 !important;
-        background-color: #000 !important;
+        background: #fff !important;
+        background-color: #fff !important;
         background-image: none !important;
-        background-size: auto !important;
-        background-position: initial !important;
-        background-repeat: no-repeat !important;
-        background-attachment: scroll !important;
+        color: #000 !important;
       }
 
       body.woocommerce-checkout::before,
@@ -193,25 +190,19 @@ function dkg_force_checkout_black_background() {
         background: none !important;
       }
 
-      body.woocommerce-checkout .site-header,
-      body.woocommerce-checkout .site-main,
-      body.woocommerce-checkout .site-footer {
-        position: relative !important;
-        z-index: 2 !important;
-      }
-
       body.woocommerce-checkout .site-main {
         min-height: calc(100vh - 140px) !important;
-        color: #fff !important;
+        color: #000 !important;
+        background: #fff !important;
       }
 
       body.woocommerce-checkout .site-main .container {
-        background: rgba(20, 20, 20, 0.72) !important;
-        border: 2px solid rgba(255, 255, 255, 0.22) !important;
-        border-radius: 34px !important;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45) !important;
+        background: #fff !important;
+        border: 1px solid rgba(0, 0, 0, 0.16) !important;
+        border-radius: 24px !important;
+        box-shadow: none !important;
         padding: 34px !important;
-        margin-top: 70px !important;
+        margin-top: 50px !important;
         margin-bottom: 70px !important;
       }
 
@@ -221,18 +212,12 @@ function dkg_force_checkout_black_background() {
       body.woocommerce-checkout .woocommerce label,
       body.woocommerce-checkout .woocommerce h1,
       body.woocommerce-checkout .woocommerce h2,
-      body.woocommerce-checkout .woocommerce h3 {
-        color: #fff !important;
-      }
-
-      body.woocommerce-checkout .woocommerce-checkout-review-order,
-      body.woocommerce-checkout #order_review,
-      body.woocommerce-checkout #customer_details,
-      body.woocommerce-checkout .woocommerce-billing-fields,
-      body.woocommerce-checkout .woocommerce-shipping-fields,
-      body.woocommerce-checkout .woocommerce-additional-fields {
-        background: rgba(0, 0, 0, 0.45) !important;
-        border-radius: 18px !important;
+      body.woocommerce-checkout .woocommerce h3,
+      body.woocommerce-checkout .woocommerce p,
+      body.woocommerce-checkout .woocommerce span,
+      body.woocommerce-checkout .woocommerce td,
+      body.woocommerce-checkout .woocommerce th {
+        color: #000 !important;
       }
 
       body.woocommerce-checkout input,
@@ -240,6 +225,7 @@ function dkg_force_checkout_black_background() {
       body.woocommerce-checkout select {
         background: #fff !important;
         color: #000 !important;
+        border: 1px solid rgba(0,0,0,0.35) !important;
       }
 
       body.woocommerce-checkout .button,
@@ -247,8 +233,8 @@ function dkg_force_checkout_black_background() {
       body.woocommerce-checkout input.button,
       body.woocommerce-checkout a.button,
       body.woocommerce-checkout #place_order {
-        background: #fff !important;
-        color: #000 !important;
+        background: #000 !important;
+        color: #fff !important;
         border-radius: 999px !important;
         font-weight: 700 !important;
         border: none !important;
@@ -259,22 +245,13 @@ function dkg_force_checkout_black_background() {
       body.woocommerce-checkout input.button:hover,
       body.woocommerce-checkout a.button:hover,
       body.woocommerce-checkout #place_order:hover {
-        background: #dcdcdc !important;
-        color: #000 !important;
-      }
-
-      @media (max-width: 700px) {
-        body.woocommerce-checkout .site-main .container {
-          margin-top: 30px !important;
-          margin-bottom: 40px !important;
-          padding: 20px !important;
-          border-radius: 24px !important;
-        }
+        background: #333 !important;
+        color: #fff !important;
       }
     </style>
     <?php
 }
-add_action('wp_head', 'dkg_force_checkout_black_background', 999);
+add_action('wp_head', 'dkg_force_checkout_white_background', 999);
 
 // === DKG CHECKOUT BLACK BACKGROUND END ===
 
