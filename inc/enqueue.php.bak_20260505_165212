@@ -7,21 +7,21 @@ function dkg_shop_enqueue_assets() {
         'dkg-shop-style',
         get_stylesheet_uri(),
         [],
-        file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : $theme_version
+        $theme_version
     );
 
     wp_enqueue_style(
         'dkg-shop-main',
         get_template_directory_uri() . '/assets/css/main.css',
         ['dkg-shop-style'],
-        file_exists(get_template_directory() . '/assets/css/main.css') ? filemtime(get_template_directory() . '/assets/css/main.css') : $theme_version
+        $theme_version
     );
 
     wp_enqueue_style(
         'dkg-shop-woocommerce',
         get_template_directory_uri() . '/assets/css/woocommerce.css',
         ['dkg-shop-main'],
-        file_exists(get_template_directory() . '/assets/css/woocommerce.css') ? filemtime(get_template_directory() . '/assets/css/woocommerce.css') : $theme_version
+        $theme_version
     );
 
     wp_enqueue_script(
