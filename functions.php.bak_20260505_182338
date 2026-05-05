@@ -323,197 +323,48 @@ function dkg_cart_checkout_button_first() {
     }
     ?>
     <script>
-      (function () {
-        function dkgDirectChildUnder(root, el) {
-          if (!root || !el || el === root) {
-            return null;
+      document.addEventListener('DOMContentLoaded', function () {
+        function dkgReorderCartCheckoutButtons() {
+          const proceedBox = document.querySelector('.wc-proceed-to-checkout');
+
+          if (!proceedBox) {
+            return;
           }
 
-          let current = el;
-
-          while (current && current.parentElement && current.parentElement !== root) {
-            current = current.parentElement;
-          }
-
-          return current && current.parentElement === root ? current : null;
-        }
-
-        function dkgLooksLikeExpressPayment(el) {
-          if (!el || !el.textContent) {
-            return false;
-          }
-
-          const text = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-          const cls = String(el.className || '').toLowerCase();
-          const id = String(el.id || '').toLowerCase();
-          const html = (cls + ' ' + id + ' ' + text);
-
-          if (text === 'or') {
-            return false;
-          }
-
-          if (el.matches && el.matches('a.checkout-button, .checkout-button')) {
-            return false;
-          }
-
-          return (
-            html.includes('amazon') ||
-            html.includes('apple pay') ||
-            html.includes('google pay') ||
-            html.includes('g pay') ||
-            html.includes('pay with link') ||
-            html.includes(' link') ||
-            html.includes('wcpay') ||
-            html.includes('stripe') ||
-            html.includes('express') ||
-            html.includes('payment-request') ||
-            html.includes('payment_request') ||
-            html.includes('wc-stripe') ||
-            html.includes('paypal')
-          );
-        }
-
-        function dkgFindOrSeparator(root) {
-          const candidates = root.querySelectorAll('p, div, span');
-
-          for (const el of candidates) {
-            const text = (el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-
-            if (text === 'or') {
-              return el;
-            }
-          }
-
-          return null;
-        }
-
-        function dkgReorderCartPayments() {
-          const checkoutButton = document.querySelector(
-            '.woocommerce-cart a.checkout-button, .woocommerce-cart .checkout-button, a.checkout-button, .checkout-button'
-          );
+          const checkoutButton = proceedBox.querySelector('a.checkout-button');
 
           if (!checkoutButton) {
-            return false;
+            return;
           }
 
-          const checkoutGroup =
-            checkoutButton.closest('.wc-proceed-to-checkout') ||
-            checkoutButton.parentElement;
+          let orSeparator = null;
 
-          if (!checkoutGroup) {
-            return false;
-          }
-
-          const root =
-            checkoutGroup.closest('.cart_totals') ||
-            checkoutGroup.closest('.cart-collaterals') ||
-            checkoutGroup.closest('.woocommerce') ||
-            document.querySelector('.woocommerce-cart .woocommerce') ||
-            document.querySelector('.woocommerce') ||
-            document.body;
-
-          if (!root) {
-            return false;
-          }
-
-          let wrapper = root.querySelector(':scope > .dkg-cart-payment-order');
-
-          if (!wrapper) {
-            wrapper = document.createElement('div');
-            wrapper.className = 'dkg-cart-payment-order';
-
-            const firstRelevant =
-              dkgDirectChildUnder(root, checkoutGroup) ||
-              root.firstElementChild;
-
-            if (firstRelevant) {
-              root.insertBefore(wrapper, firstRelevant);
-            } else {
-              root.appendChild(wrapper);
-            }
-          }
-
-          const expressBlocks = [];
-          const possibleExpress = root.querySelectorAll('div, section, p');
-
-          possibleExpress.forEach(function (el) {
-            if (el === wrapper || wrapper.contains(el) || el.contains(wrapper)) {
-              return;
-            }
-
-            if (checkoutGroup.contains(el) || el.contains(checkoutGroup)) {
-              return;
-            }
-
-            if (!dkgLooksLikeExpressPayment(el)) {
-              return;
-            }
-
-            const block = dkgDirectChildUnder(root, el);
-
-            if (
-              block &&
-              block !== wrapper &&
-              block !== checkoutGroup &&
-              !expressBlocks.includes(block)
-            ) {
-              expressBlocks.push(block);
+          const possibleSeparators = proceedBox.querySelectorAll('p, div, span');
+          possibleSeparators.forEach(function (el) {
+            const text = (el.textContent || '').trim().toLowerCase();
+            if (text === 'or') {
+              orSeparator = el;
             }
           });
 
-          const existingOr = dkgFindOrSeparator(root);
-          let orBlock = existingOr ? dkgDirectChildUnder(root, existingOr) : null;
+          proceedBox.insertBefore(checkoutButton, proceedBox.firstChild);
 
-          if (!orBlock || orBlock === checkoutGroup || orBlock === wrapper) {
-            orBlock = wrapper.querySelector('.dkg-cart-or-separator');
-
-            if (!orBlock) {
-              orBlock = document.createElement('div');
-              orBlock.className = 'dkg-cart-or-separator';
-              orBlock.textContent = 'OR';
-            }
+          if (orSeparator) {
+            checkoutButton.insertAdjacentElement('afterend', orSeparator);
+          } else {
+            const newOr = document.createElement('div');
+            newOr.className = 'dkg-cart-or-separator';
+            newOr.textContent = 'OR';
+            checkoutButton.insertAdjacentElement('afterend', newOr);
           }
-
-          wrapper.appendChild(checkoutGroup);
-          wrapper.appendChild(orBlock);
-
-          expressBlocks.forEach(function (block) {
-            wrapper.appendChild(block);
-          });
-
-          checkoutGroup.classList.add('dkg-normal-checkout-first');
-
-          return true;
         }
 
-        function dkgRunRepeatedly() {
-          dkgReorderCartPayments();
+        dkgReorderCartCheckoutButtons();
 
-          setTimeout(dkgReorderCartPayments, 300);
-          setTimeout(dkgReorderCartPayments, 800);
-          setTimeout(dkgReorderCartPayments, 1600);
-          setTimeout(dkgReorderCartPayments, 3000);
-          setTimeout(dkgReorderCartPayments, 5000);
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', dkgRunRepeatedly);
-        } else {
-          dkgRunRepeatedly();
-        }
-
-        let dkgCartPaymentTimer = null;
-
-        const observer = new MutationObserver(function () {
-          clearTimeout(dkgCartPaymentTimer);
-          dkgCartPaymentTimer = setTimeout(dkgReorderCartPayments, 120);
-        });
-
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-      })();
+        setTimeout(dkgReorderCartCheckoutButtons, 500);
+        setTimeout(dkgReorderCartCheckoutButtons, 1500);
+        setTimeout(dkgReorderCartCheckoutButtons, 3000);
+      });
     </script>
     <?php
 }
