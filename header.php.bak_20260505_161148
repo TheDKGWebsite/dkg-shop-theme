@@ -12,15 +12,7 @@
   <div class="header-inner">
     <div class="logo">
       <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="DKG ZONE Home">
-        <?php
-$__dkg_logo_rel = '/assets/images/dkg-logo-main.png';
-$__dkg_logo_abs = get_template_directory() . $__dkg_logo_rel;
-$__dkg_logo_ver = file_exists($__dkg_logo_abs) ? filemtime($__dkg_logo_abs) : time();
-$__dkg_logo_url = get_template_directory_uri() . $__dkg_logo_rel . '?v=' . $__dkg_logo_ver;
-?>
-<a class="site-logo" href="<?php echo esc_url(home_url('/')); ?>" aria-label="DKG Zone home">
-    <img class="site-logo-img" src="<?php echo esc_url($__dkg_logo_url); ?>" alt="DKG Zone">
-</a>" alt="DKG ZONE">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.png'); ?>" alt="DKG ZONE">
       </a>
     </div>
 
