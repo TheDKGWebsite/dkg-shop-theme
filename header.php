@@ -12,7 +12,7 @@
   <div class="header-inner">
     <div class="logo">
       <a href="<?php echo esc_url(home_url('/')); ?>" aria-label="DKG ZONE Home">
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/alogo.png'); ?>" alt="DKG ZONE">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo.png'); ?>" alt="DKG ZONE">
       </a>
     </div>
 
