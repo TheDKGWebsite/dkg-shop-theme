@@ -319,7 +319,7 @@ body.single-product .dkg-shop-plate {
 body.single-product .dkg-shop-plate .woocommerce div.product,
 body.single-product .dkg-shop-plate div.product {
   display: grid !important;
-  grid-template-columns: minmax(560px, 1.65fr) minmax(320px, 0.85fr) !important;
+  grid-template-columns: minmax(480px, 1.3fr) minmax(360px, 1fr) !important;
   gap: 48px !important;
   align-items: start !important;
   width: 100% !important;
