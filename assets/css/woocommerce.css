@@ -370,3 +370,31 @@ body.single-product .dkg-shop-plate .woocommerce-product-gallery img {
   }
 }
 /* === DKG SINGLE PRODUCT BIG IMAGE FORCE END === */
+
+/* === DKG PRODUCT SIZE DROPDOWN FIX START === */
+
+.single-product select,
+.single-product .variations select,
+.single-product table.variations select,
+.woocommerce div.product form.cart .variations select {
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.45) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+
+.single-product select option,
+.single-product .variations select option,
+.woocommerce div.product form.cart .variations select option {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* Optional: make the label readable too */
+.single-product .variations label,
+.woocommerce div.product form.cart .variations label {
+  color: #fff !important;
+}
+
+/* === DKG PRODUCT SIZE DROPDOWN FIX END === */
