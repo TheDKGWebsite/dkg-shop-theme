@@ -90,3 +90,26 @@ body {
 }
 
 /* === DKG SINGLE PRODUCT PAGE IMAGE SIZE END === */
+
+/* === DKG GLOBAL LINK COLORS START === */
+
+a,
+a:visited,
+.woocommerce a,
+.woocommerce a:visited {
+  color: #ffffff !important;
+}
+
+a:hover,
+a:focus,
+.woocommerce a:hover,
+.woocommerce a:focus {
+  color: #d8d8d8 !important;
+}
+
+a:active,
+.woocommerce a:active {
+  color: #ffffff !important;
+}
+
+/* === DKG GLOBAL LINK COLORS END === */
