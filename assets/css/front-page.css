@@ -141,10 +141,11 @@ body {
   border-radius: 30px;
   padding: 24px 24px 4px;
   background: transparent;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   align-items: stretch;
   transition: transform 0.18s ease, background 0.18s ease;
+  isolation: isolate;
 }
 
 .collection-link:hover .collection-box,
@@ -155,10 +156,11 @@ body {
 
 .collection-bg {
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: inherit;
   overflow: hidden;
   z-index: 0;
+  pointer-events: none;
 }
 
 .collection-bg img {
@@ -180,7 +182,7 @@ body {
 
 .collection-label {
   position: absolute;
-  top: -14px;
+  top: 10px;
   left: 20px;
   padding: 6px 14px;
   border: 3px solid currentColor;
