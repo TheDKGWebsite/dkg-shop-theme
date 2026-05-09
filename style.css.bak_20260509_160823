@@ -195,16 +195,16 @@ a:active,
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   padding: 0 !important;
   line-height: 1;
 }
 
 .site-header .nav a.nav-social img {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
@@ -221,22 +221,14 @@ a:active,
   }
 
   .site-header .nav a.nav-social {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  padding: 0 !important;
-  line-height: 1;
-}
+    width: 30px;
+    height: 30px;
+  }
 
   .site-header .nav a.nav-social img {
-  display: block;
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
+    width: 24px;
+    height: 24px;
+  }
 }
 
 /* === DKG HEADER SOCIAL BUTTONS END === */
