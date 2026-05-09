@@ -11,23 +11,26 @@
 <header class="site-header">
 
 <!-- === DKG HEADER LIGHTS IMAGE START === -->
-  <?php
-  $__dkg_lights_rel = '/assets/images/header-lights.png';
-  $__dkg_lights_abs = get_template_directory() . $__dkg_lights_rel;
-  $__dkg_lights_ver = file_exists($__dkg_lights_abs) ? filemtime($__dkg_lights_abs) : time();
-  $__dkg_lights_url = get_template_directory_uri() . $__dkg_lights_rel . '?v=' . $__dkg_lights_ver;
-  ?>
-  <div class="dkg-header-lights-image-wrap" aria-hidden="true">
-    <img
-      class="dkg-header-lights-image"
-      src="<?php echo esc_url($__dkg_lights_url); ?>"
-      alt=""
-      loading="eager"
-      decoding="async"
-    >
-  </div>
+  <?php if (is_front_page()) : ?>
+    <?php
+    $__dkg_lights_rel = '/assets/images/header-lights.png';
+    $__dkg_lights_abs = get_template_directory() . $__dkg_lights_rel;
+    $__dkg_lights_ver = file_exists($__dkg_lights_abs) ? filemtime($__dkg_lights_abs) : time();
+    $__dkg_lights_url = get_template_directory_uri() . $__dkg_lights_rel . '?v=' . $__dkg_lights_ver;
+    ?>
+    <div class="dkg-header-lights-image-wrap" aria-hidden="true">
+      <img
+        class="dkg-header-lights-image"
+        src="<?php echo esc_url($__dkg_lights_url); ?>"
+        alt=""
+        loading="eager"
+        decoding="async"
+      >
+    </div>
+  <?php endif; ?>
 <!-- === DKG HEADER LIGHTS IMAGE END === -->
-  <div class="header-inner">
+
+<div class="header-inner">
     <div class="logo">
       <?php
       $__dkg_logo_rel = '/assets/images/dkg-logo-main.png';

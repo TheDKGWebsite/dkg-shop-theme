@@ -47,6 +47,19 @@
       <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
       <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>
       <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>
+      <a href="<?php echo esc_url(home_url('/contact/')); ?>">Contact</a>
+
+      <a class="nav-social nav-discord" href="#" aria-label="Discord">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/discord.png'); ?>" alt="Discord">
+      </a>
+
+      <a class="nav-social nav-instagram" href="#" aria-label="Instagram">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/instagram.png'); ?>" alt="Instagram">
+      </a>
+
+      <a class="nav-social nav-youtube" href="#" aria-label="YouTube">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/youtube.png'); ?>" alt="YouTube">
+      </a>
     </nav>
   </div>
 </header>

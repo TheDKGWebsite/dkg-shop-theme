@@ -181,3 +181,54 @@ a:active,
 }
 
 /* === DKG HEADER LIGHTS IMAGE END === */
+
+
+/* === DKG HEADER SOCIAL BUTTONS START === */
+
+.site-header .nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.site-header .nav a.nav-social {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.site-header .nav a.nav-social img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.site-header .nav a.nav-social:hover img {
+  transform: scale(1.12);
+  opacity: 0.85;
+}
+
+@media (max-width: 700px) {
+  .site-header .nav {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .site-header .nav a.nav-social {
+    width: 30px;
+    height: 30px;
+  }
+
+  .site-header .nav a.nav-social img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* === DKG HEADER SOCIAL BUTTONS END === */
