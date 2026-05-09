@@ -11,6 +11,9 @@
 <header class="site-header">
 
 <!-- === DKG HEADER LIGHTS TEMP DISABLED START ===
+<!-- DKG header lights temporarily disabled -->
+=== DKG HEADER LIGHTS TEMP DISABLED END === -->
+
 <div class="header-inner">
     <div class="logo">
       <?php
