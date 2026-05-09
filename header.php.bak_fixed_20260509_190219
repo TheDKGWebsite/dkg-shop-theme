@@ -10,7 +10,8 @@
 
 <header class="site-header">
 
-<!-- DKG header lights disabled --><div class="header-inner">
+<!-- === DKG HEADER LIGHTS TEMP DISABLED START ===
+<div class="header-inner">
     <div class="logo">
       <?php
       $__dkg_logo_rel = '/assets/images/dkg-logo-main.png';
