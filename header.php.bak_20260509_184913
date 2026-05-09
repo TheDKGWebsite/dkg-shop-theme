@@ -10,7 +10,6 @@
 
 <header class="site-header">
 
-<!-- === DKG HEADER LIGHTS TEMP DISABLED START ===
 <!-- === DKG HEADER LIGHTS IMAGE START === -->
   <?php if (is_front_page()) : ?>
     <?php
@@ -30,7 +29,6 @@
     </div>
   <?php endif; ?>
 <!-- === DKG HEADER LIGHTS IMAGE END === -->
-=== DKG HEADER LIGHTS TEMP DISABLED END === -->
 
 <div class="header-inner">
     <div class="logo">
