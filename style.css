@@ -259,4 +259,8 @@ a:active,
   letter-spacing: 0.03em;
 }
 
+.site-header .nav > a:not(.nav-social) {
+  font-size: 26px !important;
+}
+
 /* === DKG HEADER NAV FONT END === */
