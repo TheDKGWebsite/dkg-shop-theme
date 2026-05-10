@@ -240,23 +240,3 @@ a:active,
 }
 
 /* === DKG HEADER SOCIAL BUTTONS END === */
-
-
-/* === DKG HEADER NAV FONT START === */
-
-@font-face {
-  font-family: "DKGHeaderNavFont";
-  src: url("assets/fonts/font.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Text nav buttons only: Home, Shop, Cart, Contact */
-.site-header .nav > a:not(.nav-social) {
-  font-family: "DKGHeaderNavFont", Arial, sans-serif !important;
-  font-weight: normal !important;
-  letter-spacing: 0.03em;
-}
-
-/* === DKG HEADER NAV FONT END === */
