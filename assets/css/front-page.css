@@ -31,7 +31,7 @@ body {
   display: flex;
   align-items: center;
 
-  background-image: url("../images/1header.png");
+  background-image: url("../images/header.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -320,7 +320,7 @@ body {
   padding: 0 40px;
   display: flex;
   align-items: center;
-  background-image: url("../images/1header.png");
+  background-image: url("../images/header.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -402,7 +402,7 @@ body {
   padding: 0 40px !important;
   display: flex !important;
   align-items: center !important;
-  background-image: url("../images/1header.png") !important;
+  background-image: url("../images/header.png") !important;
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
