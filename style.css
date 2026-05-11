@@ -264,3 +264,40 @@ a:active,
 }
 
 /* === DKG HEADER NAV FONT END === */
+
+/* === DKG LEFT FLOATING OVERLAY START === */
+
+.dkg-left-overlay {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translate(-110%, -50%);
+  z-index: 40;
+  pointer-events: none;
+  transition: transform 0.7s ease, opacity 0.7s ease;
+  opacity: 0;
+}
+
+.dkg-left-overlay img {
+  display: block;
+  width: min(260px, 28vw);
+  height: auto;
+}
+
+body.dkg-overlay-ready .dkg-left-overlay {
+  transform: translate(0, -50%);
+  opacity: 1;
+}
+
+body.dkg-user-scrolling .dkg-left-overlay {
+  transform: translate(-110%, -50%);
+  opacity: 0;
+}
+
+@media (max-width: 800px) {
+  .dkg-left-overlay img {
+    width: min(170px, 34vw);
+  }
+}
+
+/* === DKG LEFT FLOATING OVERLAY END === */
