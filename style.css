@@ -273,7 +273,7 @@ a:active,
   bottom: 0;
   top: auto;
   transform: translateX(-110%);
-  z-index: 40;
+  z-index: 9999;
   pointer-events: none;
   transition: transform 0.7s ease, opacity 0.7s ease;
   opacity: 0;
