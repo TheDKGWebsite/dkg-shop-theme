@@ -47,7 +47,7 @@
 <?php if (is_front_page()) : ?>
   <!-- DKG left floating overlay start -->
   <div class="dkg-left-overlay" aria-hidden="true">
-    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/left-overlay.png'); ?>" alt="">
+    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/aleft-overlay.png'); ?>" alt="">
   </div>
   <!-- DKG left floating overlay end -->
 <?php endif; ?>
