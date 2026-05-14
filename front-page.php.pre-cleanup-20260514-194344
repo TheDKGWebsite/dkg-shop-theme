@@ -33,8 +33,10 @@ $home_collections = array(
 );
 ?>
 
-<div class="page-overlay">
-  <main class="collections-section">
+<div class="dkg-fixed-stage">
+  <div class="dkg-fixed-canvas">
+    <div class="page-overlay">
+      <main class="collections-section">
     <div class="collections-stack">
 
       <?php foreach ($home_collections as $collection) : ?>
@@ -125,7 +127,9 @@ $home_collections = array(
       <?php endforeach; ?>
 
     </div>
-  </main>
+      </main>
+    </div>
+  </div>
 </div>
 
 <?php get_footer(); ?>

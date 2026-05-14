@@ -558,3 +558,227 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE SHOP PAGE END === */
 
 
+/* === DKG DESKTOP FIXED-STAGE START === */
+/*
+   Desktop-only fixed visual stage.
+
+   Goal:
+   On PC, visitors see the same composition you designed,
+   regardless of their monitor resolution or aspect ratio.
+
+   Design canvas:
+   1920 x 1080
+
+   Mobile is intentionally excluded so /mobile-shop/ and small screens
+   continue to behave responsively.
+*/
+
+@media (min-width: 901px) {
+  body.home,
+  body.front-page {
+    overflow-x: hidden !important;
+  }
+
+  body.home .dkg-fixed-stage,
+  body.front-page .dkg-fixed-stage {
+    position: relative !important;
+    width: 100vw !important;
+    min-height: calc(100vh - 100px) !important;
+    overflow: hidden !important;
+  }
+
+  body.home .dkg-fixed-canvas,
+  body.front-page .dkg-fixed-canvas {
+    width: 1920px !important;
+    min-height: 1080px !important;
+    position: relative !important;
+    left: 50% !important;
+    transform-origin: top center !important;
+    will-change: transform !important;
+  }
+
+  /*
+     Because transform scaling does not naturally reserve scaled height,
+     JS sets padding-bottom on .dkg-fixed-stage.
+     This fallback prevents layout collapse if JS is delayed.
+  */
+  body.home .dkg-fixed-stage,
+  body.front-page .dkg-fixed-stage {
+    padding-bottom: 60vh;
+  }
+
+  /*
+     Keep the homepage content visually based on the 1920px canvas,
+     not on the visitor's browser width.
+  */
+  body.home .page-overlay,
+  body.front-page .page-overlay {
+    width: 1920px !important;
+    min-height: 1080px !important;
+  }
+
+  body.home .collections-section,
+  body.front-page .collections-section {
+    width: 1920px !important;
+    min-height: 1080px !important;
+    box-sizing: border-box !important;
+  }
+
+  /*
+     Avoid browser horizontal scrolling caused by the unscaled 1920px canvas.
+  */
+  html {
+    overflow-x: hidden !important;
+  }
+}
+
+/*
+   On tablets and phones, remove the fixed desktop canvas behavior.
+*/
+@media (max-width: 900px) {
+  .dkg-fixed-stage,
+  .dkg-fixed-canvas {
+    width: 100% !important;
+    min-height: auto !important;
+    transform: none !important;
+    left: auto !important;
+    position: relative !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+  }
+}
+/* === DKG DESKTOP FIXED-STAGE END === */
+
+/* === DKG DESKTOP HEADER/BG STABILIZER START === */
+/*
+   Desktop-only homepage header/background stabilizer.
+
+   Fixes:
+   - Uses the real background file name: xbricks.png
+   - Avoids hidden negative z-index pseudo-background
+   - Keeps header/background more consistent during zoom and resize
+*/
+
+@media (min-width: 901px) {
+  html {
+    background: #111 !important;
+    overflow-x: hidden !important;
+  }
+
+  body.home,
+  body.front-page {
+    background-color: #111 !important;
+    background-image: url("../images/xbricks.png") !important;
+    background-repeat: repeat !important;
+    background-position: top center !important;
+    background-size: 1920px 1920px !important;
+    background-attachment: fixed !important;
+    overflow-x: hidden !important;
+  }
+
+  /*
+     Kill the earlier risky pseudo-background.
+     It used z-index:-2 and could disappear behind html/body.
+  */
+  body.home::before,
+  body.front-page::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  body.home .site-header,
+  body.front-page .site-header {
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    overflow: hidden !important;
+    background-image: url("../images/header.png") !important;
+    background-size: 1920px 100px !important;
+    background-position: top center !important;
+    background-repeat: no-repeat !important;
+  }
+
+  body.home .site-header .header-inner,
+  body.front-page .site-header .header-inner {
+    width: 1920px !important;
+    max-width: none !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    box-sizing: border-box !important;
+  }
+
+  body.home .site-header .logo,
+  body.front-page .site-header .logo,
+  body.home .site-header .site-logo,
+  body.front-page .site-header .site-logo {
+    height: 100px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  body.home .site-header .logo img,
+  body.front-page .site-header .logo img,
+  body.home .site-header .site-logo-img,
+  body.front-page .site-header .site-logo-img {
+    max-height: 72px !important;
+    height: auto !important;
+    width: auto !important;
+  }
+
+  body.home .site-header .nav,
+  body.front-page .site-header .nav {
+    height: 100px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.home,
+  body.front-page {
+    background-color: #111 !important;
+    background-image: url("../images/xbricks.png") !important;
+    background-repeat: repeat !important;
+    background-position: top center !important;
+    background-size: 1400px 1400px !important;
+    background-attachment: scroll !important;
+  }
+
+  body.home::before,
+  body.front-page::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  body.home .site-header,
+  body.front-page .site-header {
+    height: auto !important;
+    min-height: 100px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background-image: url("../images/header.png") !important;
+    background-size: cover !important;
+    background-position: center !important;
+  }
+
+  body.home .site-header .header-inner,
+  body.front-page .site-header .header-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 100px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  body.home .site-header .nav,
+  body.front-page .site-header .nav {
+    height: auto !important;
+  }
+}
+/* === DKG DESKTOP HEADER/BG STABILIZER END === */
+
