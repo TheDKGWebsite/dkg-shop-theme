@@ -230,24 +230,8 @@ if ($shop_bg) {
 
 echo '<main class="dkg-mobile-shop-main">';
 echo '<div class="dkg-mobile-products-wrap">';
-$featured_collection = isset($_GET['featured_collection'])
-    ? sanitize_title(wp_unslash($_GET['featured_collection']))
-    : '';
-
-if ($featured_collection) {
-    $term = get_term_by('slug', $featured_collection, 'product_cat');
-
-    if ($term && !is_wp_error($term)) {
-        echo '<h1 class="dkg-mobile-shop-title">' . esc_html($term->name) . '</h1>';
-        echo do_shortcode('[products category="' . esc_attr($term->slug) . '" columns="2" limit="-1"]');
-    } else {
-        echo '<h1 class="dkg-mobile-shop-title">Shop</h1>';
-        echo do_shortcode('[products columns="2" limit="-1"]');
-    }
-} else {
-    echo '<h1 class="dkg-mobile-shop-title">Shop</h1>';
-    echo do_shortcode('[products columns="2" limit="-1"]');
-}
+echo '<h1 class="dkg-mobile-shop-title">Shop</h1>';
+echo do_shortcode('[products columns="2" limit="-1"]');
 echo '</div>';
 echo '</main>';
 
