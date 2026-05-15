@@ -308,3 +308,74 @@ body.dkg-user-scrolling .dkg-left-overlay {
 }
 
 /* === DKG LEFT FLOATING OVERLAY END === */
+
+{CSS_START}
+
+/*
+  Image nav buttons for Home, Shop, Cart, Contact.
+  Matches the existing social image-button structure.
+*/
+
+.site-header .nav a.nav-image {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 118px !important;
+  height: 78px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+
+  color: inherit !important;
+  text-decoration: none !important;
+  opacity: 0.95 !important;
+}
+
+.site-header .nav a.nav-image img {
+  display: block !important;
+
+  width: 112px !important;
+  height: 72px !important;
+
+  object-fit: contain !important;
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
+
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+.site-header .nav a.nav-image:hover img,
+.site-header .nav a.nav-image:focus img {
+  transform: scale(1.08) !important;
+  opacity: 0.85 !important;
+}
+
+/*
+  Keep existing social buttons visually consistent beside the new image nav.
+*/
+.site-header .nav a.nav-social {
+  width: 78px !important;
+  height: 78px !important;
+}
+
+.site-header .nav a.nav-social img {
+  width: 72px !important;
+  height: 72px !important;
+}
+
+@media (max-width: 700px) {
+  .site-header .nav a.nav-image {
+    width: 96px !important;
+    height: 64px !important;
+  }
+
+  .site-header .nav a.nav-image img {
+    width: 92px !important;
+    height: 58px !important;
+  }
+}
+
+{CSS_END}
