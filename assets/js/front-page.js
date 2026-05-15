@@ -66,3 +66,84 @@ function setupAutoLoop(shell, shellIndex) {
     document.querySelectorAll('.auto-loop').forEach((shell, index) => {
       setupAutoLoop(shell, index);
     });
+
+/* === DKG HOMEPAGE ZOOM COUNTER START === */
+
+(function () {
+  /*
+    Browser zoom counter for homepage fixed-stage layout.
+
+    Chrome Ctrl+/Ctrl- changes window.devicePixelRatio.
+    We store a base DPR, then counter-scale the homepage stage by:
+
+      baseDPR / currentDPR
+
+    To reset the base after returning browser zoom to 100%, open:
+      /?reset_home_zoom_base=1
+  */
+
+  function isHomePage() {
+    return document.body.classList.contains('home') ||
+           document.body.classList.contains('front-page') ||
+           document.body.classList.contains('page-template-front-page');
+  }
+
+  function getBaseDpr() {
+    var params = new URLSearchParams(window.location.search);
+    var reset = params.get('reset_home_zoom_base') === '1';
+
+    if (reset) {
+      try {
+        localStorage.removeItem('dkgHomeBaseDPR');
+      } catch (e) {}
+    }
+
+    var current = window.devicePixelRatio || 1;
+    var stored = null;
+
+    try {
+      stored = parseFloat(localStorage.getItem('dkgHomeBaseDPR'));
+    } catch (e) {
+      stored = null;
+    }
+
+    if (!stored || !isFinite(stored) || stored <= 0 || reset) {
+      stored = current;
+      try {
+        localStorage.setItem('dkgHomeBaseDPR', String(stored));
+      } catch (e) {}
+    }
+
+    return stored;
+  }
+
+  var baseDpr = getBaseDpr();
+
+  function applyZoomCounter() {
+    if (!isHomePage()) return;
+
+    var currentDpr = window.devicePixelRatio || 1;
+    var counter = baseDpr / currentDpr;
+
+    /*
+      Clamp it so extreme zoom does not make the site ridiculous.
+      You can loosen these if you want.
+    */
+    counter = Math.max(0.45, Math.min(1.75, counter));
+
+    document.documentElement.style.setProperty('--dkg-browser-zoom-counter', String(counter));
+  }
+
+  applyZoomCounter();
+
+  window.addEventListener('resize', applyZoomCounter, { passive: true });
+  window.addEventListener('orientationchange', applyZoomCounter, { passive: true });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyZoomCounter, { passive: true });
+  }
+
+  setInterval(applyZoomCounter, 350);
+})();
+
+/* === DKG HOMEPAGE ZOOM COUNTER END === */
