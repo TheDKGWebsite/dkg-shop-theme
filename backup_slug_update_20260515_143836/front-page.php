@@ -7,9 +7,9 @@ get_header();
 
 $home_collections = array(
     array(
-        'slug'  => 'aps',
+        'slug'  => 'shirts',
         'class' => 'red',
-        'label' => 'Applied Parts Shop',
+        'label' => 'Shirts',
         'bg'    => get_template_directory_uri() . '/assets/images/col1.png',
     ),
     array(

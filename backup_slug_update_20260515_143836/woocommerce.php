@@ -8,7 +8,7 @@ $featured_collection = isset($_GET['featured_collection'])
     : '';
 
 $collection_backgrounds = array(
-    'aps'      => 'col1.png',
+    'shirts'   => 'col1.png',
     'posters'  => 'col1.png',
     'stickers' => 'col1.png',
     'hats'     => 'col1.png',
