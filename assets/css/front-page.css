@@ -557,4 +557,70 @@ body.page-template-page-mobile-shop {
 
 /* === DKG MOBILE SHOP PAGE END === */
 
+/* ============================================================
+   Homepage collection title badge positioning
+   Makes collection titles float centered on top of each plate.
+   Added by update_home_collection_title_badge.py
+   ============================================================ */
 
+.home-collection-card,
+.collection-card,
+.featured-collection-card,
+.dkg-collection-card,
+.dkg-featured-collection,
+.collection-plate,
+.featured-collection-plate {
+    position: relative;
+    overflow: visible;
+}
+
+.home-collection-title,
+.collection-title,
+.featured-collection-title,
+.dkg-collection-title,
+.collection-card-title,
+.plate-title {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+
+    width: max-content;
+    max-width: calc(100% - 48px);
+
+    text-align: center;
+    pointer-events: none;
+
+    padding: 10px 28px;
+    border-radius: 999px;
+
+    background: rgba(0, 0, 0, 0.82);
+    color: #fff;
+
+    line-height: 1.05;
+    white-space: nowrap;
+}
+
+/* Give the plate a little breathing room so the floating title
+   does not get clipped by neighboring sections. */
+.home-collection-card,
+.collection-card,
+.featured-collection-card,
+.dkg-collection-card,
+.dkg-featured-collection,
+.collection-plate,
+.featured-collection-plate {
+    margin-top: 28px;
+}
+
+/* If the title was previously placed inside the product/image area,
+   this helps keep it from pushing layout around. */
+.home-collection-title *,
+.collection-title *,
+.featured-collection-title *,
+.dkg-collection-title *,
+.collection-card-title *,
+.plate-title * {
+    pointer-events: none;
+}
