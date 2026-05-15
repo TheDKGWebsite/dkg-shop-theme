@@ -24,10 +24,18 @@
     </div>
 
     <nav class="nav" aria-label="Main navigation">
-      <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
-      <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>
-      <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>
-      <a href="<?php echo esc_url(home_url('/contact/')); ?>">Contact</a>
+      <a class="nav-image nav-home" href="<?php echo esc_url(home_url('/')); ?>" aria-label="Home">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/ahome.png'); ?>" alt="Home">
+      </a>
+      <a class="nav-image nav-shop" href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>" aria-label="Shop">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/ashop.png'); ?>" alt="Shop">
+      </a>
+      <a class="nav-image nav-cart" href="<?php echo esc_url(wc_get_cart_url()); ?>" aria-label="Cart">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/acart.png'); ?>" alt="Cart">
+      </a>
+      <a class="nav-image nav-contact" href="<?php echo esc_url(home_url('/contact/')); ?>" aria-label="Contact">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/acontact.png'); ?>" alt="Contact">
+      </a>
 
       <a class="nav-social nav-discord" href="#" aria-label="Discord">
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/adiscord.png'); ?>" alt="Discord">
