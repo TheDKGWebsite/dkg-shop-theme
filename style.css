@@ -331,16 +331,16 @@ body.dkg-user-scrolling .dkg-left-overlay {
 }
 
 .site-header .dkg-header-picture-rotator {
-  --dkg-header-picture-w: 170px;
-  --dkg-header-picture-h: 78px;
-  --dkg-header-picture-img-inset: 9px;
+  --dkg-header-picture-w: 240px;
+  --dkg-header-picture-h: 88px;
+  --dkg-header-picture-img-inset: 6px;
 
   flex: 0 0 var(--dkg-header-picture-w) !important;
   width: var(--dkg-header-picture-w) !important;
   height: var(--dkg-header-picture-h) !important;
   max-height: calc(100px - 14px) !important;
 
-  margin-left: 18px !important;
+  margin-left: 70px !important;
   margin-right: auto !important;
 
   position: relative !important;
