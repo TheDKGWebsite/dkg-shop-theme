@@ -333,7 +333,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
 .site-header .dkg-header-picture-rotator {
   --dkg-header-picture-w: 240px;
   --dkg-header-picture-h: 98px;
-  --dkg-header-picture-img-inset: 10px;
+  --dkg-header-picture-img-inset: 15px;
 
   flex: 0 0 var(--dkg-header-picture-w) !important;
   width: var(--dkg-header-picture-w) !important;
