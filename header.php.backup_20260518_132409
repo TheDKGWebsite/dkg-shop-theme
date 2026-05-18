@@ -23,49 +23,6 @@
       </a>
     </div>
 
-<!-- === DKG HEADER PICTURE ROTATOR START === -->
-    <?php
-      /*
-        Header picture rotator image list.
-
-        Put your external image URLs here.
-        Example:
-          https://example.com/image-1.jpg
-
-        The local frame image should be:
-          assets/images/frame.png
-
-        The images cycle every 5 seconds by default.
-      */
-      $__dkg_header_rotator_images = array(
-        'https://p.novaskin.me/4851391923748864.png?class=thumb',
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjfCmtd51NBF1_V3inSUH08dgn9jG0sOlQA&s',
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgz6BzeEZAkolFM5Ai1HvaXU_1_LNM7SNaNQ&s',
-      );
-
-      $__dkg_header_rotator_images = array_values(array_filter($__dkg_header_rotator_images));
-      $__dkg_header_rotator_frame = get_template_directory_uri() . '/assets/images/frame.png';
-    ?>
-
-    <?php if (!empty($__dkg_header_rotator_images)) : ?>
-      <div class="dkg-header-picture-rotator"
-           data-interval="5000"
-           data-images="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_images)); ?>"
-           aria-hidden="true">
-
-        <div class="dkg-header-picture-frame"
-             style="background-image: url('<?php echo esc_url($__dkg_header_rotator_frame); ?>');">
-
-          <img class="dkg-header-picture-img"
-               src="<?php echo esc_url($__dkg_header_rotator_images[0]); ?>"
-               alt=""
-               loading="eager"
-               decoding="async">
-        </div>
-      </div>
-    <?php endif; ?>
-<!-- === DKG HEADER PICTURE ROTATOR END === -->
-
     <nav class="nav" aria-label="Main navigation">
       <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
       <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>

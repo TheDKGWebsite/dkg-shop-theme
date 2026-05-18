@@ -31,8 +31,6 @@
   </div>
 </footer>
 
-<!-- === DKG HEADER PICTURE ROTATOR SCRIPT === -->
-<script src="<?php echo esc_url(get_template_directory_uri() . '/assets/js/header-picture-rotator.js?v=' . filemtime(get_template_directory() . '/assets/js/header-picture-rotator.js')); ?>"></script>
 <?php wp_footer(); ?>
 </body>
 </html>
