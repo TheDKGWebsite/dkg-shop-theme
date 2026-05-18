@@ -341,7 +341,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
   --dkg-header-picture-img-inset-x: 15px;
 
   /* Vertical padding inside frame. Smaller = taller inner image. */
-  --dkg-header-picture-img-inset-y: 10px;
+  --dkg-header-picture-img-inset-y: 12px;
 
   flex: 0 0 var(--dkg-header-picture-w) !important;
   width: var(--dkg-header-picture-w) !important;
