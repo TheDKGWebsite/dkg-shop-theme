@@ -798,29 +798,3 @@ body.page-template-page-mobile-shop {
 }
 
 /* === DKG HOMEPAGE FIXED STAGE V2 END === */
-
-/* === DKG HOMEPAGE PRODUCT IMAGE QUALITY FIX START === */
-
-/*
-  Fix homepage collection plate product images:
-  - Avoid zoomed/cropped look from object-fit: cover.
-  - Keep full product image visible inside each plate card.
-  - Works with front-page.php now requesting larger image files.
-*/
-
-.collection-box .product-card {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.collection-box .product-image {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain !important;
-  object-position: center center !important;
-  display: block !important;
-  image-rendering: auto !important;
-}
-
-/* === DKG HOMEPAGE PRODUCT IMAGE QUALITY FIX END === */

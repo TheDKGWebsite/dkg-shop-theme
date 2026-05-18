@@ -93,9 +93,9 @@ $home_collections = array(
                             continue;
                         }
 
-                        $image_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
+                        $image_url = get_the_post_thumbnail_url(get_the_ID(), 'medium');
                         if (!$image_url) {
-                            $image_url = wc_placeholder_img_src('large');
+                            $image_url = wc_placeholder_img_src('medium');
                         }
 
                         if ($product->managing_stock() && !is_null($product->get_stock_quantity())) {
