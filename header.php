@@ -44,7 +44,7 @@
       );
 
       $__dkg_header_rotator_images = array_values(array_filter($__dkg_header_rotator_images));
-      $__dkg_header_rotator_frame = get_template_directory_uri() . '/assets/images/frame.png';
+      $__dkg_header_rotator_frame = get_template_directory_uri() . '/assets/images/aframe.png';
     ?>
 
     <?php if (!empty($__dkg_header_rotator_images)) : ?>
