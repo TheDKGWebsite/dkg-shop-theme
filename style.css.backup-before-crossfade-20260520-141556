@@ -314,11 +314,6 @@ body.dkg-user-scrolling .dkg-left-overlay {
 /*
   Header picture rotator.
 
-  This version supports clean overlapping crossfades:
-  - Two image layers sit on top of each other.
-  - The new image fades in while the old image fades out.
-  - The frame/background should no longer flash between images.
-
   Frame area:
   - Change --dkg-header-picture-w to make the whole framed area wider/narrower.
   - Change --dkg-header-picture-h to make the whole framed area taller/shorter.
@@ -326,6 +321,10 @@ body.dkg-user-scrolling .dkg-left-overlay {
   Inner image area:
   - Lower --dkg-header-picture-img-inset-x to make the image wider inside the frame.
   - Lower --dkg-header-picture-img-inset-y to make the image taller inside the frame.
+
+  Important:
+  - object-fit: contain keeps rotated/tall images fully visible.
+  - object-fit: cover crops images, so do not use cover here.
 */
 
 .site-header {
@@ -377,12 +376,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
   box-sizing: border-box !important;
 }
 
-/*
-  Both crossfade layers use the same sizing.
-  object-fit: fill keeps your current "stretch horizontally into frame" behavior.
-*/
-.site-header .dkg-header-picture-img,
-.site-header .dkg-header-picture-img-layer {
+.site-header .dkg-header-picture-img {
   position: absolute !important;
 
   left: var(--dkg-header-picture-img-inset-x) !important;
@@ -393,33 +387,23 @@ body.dkg-user-scrolling .dkg-left-overlay {
   width: calc(100% - (var(--dkg-header-picture-img-inset-x) * 2)) !important;
   height: calc(100% - (var(--dkg-header-picture-img-inset-y) * 2)) !important;
 
+  /*
+    This is the key fix:
+    contain = fit the whole image inside the display area
+    cover = fill the area by cropping
+  */
   object-fit: fill !important;
   object-position: center center !important;
 
   display: block !important;
-  opacity: 0 !important;
-  transition: opacity 0.65s ease-in-out !important;
+  opacity: 1 !important;
+  transition: opacity 0.35s ease !important;
 
   z-index: 2 !important;
-  pointer-events: none !important;
-  user-select: none !important;
-  -webkit-user-drag: none !important;
 }
 
-/* Visible layer */
-.site-header .dkg-header-picture-img.is-active,
-.site-header .dkg-header-picture-img-layer.is-active {
-  opacity: 1 !important;
-  z-index: 3 !important;
-}
-
-/*
-  Keep backward compatibility with the old script.
-  The old mechanic added .is-fading to the only image, which caused the blank flash.
-  This prevents that class from forcing the visible layer fully away.
-*/
 .site-header .dkg-header-picture-img.is-fading {
-  opacity: 1 !important;
+  opacity: 0 !important;
 }
 
 /* === DKG HEADER PICTURE ROTATOR END === */
