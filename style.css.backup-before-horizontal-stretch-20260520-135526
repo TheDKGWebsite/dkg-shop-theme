@@ -340,7 +340,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
   --dkg-header-picture-h: 96px;
 
   /* Horizontal padding inside frame */
-  --dkg-header-picture-img-inset-x: 6px;
+  --dkg-header-picture-img-inset-x: 15px;
 
   /* Vertical padding inside frame. Smaller = taller inner image. */
   --dkg-header-picture-img-inset-y: 12px;
@@ -392,7 +392,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
     contain = fit the whole image inside the display area
     cover = fill the area by cropping
   */
-  object-fit: fill !important;
+  object-fit: contain !important;
   object-position: center center !important;
 
   display: block !important;
