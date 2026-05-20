@@ -314,15 +314,17 @@ body.dkg-user-scrolling .dkg-left-overlay {
 /*
   Header picture rotator.
 
-  Current adjusted dimensions:
-  - Frame area: 240px wide x 96px tall
-  - Inner image: separate X/Y inset controls
+  Frame area:
+  - Change --dkg-header-picture-w to make the whole framed area wider/narrower.
+  - Change --dkg-header-picture-h to make the whole framed area taller/shorter.
 
-  To make only the inner image taller:
-  lower --dkg-header-picture-img-inset-y.
+  Inner image area:
+  - Lower --dkg-header-picture-img-inset-x to make the image wider inside the frame.
+  - Lower --dkg-header-picture-img-inset-y to make the image taller inside the frame.
 
-  To make only the inner image wider:
-  lower --dkg-header-picture-img-inset-x.
+  Important:
+  - object-fit: contain keeps rotated/tall images fully visible.
+  - object-fit: cover crops images, so do not use cover here.
 */
 
 .site-header {
@@ -346,11 +348,6 @@ body.dkg-user-scrolling .dkg-left-overlay {
   flex: 0 0 var(--dkg-header-picture-w) !important;
   width: var(--dkg-header-picture-w) !important;
   height: var(--dkg-header-picture-h) !important;
-
-  /*
-    Header is 100px tall. This keeps the feature inside it
-    without crushing your chosen 96px height.
-  */
   max-height: calc(100px - 4px) !important;
 
   margin-left: 70px !important;
@@ -390,10 +387,15 @@ body.dkg-user-scrolling .dkg-left-overlay {
   width: calc(100% - (var(--dkg-header-picture-img-inset-x) * 2)) !important;
   height: calc(100% - (var(--dkg-header-picture-img-inset-y) * 2)) !important;
 
-  object-fit: cover !important;
+  /*
+    This is the key fix:
+    contain = fit the whole image inside the display area
+    cover = fill the area by cropping
+  */
+  object-fit: contain !important;
   object-position: center center !important;
-  display: block !important;
 
+  display: block !important;
   opacity: 1 !important;
   transition: opacity 0.35s ease !important;
 
@@ -402,16 +404,6 @@ body.dkg-user-scrolling .dkg-left-overlay {
 
 .site-header .dkg-header-picture-img.is-fading {
   opacity: 0 !important;
-}
-
-/*
-  If the header gets crowded, hide the rotator before it can wrap,
-  overflow, or push nav buttons outside the header.
-*/
-@media (max-width: 1100px) {
-  .site-header .dkg-header-picture-rotator {
-    display: none !important;
-  }
 }
 
 /* === DKG HEADER PICTURE ROTATOR END === */
