@@ -26,58 +26,38 @@
 <!-- === DKG HEADER PICTURE ROTATOR START === -->
     <?php
       /*
-        Header picture rotator image groups.
+        Header picture rotator image list.
 
-        The rotator now alternates:
-          random group 1 image
-          random group 2 image
-          random group 1 image
-          random group 2 image
-          etc.
+        Put your external image URLs here.
+        Example:
+          https://example.com/image-1.jpg
 
-        Add/remove URLs inside the arrays below.
+        The local frame image should be:
+          assets/images/frame.png
+
+        The images cycle every 5 seconds by default.
       */
-
-      $__dkg_header_rotator_group_1 = array(
-        'https://imgur.com/a/Tz0kMfr'
+      $__dkg_header_rotator_images = array(
+        'https://p.novaskin.me/4851391923748864.png?class=thumb',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjfCmtd51NBF1_V3inSUH08dgn9jG0sOlQA&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgz6BzeEZAkolFM5Ai1HvaXU_1_LNM7SNaNQ&s',
       );
 
-      $__dkg_header_rotator_group_2 = array(
-        'https://imgur.com/a/iHI2BfX',
-		'https://imgur.com/a/rcOf02I'
-      );
-
-      $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
-      $__dkg_header_rotator_group_2 = array_values(array_filter($__dkg_header_rotator_group_2));
-
-      $__dkg_header_rotator_all_images = array_merge(
-        $__dkg_header_rotator_group_1,
-        $__dkg_header_rotator_group_2
-      );
-
-      $__dkg_header_rotator_first_image = '';
-      if (!empty($__dkg_header_rotator_group_1)) {
-        $__dkg_header_rotator_first_image = $__dkg_header_rotator_group_1[array_rand($__dkg_header_rotator_group_1)];
-      } elseif (!empty($__dkg_header_rotator_group_2)) {
-        $__dkg_header_rotator_first_image = $__dkg_header_rotator_group_2[array_rand($__dkg_header_rotator_group_2)];
-      }
-
+      $__dkg_header_rotator_images = array_values(array_filter($__dkg_header_rotator_images));
       $__dkg_header_rotator_frame = get_template_directory_uri() . '/assets/images/cframe.png';
     ?>
 
-    <?php if (!empty($__dkg_header_rotator_first_image)) : ?>
+    <?php if (!empty($__dkg_header_rotator_images)) : ?>
       <div class="dkg-header-picture-rotator"
            data-interval="5000"
-           data-image-group-1="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_group_1)); ?>"
-           data-image-group-2="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_group_2)); ?>"
-           data-images="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_all_images)); ?>"
+           data-images="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_images)); ?>"
            aria-hidden="true">
 
         <div class="dkg-header-picture-frame"
              style="background-image: url('<?php echo esc_url($__dkg_header_rotator_frame); ?>');">
 
           <img class="dkg-header-picture-img"
-               src="<?php echo esc_url($__dkg_header_rotator_first_image); ?>"
+               src="<?php echo esc_url($__dkg_header_rotator_images[0]); ?>"
                alt=""
                loading="eager"
                decoding="async">
