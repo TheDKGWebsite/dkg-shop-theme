@@ -96,11 +96,11 @@
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/adiscord.png'); ?>" alt="Discord">
       </a>
 
-      <a class="nav-social nav-instagram" href="#" aria-label="Instagram">
+      <a class="nav-social nav-instagram" href="https://www.instagram.com/shop.dkg.zone/" aria-label="Instagram">
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/ainstagram.png'); ?>" alt="Instagram">
       </a>
 
-      <a class="nav-social nav-youtube" href="#" aria-label="YouTube">
+      <a class="nav-social nav-youtube" href="https://docs.google.com/document/d/145X-afmLjJ_aIrrjInkJdHooxUz4BkSVuNQM4bhaB6w/edit?usp=sharing" aria-label="YouTube">
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/ayoutube.png'); ?>" alt="YouTube">
       </a>
     </nav>
