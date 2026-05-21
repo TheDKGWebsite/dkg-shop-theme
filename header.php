@@ -92,7 +92,7 @@
       <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>
       <a href="<?php echo esc_url(home_url('/contact/')); ?>">Contact</a>
 
-      <a class="nav-social nav-discord" href="#" aria-label="Discord">
+      <a class="nav-social nav-discord" href="https://discord.gg/UfWn2DWvwC" aria-label="Discord">
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/adiscord.png'); ?>" alt="Discord">
       </a>
 
