@@ -39,12 +39,12 @@
       */
 
       $__dkg_header_rotator_group_1 = array(
-        'https://imgur.com/a/Tz0kMfr'
+        'https://i.imgur.com/IXp82Sd.png'
       );
 
       $__dkg_header_rotator_group_2 = array(
-        'https://imgur.com/a/iHI2BfX',
-		'https://imgur.com/a/rcOf02I'
+        'https://i.imgur.com/BP6yOQZ.jpeg',
+		'https://i.imgur.com/gwcI3wv.png'
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
