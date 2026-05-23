@@ -44,7 +44,10 @@
 
       $__dkg_header_rotator_group_2 = array(
         'https://i.imgur.com/BP6yOQZ.jpeg',
-		'https://i.imgur.com/gwcI3wv.png'
+		'https://i.imgur.com/gwcI3wv.png',
+		'https://i.imgur.com/wIDieFh.png',
+		'https://i.imgur.com/BIChMw9.png',
+		'https://i.imgur.com/UYvoyoN.png'
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
