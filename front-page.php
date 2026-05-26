@@ -13,9 +13,9 @@ $home_collections = array(
         'bg'    => get_template_directory_uri() . '/assets/images/col1.png',
     ),
     array(
-        'slug'  => 'posters',
+        'slug'  => 'sdzp',
         'class' => 'blue',
-        'label' => 'Posters',
+        'label' => 'shop.dkg.zone prints',
         'bg'    => get_template_directory_uri() . '/assets/images/collection-bg-2.jpg',
     ),
     array(
