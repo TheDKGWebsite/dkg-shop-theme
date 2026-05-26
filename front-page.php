@@ -16,7 +16,7 @@ $home_collections = array(
         'slug'  => 'sdzp',
         'class' => 'blue',
         'label' => 'shop.dkg.zone prints',
-        'bg'    => get_template_directory_uri() . '/assets/images/collection-bg-2.jpg',
+        'bg'    => get_template_directory_uri() . '/assets/images/col2.png',
     ),
     array(
         'slug'  => 'stickers',
