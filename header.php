@@ -48,7 +48,8 @@
 		'https://i.imgur.com/wIDieFh.png',
 		'https://i.imgur.com/BIChMw9.png',
 		'https://i.imgur.com/UYvoyoN.png',
-		'https://i.imgur.com/Y780dCv.png'
+		'https://i.imgur.com/Y780dCv.png',
+		'https://i.imgur.com/M5i1Dia.png'
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
