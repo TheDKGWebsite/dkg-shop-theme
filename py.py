@@ -6,26 +6,25 @@ import re
 ROOT = Path(__file__).resolve().parent
 MOBILE_PAGE = ROOT / "page-mobile-shop.php"
 
-START = "/* === DKG MOBILE PHONE FIX V2 START === */"
-END = "/* === DKG MOBILE PHONE FIX V2 END === */"
+START = "/* === DKG MOBILE SHOP REAL OVERRIDE START === */"
+END = "/* === DKG MOBILE SHOP REAL OVERRIDE END === */"
 
-PATCH_CSS = r"""
-/* === DKG MOBILE PHONE FIX V2 START === */
+PATCH = r"""
+/* === DKG MOBILE SHOP REAL OVERRIDE START === */
 
 /*
-  This block is intentionally scoped to /mobile-shop/.
-  It should come late in page-mobile-shop.php so it beats the older global
-  mobile header rules from front-page.css/style.css.
+  REAL FIX:
+  This CSS is inside page-mobile-shop.php, so it only loads on /mobile-shop/.
+  Do NOT depend on body.page-mobile-shop or body.page-template-page-mobile-shop,
+  because WordPress may not add those body classes when this file is used as
+  a slug template.
 */
 
-/* Make the actual phone header thin, even when global 640px header rules try to stack it. */
-html body.page-mobile-shop header.site-header,
-html body.page-template-page-mobile-shop header.site-header,
-html body.page-mobile-shop .site-header,
-html body.page-template-page-mobile-shop .site-header {
-  height: 54px !important;
-  min-height: 54px !important;
-  max-height: 54px !important;
+/* Force the mobile-shop header thin. */
+.site-header {
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
   padding: 3px 7px !important;
   margin: 0 !important;
   overflow: hidden !important;
@@ -34,15 +33,13 @@ html body.page-template-page-mobile-shop .site-header {
   box-sizing: border-box !important;
 }
 
-html body.page-mobile-shop .site-header .header-inner,
-html body.page-template-page-mobile-shop .site-header .header-inner,
-html body.page-mobile-shop header.site-header .header-inner,
-html body.page-template-page-mobile-shop header.site-header .header-inner {
-  height: 48px !important;
-  min-height: 48px !important;
-  max-height: 48px !important;
+.site-header .header-inner {
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
   width: 100% !important;
   max-width: 100% !important;
+
   padding: 0 !important;
   margin: 0 !important;
 
@@ -58,15 +55,13 @@ html body.page-template-page-mobile-shop header.site-header .header-inner {
   box-sizing: border-box !important;
 }
 
-/* Keep logo short. */
-html body.page-mobile-shop .site-header .logo,
-html body.page-template-page-mobile-shop .site-header .logo,
-html body.page-mobile-shop .site-header .custom-logo-link,
-html body.page-template-page-mobile-shop .site-header .custom-logo-link,
-html body.page-mobile-shop .site-header .site-branding,
-html body.page-template-page-mobile-shop .site-header .site-branding {
-  height: 44px !important;
-  max-height: 44px !important;
+/* Keep logo small. */
+.site-header .logo,
+.site-header .site-logo,
+.site-header .custom-logo-link,
+.site-header .site-branding {
+  height: 42px !important;
+  max-height: 42px !important;
   min-height: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -74,51 +69,46 @@ html body.page-template-page-mobile-shop .site-header .site-branding {
   overflow: hidden !important;
 }
 
-html body.page-mobile-shop .site-header .logo img,
-html body.page-template-page-mobile-shop .site-header .logo img,
-html body.page-mobile-shop .site-header .custom-logo,
-html body.page-template-page-mobile-shop .site-header .custom-logo,
-html body.page-mobile-shop .site-header .custom-logo-link img,
-html body.page-template-page-mobile-shop .site-header .custom-logo-link img,
-html body.page-mobile-shop .site-header .site-branding img,
-html body.page-template-page-mobile-shop .site-header .site-branding img {
+.site-header .logo img,
+.site-header .custom-logo,
+.site-header .custom-logo-link img,
+.site-header .site-branding img {
   width: auto !important;
   height: auto !important;
-  max-width: 104px !important;
-  max-height: 40px !important;
+  max-width: 98px !important;
+  max-height: 38px !important;
   display: block !important;
   object-fit: contain !important;
 }
 
-/*
-  The rotator and big side overlay are desktop/header extras.
-  On real phones they make the header impossible to keep thin.
-*/
-html body.page-mobile-shop .dkg-header-picture-rotator,
-html body.page-template-page-mobile-shop .dkg-header-picture-rotator,
-html body.page-mobile-shop .dkg-header-picture-frame,
-html body.page-template-page-mobile-shop .dkg-header-picture-frame,
-html body.page-mobile-shop .dkg-left-overlay,
-html body.page-template-page-mobile-shop .dkg-left-overlay {
+/* Hide desktop header extras on mobile-shop. */
+.dkg-header-picture-rotator,
+.dkg-header-picture-frame,
+.dkg-header-picture-img,
+.dkg-header-picture-img-layer,
+.dkg-left-overlay,
+.dkg-header-lights-image-wrap,
+.dkg-header-lights-image {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
   max-width: 0 !important;
   max-height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  opacity: 0 !important;
   overflow: hidden !important;
+  pointer-events: none !important;
 }
 
-/*
-  Keep just practical nav text on mobile-shop.
-  This is the most reliable way to make the real phone header thinner.
-*/
-html body.page-mobile-shop .site-header .nav,
-html body.page-template-page-mobile-shop .site-header .nav {
-  height: 44px !important;
+/* Make the nav fit in one thin row. */
+.site-header .nav {
+  height: 42px !important;
   min-height: 0 !important;
-  max-height: 44px !important;
+  max-height: 42px !important;
   flex: 1 1 auto !important;
   min-width: 0 !important;
+
   margin: 0 !important;
   padding: 0 !important;
 
@@ -127,54 +117,55 @@ html body.page-template-page-mobile-shop .site-header .nav {
   flex-wrap: nowrap !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: 7px !important;
+  gap: 8px !important;
 
   overflow: hidden !important;
 }
 
-html body.page-mobile-shop .site-header .nav a,
-html body.page-template-page-mobile-shop .site-header .nav a {
+.site-header .nav a {
   font-size: 0.72rem !important;
   line-height: 1 !important;
   padding: 4px 3px !important;
   margin: 0 !important;
   white-space: nowrap !important;
+
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-/* Hide socials on /mobile-shop/ so the phone header stops becoming a giant strip. */
-html body.page-mobile-shop .site-header .nav a.nav-social,
-html body.page-template-page-mobile-shop .site-header .nav a.nav-social {
+/* Hide social icons on mobile-shop to keep header short. */
+.site-header .nav a.nav-social {
   display: none !important;
 }
 
-/* Pull the content up now that the header is thinner. */
-html body.page-mobile-shop .dkg-mobile-plates-main,
-html body.page-template-page-mobile-shop .dkg-mobile-plates-main {
-  padding-top: 14px !important;
+/* Make sure content starts close to the thinner header. */
+.dkg-mobile-plates-main {
+  padding-top: 12px !important;
 }
 
 /*
-  COLLECTION PLATE FIX:
-  The label is no longer a floating blob outside the plate.
-  It becomes an internal title bar connected to the product images below it.
+  PLATE/LABEL FIX:
+  The first overhaul made labels float like desktop labels.
+  On phone they need to be inside the plate, directly connected to the product images.
 */
-html body.page-mobile-shop .dkg-mobile-collection-plate,
-html body.page-template-page-mobile-shop .dkg-mobile-collection-plate {
+.dkg-mobile-collection-plate {
+  position: relative !important;
   min-height: 0 !important;
   height: auto !important;
-  padding: 12px 10px 11px !important;
+
+  padding: 11px 9px 10px !important;
   overflow: hidden !important;
-  border-radius: 22px !important;
+  border-radius: 21px !important;
+
   display: flex !important;
   flex-direction: column !important;
-  gap: 10px !important;
+  gap: 9px !important;
+
+  box-sizing: border-box !important;
 }
 
-html body.page-mobile-shop .dkg-mobile-collection-label,
-html body.page-template-page-mobile-shop .dkg-mobile-collection-label {
+.dkg-mobile-collection-label {
   position: relative !important;
   left: auto !important;
   top: auto !important;
@@ -183,17 +174,18 @@ html body.page-template-page-mobile-shop .dkg-mobile-collection-label {
   transform: none !important;
 
   z-index: 3 !important;
-  width: calc(100% - 8px) !important;
+
+  width: 100% !important;
   max-width: none !important;
-  margin: 0 auto 2px !important;
-  padding: 8px 10px !important;
+  margin: 0 !important;
+  padding: 8px 9px !important;
 
   display: block !important;
   box-sizing: border-box !important;
 
-  border-radius: 14px !important;
-  background: rgba(0, 0, 0, 0.74) !important;
-  border: 1px solid rgba(255,255,255,0.16) !important;
+  border-radius: 13px !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.38) !important;
 
   color: #fff !important;
@@ -201,126 +193,144 @@ html body.page-template-page-mobile-shop .dkg-mobile-collection-label {
   text-transform: uppercase !important;
   letter-spacing: 0.045em !important;
   font-weight: 800 !important;
-  font-size: clamp(0.78rem, 3.5vw, 0.98rem) !important;
+  font-size: clamp(0.76rem, 3.45vw, 0.96rem) !important;
   line-height: 1.12 !important;
   white-space: normal !important;
 }
 
-/* Keep product images spatially attached to the label/plate. */
-html body.page-mobile-shop .dkg-mobile-product-row,
-html body.page-template-page-mobile-shop .dkg-mobile-product-row {
+/* Product image grid now belongs visually to the label above it. */
+.dkg-mobile-product-row {
   position: relative !important;
   z-index: 2 !important;
+
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 8px !important;
-  width: 100% !important;
-  margin: 0 !important;
 }
 
-html body.page-mobile-shop .dkg-mobile-product-card,
-html body.page-template-page-mobile-shop .dkg-mobile-product-card {
-  height: 118px !important;
-  min-height: 118px !important;
-  max-height: 118px !important;
+.dkg-mobile-product-card {
+  height: 116px !important;
+  min-height: 116px !important;
+  max-height: 116px !important;
   border-radius: 13px !important;
+
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-/* Make background plate fill the actual card area, not visually detach the title. */
-html body.page-mobile-shop .dkg-mobile-collection-bg,
-html body.page-template-page-mobile-shop .dkg-mobile-collection-bg {
+.dkg-mobile-product-card img {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
+}
+
+/* Background stays inside the plate. */
+.dkg-mobile-collection-bg {
+  position: absolute !important;
   inset: 0 !important;
   border-radius: inherit !important;
+  overflow: hidden !important;
+  z-index: 0 !important;
 }
 
-html body.page-mobile-shop .dkg-mobile-collection-bg img,
-html body.page-template-page-mobile-shop .dkg-mobile-collection-bg img {
+.dkg-mobile-collection-bg img {
+  width: 100% !important;
+  height: 100% !important;
   object-fit: fill !important;
-  filter: brightness(0.68) contrast(1.04) !important;
+  filter: brightness(0.66) contrast(1.04) !important;
 }
 
 /* Tiny phones. */
 @media (max-width: 390px) {
-  html body.page-mobile-shop header.site-header,
-  html body.page-template-page-mobile-shop header.site-header,
-  html body.page-mobile-shop .site-header,
-  html body.page-template-page-mobile-shop .site-header {
-    height: 50px !important;
-    min-height: 50px !important;
-    max-height: 50px !important;
+  .site-header {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
     padding: 3px 6px !important;
   }
 
-  html body.page-mobile-shop .site-header .header-inner,
-  html body.page-template-page-mobile-shop .site-header .header-inner {
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
+  .site-header .header-inner {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
   }
 
-  html body.page-mobile-shop .site-header .logo img,
-  html body.page-template-page-mobile-shop .site-header .logo img,
-  html body.page-mobile-shop .site-header .custom-logo,
-  html body.page-template-page-mobile-shop .site-header .custom-logo,
-  html body.page-mobile-shop .site-header .custom-logo-link img,
-  html body.page-template-page-mobile-shop .site-header .custom-logo-link img {
-    max-width: 88px !important;
-    max-height: 34px !important;
+  .site-header .logo img,
+  .site-header .custom-logo,
+  .site-header .custom-logo-link img,
+  .site-header .site-branding img {
+    max-width: 84px !important;
+    max-height: 33px !important;
   }
 
-  html body.page-mobile-shop .site-header .nav a,
-  html body.page-template-page-mobile-shop .site-header .nav a {
+  .site-header .nav {
+    gap: 6px !important;
+  }
+
+  .site-header .nav a {
     font-size: 0.66rem !important;
     padding: 3px 2px !important;
   }
 
-  html body.page-mobile-shop .dkg-mobile-collection-plate,
-  html body.page-template-page-mobile-shop .dkg-mobile-collection-plate {
-    padding: 10px 8px 9px !important;
-    gap: 8px !important;
-    border-radius: 19px !important;
+  .dkg-mobile-plates-main {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
   }
 
-  html body.page-mobile-shop .dkg-mobile-product-card,
-  html body.page-template-page-mobile-shop .dkg-mobile-product-card {
-    height: 106px !important;
-    min-height: 106px !important;
-    max-height: 106px !important;
+  .dkg-mobile-collection-plate {
+    padding: 9px 7px 8px !important;
+    gap: 7px !important;
+    border-radius: 18px !important;
+  }
+
+  .dkg-mobile-product-row {
+    gap: 7px !important;
+  }
+
+  .dkg-mobile-product-card {
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: 104px !important;
+    border-radius: 11px !important;
   }
 }
 
-/* === DKG MOBILE PHONE FIX V2 END === */
+/* === DKG MOBILE SHOP REAL OVERRIDE END === */
 """
 
 def backup(path: Path) -> Path:
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    out = path.with_name(f"{path.name}.backup-before-phone-fix-{ts}")
-    shutil.copy2(path, out)
-    return out
+    backup_path = path.with_name(f"{path.name}.backup-before-real-mobile-fix-{ts}")
+    shutil.copy2(path, backup_path)
+    return backup_path
 
 def insert_patch(text: str) -> str:
-    # Remove old copy of this patch if rerun.
+    # Remove old copy if rerun.
     pattern = re.compile(re.escape(START) + r".*?" + re.escape(END), re.S)
     text = pattern.sub("", text)
 
-    # Best place: inside the existing <style id="dkg-mobile-homepage-plates-overhaul"> block,
-    # right before </style>, so it loads after the first overhaul CSS.
+    # Put this as late as possible inside the existing main style block.
     style_id = 'id="dkg-mobile-homepage-plates-overhaul"'
     style_pos = text.find(style_id)
 
     if style_pos != -1:
         close_pos = text.find("</style>", style_pos)
         if close_pos != -1:
-            return text[:close_pos] + "\n\n" + PATCH_CSS.strip() + "\n\n" + text[close_pos:]
+            return text[:close_pos] + "\n\n" + PATCH.strip() + "\n\n" + text[close_pos:]
 
-    # Fallback: add a new style block before the main mobile markup.
+    # Fallback: insert a new style block before main content.
     main_pos = text.find('<main class="dkg-mobile-plates-main"')
-    style_block = "\n<style id=\"dkg-mobile-phone-fix-v2\">\n" + PATCH_CSS.strip() + "\n</style>\n"
+    style_block = "\n<style id=\"dkg-mobile-shop-real-override\">\n" + PATCH.strip() + "\n</style>\n"
 
     if main_pos != -1:
         return text[:main_pos] + style_block + "\n" + text[main_pos:]
 
-    # Last resort: add before get_footer.
+    # Last fallback.
     footer_pos = text.find("<?php get_footer(); ?>")
     if footer_pos != -1:
         return text[:footer_pos] + style_block + "\n" + text[footer_pos:]
@@ -339,14 +349,12 @@ def main():
 
     print("Done.")
     print(f"Backup created: {backup_path}")
-    print("Patched page-mobile-shop.php with stronger real-phone header and plate-label fixes.")
+    print("Added final unscoped /mobile-shop/ override.")
     print("")
-    print("Test:")
-    print("https://shop.dkg.zone/mobile-shop/")
+    print("Test this exact URL on your phone:")
+    print("https://shop.dkg.zone/mobile-shop/?mobile-real-fix=1")
     print("")
-    print("Important: clear/cache-bust if your phone still shows the old version.")
-    print("Try adding ?v=phonefix2 to the URL once:")
-    print("https://shop.dkg.zone/mobile-shop/?v=phonefix2")
+    print("If it still looks unchanged, then the phone is seeing cached HTML or WordPress is not using page-mobile-shop.php.")
 
 if __name__ == "__main__":
     main()
