@@ -39,7 +39,8 @@
       */
 
       $__dkg_header_rotator_group_1 = array(
-        'https://i.imgur.com/WZBNYWa.png'
+        'https://i.imgur.com/WZBNYWa.png',
+		'https://i.imgur.com/XXBVERU.png'
       );
 
       $__dkg_header_rotator_group_2 = array(
