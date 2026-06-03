@@ -19,10 +19,10 @@ $home_collections = array(
         'bg'    => get_template_directory_uri() . '/assets/images/col2.png',
     ),
     array(
-        'slug'  => 'stickers',
+        'slug'  => 'fm',
         'class' => 'green',
-        'label' => 'Stickers',
-        'bg'    => get_template_directory_uri() . '/assets/images/collection-bg-3.jpg',
+        'label' => 'Fabook Medicinals',
+        'bg'    => get_template_directory_uri() . '/assets/images/col1.png',
     ),
     array(
         'slug'  => 'hats',
