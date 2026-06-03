@@ -106,7 +106,7 @@
 
     <?php if (!empty($__dkg_header_rotator_first_image)) : ?>
       <div class="dkg-header-picture-rotator"
-           data-interval="5000"
+           data-interval="3000"
            data-image-group-1="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_group_1)); ?>"
            data-image-group-2="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_group_2)); ?>"
            data-images="<?php echo esc_attr(wp_json_encode($__dkg_header_rotator_all_images)); ?>"
