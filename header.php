@@ -65,7 +65,25 @@
 		'https://i.imgur.com/kYJX41f.png',
 		'https://i.imgur.com/xMKSKkr.png',
 		'https://i.imgur.com/xMKSKkr.png',
-		'https://i.imgur.com/7s9OB8Y.png'
+		'https://i.imgur.com/7s9OB8Y.png',
+		'https://i.imgur.com/ImNWFXM.png',
+		'https://i.imgur.com/2JAf8lB.png',
+		'https://i.imgur.com/V5GM303.png',
+		'https://i.imgur.com/NXPuaqP.png',
+		'https://i.imgur.com/ZhHJLL1.png',
+		'https://i.imgur.com/OgyjhIq.png',
+		'https://i.imgur.com/UAJx9Cz.jpeg',
+		'https://i.imgur.com/yjY73Pt.png',
+		'https://i.imgur.com/zJDKkXA.png',
+		'https://i.imgur.com/okqBONl.png',
+		'https://i.imgur.com/5eF9xwV.png',
+		'https://i.imgur.com/1XfTx1i.png',
+		'https://i.imgur.com/4S20vfJ.png',
+		'https://i.imgur.com/cX4Wez3.png',
+		'https://i.imgur.com/yE29L2d.png',
+		'https://i.imgur.com/QRfgGg1.png',
+		'https://i.imgur.com/jHxhdCg.png',
+		'https://i.imgur.com/6VI4wpp.png'
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
