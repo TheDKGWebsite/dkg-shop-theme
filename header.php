@@ -60,7 +60,12 @@
 		'https://i.imgur.com/LcOTbzq.png',
 		'https://i.imgur.com/Kv8rbJm.png',
 		'https://i.imgur.com/75T2bgG.png',
-		'https://i.imgur.com/zKLR4k1.png'
+		'https://i.imgur.com/zKLR4k1.png',
+		'https://i.imgur.com/esVjdnZ.png',
+		'https://i.imgur.com/kYJX41f.png',
+		'https://i.imgur.com/xMKSKkr.png',
+		'https://i.imgur.com/xMKSKkr.png',
+		'https://i.imgur.com/7s9OB8Y.png'
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
