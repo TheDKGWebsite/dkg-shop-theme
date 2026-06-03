@@ -22,7 +22,7 @@ $home_collections = array(
         'slug'  => 'fm',
         'class' => 'green',
         'label' => 'Fabook Medicinals',
-        'bg'    => get_template_directory_uri() . '/assets/images/col1.png',
+        'bg'    => get_template_directory_uri() . '/assets/images/col3.png',
     ),
     array(
         'slug'  => 'hats',
