@@ -202,7 +202,7 @@ $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
     .dkg-header-picture-frame {
       position: absolute !important;
       left: 0;
-      top: -100px;
+      top: 1px;
       width: 420px;
       height: 175px;
       background-position: center;
