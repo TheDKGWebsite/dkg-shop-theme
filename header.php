@@ -10,6 +10,58 @@
 
 <header class="site-header">
 
+<style id="dkg-header-picture-rotator-size-fix">
+  /*
+    DKG HEADER ROTATOR SIZE FIX
+
+    Goal:
+    - Make the picture shuffle/frame larger.
+    - Make it touch/cover the full header height visually.
+    - Make it a bit wider.
+    - Avoid resizing the logo, nav text, or social icons.
+
+    Main tweak values:
+    --dkg-rotator-visible-width: horizontal visual size of frame.
+    --dkg-rotator-layout-width: how much layout space it reserves.
+  */
+
+  .dkg-header-picture-rotator {
+    position: relative;
+    align-self: stretch;
+    flex: 0 0 285px;
+    width: 285px;
+    height: 100%;
+    min-height: 100%;
+    overflow: visible;
+    z-index: 5;
+  }
+
+  .dkg-header-picture-frame {
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 350px;
+    height: calc(100% + 4px);
+    min-height: 112px;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .dkg-header-picture-img {
+    position: absolute;
+    left: 8%;
+    top: 9%;
+    width: 84%;
+    height: 82%;
+    object-fit: cover;
+    display: block;
+    z-index: 1;
+  }
+</style>
+
 <!-- DKG header lights disabled --><div class="header-inner">
     <div class="logo">
       <?php
@@ -28,7 +80,7 @@
       /*
         Header picture rotator image groups.
 
-        The rotator now alternates:
+        The rotator alternates:
           random group 1 image
           random group 2 image
           random group 1 image
@@ -40,82 +92,81 @@
 
       $__dkg_header_rotator_group_1 = array(
         'https://i.imgur.com/WZBNYWa.png',
-		'https://i.imgur.com/XXBVERU.png'
+        'https://i.imgur.com/XXBVERU.png'
       );
 
       $__dkg_header_rotator_group_2 = array(
         'https://i.imgur.com/BP6yOQZ.jpeg',
-		'https://i.imgur.com/gwcI3wv.png',
-		'https://i.imgur.com/wIDieFh.png',
-		'https://i.imgur.com/BIChMw9.png',
-		'https://i.imgur.com/UYvoyoN.png',
-		'https://i.imgur.com/Y780dCv.png',
-		'https://i.imgur.com/M5i1Dia.png',
-		'https://i.imgur.com/HHddteB.png',
-		'https://i.imgur.com/z6Gq99h.png',
-		'https://i.imgur.com/ImPmwFE.png',
-		'https://i.imgur.com/Pu3xm1o.png',
-		'https://i.imgur.com/edpT2W4.png',
-		'https://i.imgur.com/VUSjN4l.png',
-		'https://i.imgur.com/LcOTbzq.png',
-		'https://i.imgur.com/Kv8rbJm.png',
-		'https://i.imgur.com/75T2bgG.png',
-		'https://i.imgur.com/zKLR4k1.png',
-		'https://i.imgur.com/esVjdnZ.png',
-		'https://i.imgur.com/kYJX41f.png',
-		'https://i.imgur.com/xMKSKkr.png',
-		'https://i.imgur.com/xMKSKkr.png',
-		'https://i.imgur.com/7s9OB8Y.png',
-		'https://i.imgur.com/ImNWFXM.png',
-		'https://i.imgur.com/2JAf8lB.png',
-		'https://i.imgur.com/V5GM303.png',
-		'https://i.imgur.com/NXPuaqP.png',
-		'https://i.imgur.com/ZhHJLL1.png',
-		'https://i.imgur.com/OgyjhIq.png',
-		'https://i.imgur.com/UAJx9Cz.jpeg',
-		'https://i.imgur.com/yjY73Pt.png',
-		'https://i.imgur.com/zJDKkXA.png',
-		'https://i.imgur.com/okqBONl.png',
-		'https://i.imgur.com/5eF9xwV.png',
-		'https://i.imgur.com/1XfTx1i.png',
-		'https://i.imgur.com/4S20vfJ.png',
-		'https://i.imgur.com/cX4Wez3.png',
-		'https://i.imgur.com/yE29L2d.png',
-		'https://i.imgur.com/QRfgGg1.png',
-		'https://i.imgur.com/jHxhdCg.png',
-		'https://i.imgur.com/6VI4wpp.png',
-		'https://i.imgur.com/20ZUOs6.png',
-		'https://i.imgur.com/PjSP4qq.png',
-		'https://i.imgur.com/iebYzK5.jpeg',
-		'https://i.imgur.com/abchvRc.jpeg',
-		'https://i.imgur.com/ylBfxaf.jpeg',
-		'https://i.imgur.com/u2tFPxX.jpeg',
-		'https://i.imgur.com/joFlYh4.jpeg',
-		'https://i.imgur.com/I7bPblm.jpeg',
-		'https://i.imgur.com/caKBY31.jpeg',
-		'https://i.imgur.com/RQxNCCb.jpeg',
-		'https://i.imgur.com/5aKJKGb.jpeg',
-		'https://i.imgur.com/ytn2TlT.jpeg',
-		'https://i.imgur.com/t9Jjfdu.png',
-		'https://i.imgur.com/VOtBuyV.jpeg',
-		'https://i.imgur.com/m5cNf6J.png',
-		'https://i.imgur.com/AsTjsO6.png',
-		'https://i.imgur.com/xuf07Pb.png',
-		'https://i.imgur.com/hQwSO8v.png',
-		'https://i.imgur.com/7pL3s86.png',
-		'https://i.imgur.com/6YblOj4.png',
-		'https://i.imgur.com/4kHxfHU.png',
-		'https://i.imgur.com/OD0AhgI.png',
-		'https://i.imgur.com/M8Hotqk.png',
-		'https://i.imgur.com/RLhqID1.png',
-		'https://i.imgur.com/a2nrLD1.png',
-		'https://i.imgur.com/skBtsV6.png',
-		'https://i.imgur.com/l4UyoXa.png',
-		'https://i.imgur.com/unvAxc2.png',
-		'https://i.imgur.com/GChVAlI.png',
-		'https://i.imgur.com/ezFUo9T.png',
-		'https://i.imgur.com/7H2UEG0.png',
-		'https://i.imgur.com/glt0cbU.png',
+        'https://i.imgur.com/gwcI3wv.png',
+        'https://i.imgur.com/wIDieFh.png',
+        'https://i.imgur.com/BIChMw9.png',
+        'https://i.imgur.com/UYvoyoN.png',
+        'https://i.imgur.com/Y780dCv.png',
+        'https://i.imgur.com/M5i1Dia.png',
+        'https://i.imgur.com/HHddteB.png',
+        'https://i.imgur.com/z6Gq99h.png',
+        'https://i.imgur.com/ImPmwFE.png',
+        'https://i.imgur.com/Pu3xm1o.png',
+        'https://i.imgur.com/edpT2W4.png',
+        'https://i.imgur.com/VUSjN4l.png',
+        'https://i.imgur.com/LcOTbzq.png',
+        'https://i.imgur.com/Kv8rbJm.png',
+        'https://i.imgur.com/75T2bgG.png',
+        'https://i.imgur.com/zKLR4k1.png',
+        'https://i.imgur.com/esVjdnZ.png',
+        'https://i.imgur.com/kYJX41f.png',
+        'https://i.imgur.com/xMKSKkr.png',
+        'https://i.imgur.com/xMKSKkr.png',
+        'https://i.imgur.com/7s9OB8Y.png',
+        'https://i.imgur.com/ImNWFXM.png',
+        'https://i.imgur.com/2JAf8lB.png',
+        'https://i.imgur.com/V5GM303.png',
+        'https://i.imgur.com/NXPuaqP.png',
+        'https://i.imgur.com/ZhHJLL1.png',
+        'https://i.imgur.com/OgyjhIq.png',
+        'https://i.imgur.com/UAJx9Cz.jpeg',
+        'https://i.imgur.com/yjY73Pt.png',
+        'https://i.imgur.com/zJDKkXA.png',
+        'https://i.imgur.com/okqBONl.png',
+        'https://i.imgur.com/5eF9xwV.png',
+        'https://i.imgur.com/1XfTx1i.png',
+        'https://i.imgur.com/4S20vfJ.png',
+        'https://i.imgur.com/cX4Wez3.png',
+        'https://i.imgur.com/yE29L2d.png',
+        'https://i.imgur.com/QRfgGg1.png',
+        'https://i.imgur.com/jHxhdCg.png',
+        'https://i.imgur.com/6VI4wpp.png',
+        'https://i.imgur.com/20ZUOs6.png',
+        'https://i.imgur.com/PjSP4qq.png',
+        'https://i.imgur.com/iebYzK5.jpeg',
+        'https://i.imgur.com/abchvRc.jpeg',
+        'https://i.imgur.com/ylBfxaf.jpeg',
+        'https://i.imgur.com/u2tFPxX.jpeg',
+        'https://i.imgur.com/joFlYh4.jpeg',
+        'https://i.imgur.com/I7bPblm.jpeg',
+        'https://i.imgur.com/caKBY31.jpeg',
+        'https://i.imgur.com/5aKJKGb.jpeg',
+        'https://i.imgur.com/ytn2TlT.jpeg',
+        'https://i.imgur.com/t9Jjfdu.png',
+        'https://i.imgur.com/VOtBuyV.jpeg',
+        'https://i.imgur.com/m5cNf6J.png',
+        'https://i.imgur.com/AsTjsO6.png',
+        'https://i.imgur.com/xuf07Pb.png',
+        'https://i.imgur.com/hQwSO8v.png',
+        'https://i.imgur.com/7pL3s86.png',
+        'https://i.imgur.com/6YblOj4.png',
+        'https://i.imgur.com/4kHxfHU.png',
+        'https://i.imgur.com/OD0AhgI.png',
+        'https://i.imgur.com/M8Hotqk.png',
+        'https://i.imgur.com/RLhqID1.png',
+        'https://i.imgur.com/a2nrLD1.png',
+        'https://i.imgur.com/skBtsV6.png',
+        'https://i.imgur.com/l4UyoXa.png',
+        'https://i.imgur.com/unvAxc2.png',
+        'https://i.imgur.com/GChVAlI.png',
+        'https://i.imgur.com/ezFUo9T.png',
+        'https://i.imgur.com/7H2UEG0.png',
+        'https://i.imgur.com/glt0cbU.png',
       );
 
       $__dkg_header_rotator_group_1 = array_values(array_filter($__dkg_header_rotator_group_1));
@@ -185,4 +236,3 @@
   </div>
   <!-- DKG left floating overlay end -->
 <?php endif; ?>
-
