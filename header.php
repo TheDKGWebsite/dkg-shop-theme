@@ -12,42 +12,49 @@
 
 <style id="dkg-header-picture-rotator-size-fix">
   /*
-    DKG HEADER ROTATOR SIZE FIX
+    DKG HEADER ROTATOR OVERFLOW FIX
 
     Goal:
     - Make the picture shuffle/frame larger.
-    - Make it touch/cover the full header height visually.
-    - Make it a bit wider.
-    - Avoid resizing the logo, nav text, or social icons.
+    - Allow it to visually pass outside the header.
+    - Avoid forcing the logo/nav/social icons to resize or move too much.
 
     Main tweak values:
-    --dkg-rotator-visible-width: horizontal visual size of frame.
-    --dkg-rotator-layout-width: how much layout space it reserves.
+    - .dkg-header-picture-frame width
+    - .dkg-header-picture-frame top
+    - .dkg-header-picture-frame height
   */
+
+  .site-header,
+  .site-header .header-inner {
+    overflow: visible !important;
+  }
 
   .dkg-header-picture-rotator {
     position: relative;
     align-self: stretch;
-    flex: 0 0 285px;
-    width: 285px;
+    flex: 0 0 300px;
+    width: 300px;
     height: 100%;
     min-height: 100%;
-    overflow: visible;
-    z-index: 5;
+    overflow: visible !important;
+    z-index: 50;
+    pointer-events: none;
   }
 
   .dkg-header-picture-frame {
     position: absolute;
     left: 0;
-    top: -2px;
-    width: 350px;
-    height: calc(100% + 4px);
-    min-height: 112px;
+    top: -10px;
+    width: 370px;
+    height: calc(100% + 20px);
+    min-height: 132px;
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
     overflow: hidden;
-    z-index: 2;
+    z-index: 51;
+    pointer-events: none;
   }
 
   .dkg-header-picture-img {
@@ -59,6 +66,7 @@
     object-fit: cover;
     display: block;
     z-index: 1;
+    pointer-events: none;
   }
 </style>
 
