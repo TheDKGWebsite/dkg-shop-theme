@@ -190,8 +190,8 @@ $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
     .dkg-header-picture-rotator {
       position: relative !important;
       align-self: stretch;
-      flex: 0 0 330px;
-      width: 330px;
+      flex: 0 0 300px;
+      width: 300px;
       height: 100%;
       min-height: 100%;
       overflow: visible !important;
@@ -202,13 +202,14 @@ $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
     .dkg-header-picture-frame {
       position: absolute !important;
       left: 0;
-      top: -18px;
-      width: 420px;
-      height: 175px;
+      top: -16px;
+      width: 390px;
+      height: calc(100% + 32px);
+      min-height: 145px;
       background-position: center;
       background-repeat: no-repeat;
       background-size: 100% 100%;
-      overflow: visible !important;
+      overflow: hidden;
       z-index: 100002 !important;
       pointer-events: none;
     }
