@@ -827,19 +827,15 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - Step 5 clean clip.
+  DKG mobile homepage collection plates - Step 4.
 
-  Clean carousel model:
-  - The collection plate is the clipping window.
-  - The product track is wider than the plate and moves underneath it.
-  - No side padding is used inside the moving track.
-  - Slot width is calculated exactly:
-      slot = (plateWidth - 2 gaps) / 3
-  - Therefore:
-      3 slots + 2 gaps = exact visible plate width
-  - No pushed-right row.
-  - No resting sliver of previous/next product.
-  - Header remains untouched.
+  Main behavior:
+  - Exactly 3 equal product spots are visible on mobile.
+  - Collections with 4+ products auto-scroll one product at a time.
+  - Auto-scroll loops forever.
+  - Product 4+ should not peek into the initial 3-product view.
+  - Product images fit with object-fit: contain.
+  - Header is intentionally untouched.
 */
 
 @media screen and (max-width: 767px) {
@@ -891,9 +887,6 @@ body.page-template-page-mobile-shop {
     margin-right: auto !important;
   }
 
-  /*
-    The plate itself is the hard clipping window.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
     width: 100% !important;
     max-width: 100% !important;
@@ -910,10 +903,6 @@ body.page-template-page-mobile-shop {
     margin-right: auto !important;
   }
 
-  /*
-    Background/inner layer also clips. This prevents any previous/next product
-    from appearing outside the intended visual plate.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-bg {
     width: 100% !important;
     height: 100% !important;
@@ -921,20 +910,21 @@ body.page-template-page-mobile-shop {
     overflow: hidden !important;
     border-radius: clamp(16px, 5vw, 28px) !important;
     box-sizing: border-box !important;
-    position: relative !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
     --dkg-mobile-visible-count: 3;
     --dkg-mobile-gap-px: 6px;
+    --dkg-mobile-pad-x-px: 8px;
+    --dkg-mobile-pad-y-px: 10px;
     --dkg-mobile-slot-px: 100px;
     --dkg-mobile-step-px: 106px;
   }
 
   /*
-    Moving product track.
-    No left/right padding. No centered justification.
-    It starts exactly at x=0 and moves by exact one-slot steps.
+    Product track.
+    This is transformed by JS for automated carousel motion.
+    Manual scrolling is not the intended behavior here.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track {
     display: flex !important;
@@ -950,11 +940,7 @@ body.page-template-page-mobile-shop {
     height: 100% !important;
 
     margin: 0 !important;
-    padding: 0 !important;
-
-    position: relative !important;
-    left: 0 !important;
-    right: auto !important;
+    padding: var(--dkg-mobile-pad-y-px) var(--dkg-mobile-pad-x-px) !important;
 
     box-sizing: border-box !important;
 
@@ -980,6 +966,7 @@ body.page-template-page-mobile-shop {
 
   /*
     Exact product slot.
+    JS writes --dkg-mobile-slot-px from real measurements.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item {
     flex: 0 0 var(--dkg-mobile-slot-px) !important;
@@ -1005,32 +992,15 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    Make the product's own internal wrappers fill and center the slot.
+    Clones are used only to make the loop seamless.
   */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item > *,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item picture,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item figure,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .woocommerce-loop-product__link {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    box-sizing: border-box !important;
-    overflow: hidden !important;
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-clone {
+    pointer-events: auto !important;
   }
 
   /*
     Product image fit:
-    Contain and center, never crop.
+    Mobile should contain the product artwork inside the frame, not crop it.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item img,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .product-image,
@@ -1044,14 +1014,27 @@ body.page-template-page-mobile-shop {
     object-position: center center !important;
 
     display: block !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item a,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item picture,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item figure,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .woocommerce-loop-product__link {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
     box-sizing: border-box !important;
   }
 
   /*
-    Collection label only.
+    Label sizing only.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-label {
     max-width: calc(100% - 24px) !important;
@@ -1069,6 +1052,7 @@ body.page-template-page-mobile-shop {
 
   /*
     Hide decorative left-side glide/palm-type image on mobile only.
+    Scoped away from product cards and header by JS too.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-hide-left-decor,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-home-left-glide,
@@ -1101,6 +1085,8 @@ body.page-template-page-mobile-shop {
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
     --dkg-mobile-gap-px: 5px;
+    --dkg-mobile-pad-x-px: 7px;
+    --dkg-mobile-pad-y-px: 9px;
   }
 }
 

@@ -2,15 +2,22 @@
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 5 clean clip.
+    DKG mobile main homepage collection plate controller - Step 4.
 
-    Difference from step 4:
-    - No internal horizontal padding on the moving track.
-    - Exact 3-slot math uses the full plate width:
-        slotWidth = (plateWidth - 2 gaps) / 3
-    - Track starts exactly at x=0.
-    - Product 4 begins exactly outside the clipped plate window.
-    - No resting slivers of previous/next products.
+    This version uses automated carousel behavior.
+
+    Math:
+      visibleInterior = plateWidth - leftPadding - rightPadding
+      slotWidth = floor((visibleInterior - (gap * 2)) / 3)
+
+    Exactly:
+      3 slots + 2 gaps = visible area
+
+    Auto-scroll:
+      - Only if product count > 3
+      - Advances one product at a time
+      - Loops forever
+      - Uses clones of the first 3 products for seamless looping
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -218,13 +225,17 @@
       el.style.removeProperty('max-height');
       el.style.removeProperty('transform');
       el.style.removeProperty('transition');
-      el.style.removeProperty('left');
-      el.style.removeProperty('right');
-      el.style.removeProperty('margin-left');
-      el.style.removeProperty('margin-right');
-      el.style.removeProperty('padding-left');
-      el.style.removeProperty('padding-right');
     });
+  }
+
+  function getNumberFromCssValue(value, fallback) {
+    var parsed = parseFloat(String(value || '').replace('px', ''));
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+
+    return fallback;
   }
 
   function setTrackPosition(track, index, stepPx, animate) {
@@ -287,8 +298,13 @@
 
     timer = window.setInterval(function () {
       index += 1;
+
       setTrackPosition(track, index, stepPx, true);
 
+      /*
+        When we move from the last real product into the cloned first products,
+        let the transition finish, then instantly jump back to the true beginning.
+      */
       if (index >= originalCount) {
         window.setTimeout(function () {
           index = 0;
@@ -299,6 +315,10 @@
 
     plateTimers.set(plate, timer);
 
+    /*
+      Briefly pause if the user touches the plate, then resume.
+      This prevents fighting with a tap.
+    */
     plate.addEventListener('touchstart', function () {
       stopPlateTimer(plate);
     }, { passive: true });
@@ -311,8 +331,12 @@
   }
 
   function calculateAndApplyExactSlotMath(plate, track, products) {
+    var computed;
     var plateWidth;
+    var padLeft;
+    var padRight;
     var gap;
+    var visibleInterior;
     var slotWidth;
     var stepPx;
     var clones = [];
@@ -337,24 +361,33 @@
     });
 
     /*
-      Gap is fixed by viewport width; no side padding is used.
-      This is what prevents the pushed-right look.
+      Force layout before measuring.
     */
-    gap = window.innerWidth <= 390 ? 5 : 6;
+    track.getBoundingClientRect();
+
+    computed = window.getComputedStyle(track);
 
     /*
-      Use decimal math so 3 slots + 2 gaps equals plate width exactly.
-      Do not floor this. Flooring can create a leftover pixel sliver.
+      Use the plate width, not track scroll width, because the track becomes wider
+      than the visible viewport when there are 4+ products.
     */
-    plateWidth = plate.getBoundingClientRect().width;
-    slotWidth = (plateWidth - (gap * 2)) / 3;
+    plateWidth = Math.floor(plate.clientWidth);
+    padLeft = getNumberFromCssValue(computed.paddingLeft, 8);
+    padRight = getNumberFromCssValue(computed.paddingRight, 8);
+    gap = getNumberFromCssValue(computed.columnGap || computed.gap, 6);
+
+    visibleInterior = Math.max(0, plateWidth - padLeft - padRight);
+    slotWidth = Math.floor((visibleInterior - (gap * 2)) / 3);
 
     if (!Number.isFinite(slotWidth) || slotWidth < 40) {
-      slotWidth = (Math.max(240, plateWidth) - (gap * 2)) / 3;
+      slotWidth = Math.floor((Math.max(240, plateWidth) - 16 - 12) / 3);
     }
 
     stepPx = slotWidth + gap;
 
+    /*
+      Create clones only after slot math is known and only when looping is needed.
+    */
     if (products.length > 3) {
       clones = makeLoopClones(track, products);
     }
@@ -363,23 +396,17 @@
 
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
     plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
+    plate.style.setProperty('--dkg-mobile-pad-x-px', Math.round(padLeft) + 'px');
     plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
 
-    track.style.setProperty('padding-left', '0px', 'important');
-    track.style.setProperty('padding-right', '0px', 'important');
-    track.style.setProperty('margin-left', '0px', 'important');
-    track.style.setProperty('margin-right', '0px', 'important');
-    track.style.setProperty('left', '0px', 'important');
-    track.style.setProperty('right', 'auto', 'important');
-
     styleProductItems(allItems, slotWidth);
+
     setTrackPosition(track, 0, stepPx, false);
 
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
     plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
     plate.setAttribute('data-dkg-mobile-step-width', String(stepPx));
     plate.setAttribute('data-dkg-mobile-plate-width', String(plateWidth));
-    plate.setAttribute('data-dkg-mobile-gap', String(gap));
     plate.setAttribute('data-dkg-mobile-autoscroll', products.length > 3 ? 'yes' : 'no');
 
     startAutoScroll(plate, track, products.length, stepPx);
@@ -487,7 +514,7 @@
       applyMobilePlateLayout();
 
       /*
-        Second pass after images/fonts settle.
+        Second pass after images/fonts settle, because image loading can change dimensions.
       */
       window.setTimeout(applyMobilePlateLayout, 160);
     });

@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """
-mobile_main_homepage_overhaul_step4_autoscroll.py
+mobile_main_homepage_overhaul_step5_clean_clip.py
 
 Goal:
-- Keep mobile visitors on the normal homepage, not /mobile-shop/.
-- Keep collection plates vertically stacked.
-- On mobile, each collection plate shows exactly 3 equal product spots.
-- If a collection has more than 3 products, it auto-scrolls/carousels one product at a time.
-- Auto-scroll loops forever.
-- Product 4 should not peek/sliver into the initial 3-product view.
-- Product images fit inside their slots instead of cropping.
-- Hide the left decorative glide/palm image on mobile only.
-- Header layout remains untouched.
+- Fix mobile collection plate carousel cleanliness.
+- Remove the pushed-right look inside each collection plate.
+- Remove resting slivers of previous/next products.
+- Keep exactly 3 equal product spots visible.
+- Keep automated one-by-one looped autoscroll.
+- Keep product images contained, centered, and uncropped.
+- Hide left decorative glide/palm image on mobile only.
+- Header remains untouched.
 
-Run from the root of dkg-shop-theme:
+Run from dkg-shop-theme root:
 
-    python mobile_main_homepage_overhaul_step4_autoscroll.py
+    python mobile_main_homepage_overhaul_step5_clean_clip.py
 """
 
 from __future__ import annotations
@@ -36,15 +35,19 @@ CSS_BLOCK = """
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - Step 4.
+  DKG mobile homepage collection plates - Step 5 clean clip.
 
-  Main behavior:
-  - Exactly 3 equal product spots are visible on mobile.
-  - Collections with 4+ products auto-scroll one product at a time.
-  - Auto-scroll loops forever.
-  - Product 4+ should not peek into the initial 3-product view.
-  - Product images fit with object-fit: contain.
-  - Header is intentionally untouched.
+  Clean carousel model:
+  - The collection plate is the clipping window.
+  - The product track is wider than the plate and moves underneath it.
+  - No side padding is used inside the moving track.
+  - Slot width is calculated exactly:
+      slot = (plateWidth - 2 gaps) / 3
+  - Therefore:
+      3 slots + 2 gaps = exact visible plate width
+  - No pushed-right row.
+  - No resting sliver of previous/next product.
+  - Header remains untouched.
 */
 
 @media screen and (max-width: 767px) {
@@ -96,6 +99,9 @@ CSS_BLOCK = """
     margin-right: auto !important;
   }
 
+  /*
+    The plate itself is the hard clipping window.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
     width: 100% !important;
     max-width: 100% !important;
@@ -112,6 +118,10 @@ CSS_BLOCK = """
     margin-right: auto !important;
   }
 
+  /*
+    Background/inner layer also clips. This prevents any previous/next product
+    from appearing outside the intended visual plate.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-bg {
     width: 100% !important;
     height: 100% !important;
@@ -119,21 +129,20 @@ CSS_BLOCK = """
     overflow: hidden !important;
     border-radius: clamp(16px, 5vw, 28px) !important;
     box-sizing: border-box !important;
+    position: relative !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
     --dkg-mobile-visible-count: 3;
     --dkg-mobile-gap-px: 6px;
-    --dkg-mobile-pad-x-px: 8px;
-    --dkg-mobile-pad-y-px: 10px;
     --dkg-mobile-slot-px: 100px;
     --dkg-mobile-step-px: 106px;
   }
 
   /*
-    Product track.
-    This is transformed by JS for automated carousel motion.
-    Manual scrolling is not the intended behavior here.
+    Moving product track.
+    No left/right padding. No centered justification.
+    It starts exactly at x=0 and moves by exact one-slot steps.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track {
     display: flex !important;
@@ -149,7 +158,11 @@ CSS_BLOCK = """
     height: 100% !important;
 
     margin: 0 !important;
-    padding: var(--dkg-mobile-pad-y-px) var(--dkg-mobile-pad-x-px) !important;
+    padding: 0 !important;
+
+    position: relative !important;
+    left: 0 !important;
+    right: auto !important;
 
     box-sizing: border-box !important;
 
@@ -175,7 +188,6 @@ CSS_BLOCK = """
 
   /*
     Exact product slot.
-    JS writes --dkg-mobile-slot-px from real measurements.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item {
     flex: 0 0 var(--dkg-mobile-slot-px) !important;
@@ -201,31 +213,9 @@ CSS_BLOCK = """
   }
 
   /*
-    Clones are used only to make the loop seamless.
+    Make the product's own internal wrappers fill and center the slot.
   */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-clone {
-    pointer-events: auto !important;
-  }
-
-  /*
-    Product image fit:
-    Mobile should contain the product artwork inside the frame, not crop it.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .product-image,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-image {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-
-    object-fit: contain !important;
-    object-position: center center !important;
-
-    display: block !important;
-    box-sizing: border-box !important;
-  }
-
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item > *,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item a,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item picture,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item figure,
@@ -239,11 +229,37 @@ CSS_BLOCK = """
     align-items: center !important;
     justify-content: center !important;
 
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /*
+    Product image fit:
+    Contain and center, never crop.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item img,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .product-image,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-image {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+
+    display: block !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+
     box-sizing: border-box !important;
   }
 
   /*
-    Label sizing only.
+    Collection label only.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-label {
     max-width: calc(100% - 24px) !important;
@@ -261,7 +277,6 @@ CSS_BLOCK = """
 
   /*
     Hide decorative left-side glide/palm-type image on mobile only.
-    Scoped away from product cards and header by JS too.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-hide-left-decor,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-home-left-glide,
@@ -294,8 +309,6 @@ CSS_BLOCK = """
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
     --dkg-mobile-gap-px: 5px;
-    --dkg-mobile-pad-x-px: 7px;
-    --dkg-mobile-pad-y-px: 9px;
   }
 }
 
@@ -308,22 +321,15 @@ JS_BLOCK = r"""
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 4.
+    DKG mobile main homepage collection plate controller - Step 5 clean clip.
 
-    This version uses automated carousel behavior.
-
-    Math:
-      visibleInterior = plateWidth - leftPadding - rightPadding
-      slotWidth = floor((visibleInterior - (gap * 2)) / 3)
-
-    Exactly:
-      3 slots + 2 gaps = visible area
-
-    Auto-scroll:
-      - Only if product count > 3
-      - Advances one product at a time
-      - Loops forever
-      - Uses clones of the first 3 products for seamless looping
+    Difference from step 4:
+    - No internal horizontal padding on the moving track.
+    - Exact 3-slot math uses the full plate width:
+        slotWidth = (plateWidth - 2 gaps) / 3
+    - Track starts exactly at x=0.
+    - Product 4 begins exactly outside the clipped plate window.
+    - No resting slivers of previous/next products.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -531,17 +537,13 @@ JS_BLOCK = r"""
       el.style.removeProperty('max-height');
       el.style.removeProperty('transform');
       el.style.removeProperty('transition');
+      el.style.removeProperty('left');
+      el.style.removeProperty('right');
+      el.style.removeProperty('margin-left');
+      el.style.removeProperty('margin-right');
+      el.style.removeProperty('padding-left');
+      el.style.removeProperty('padding-right');
     });
-  }
-
-  function getNumberFromCssValue(value, fallback) {
-    var parsed = parseFloat(String(value || '').replace('px', ''));
-
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-
-    return fallback;
   }
 
   function setTrackPosition(track, index, stepPx, animate) {
@@ -604,13 +606,8 @@ JS_BLOCK = r"""
 
     timer = window.setInterval(function () {
       index += 1;
-
       setTrackPosition(track, index, stepPx, true);
 
-      /*
-        When we move from the last real product into the cloned first products,
-        let the transition finish, then instantly jump back to the true beginning.
-      */
       if (index >= originalCount) {
         window.setTimeout(function () {
           index = 0;
@@ -621,10 +618,6 @@ JS_BLOCK = r"""
 
     plateTimers.set(plate, timer);
 
-    /*
-      Briefly pause if the user touches the plate, then resume.
-      This prevents fighting with a tap.
-    */
     plate.addEventListener('touchstart', function () {
       stopPlateTimer(plate);
     }, { passive: true });
@@ -637,12 +630,8 @@ JS_BLOCK = r"""
   }
 
   function calculateAndApplyExactSlotMath(plate, track, products) {
-    var computed;
     var plateWidth;
-    var padLeft;
-    var padRight;
     var gap;
-    var visibleInterior;
     var slotWidth;
     var stepPx;
     var clones = [];
@@ -667,33 +656,24 @@ JS_BLOCK = r"""
     });
 
     /*
-      Force layout before measuring.
+      Gap is fixed by viewport width; no side padding is used.
+      This is what prevents the pushed-right look.
     */
-    track.getBoundingClientRect();
-
-    computed = window.getComputedStyle(track);
+    gap = window.innerWidth <= 390 ? 5 : 6;
 
     /*
-      Use the plate width, not track scroll width, because the track becomes wider
-      than the visible viewport when there are 4+ products.
+      Use decimal math so 3 slots + 2 gaps equals plate width exactly.
+      Do not floor this. Flooring can create a leftover pixel sliver.
     */
-    plateWidth = Math.floor(plate.clientWidth);
-    padLeft = getNumberFromCssValue(computed.paddingLeft, 8);
-    padRight = getNumberFromCssValue(computed.paddingRight, 8);
-    gap = getNumberFromCssValue(computed.columnGap || computed.gap, 6);
-
-    visibleInterior = Math.max(0, plateWidth - padLeft - padRight);
-    slotWidth = Math.floor((visibleInterior - (gap * 2)) / 3);
+    plateWidth = plate.getBoundingClientRect().width;
+    slotWidth = (plateWidth - (gap * 2)) / 3;
 
     if (!Number.isFinite(slotWidth) || slotWidth < 40) {
-      slotWidth = Math.floor((Math.max(240, plateWidth) - 16 - 12) / 3);
+      slotWidth = (Math.max(240, plateWidth) - (gap * 2)) / 3;
     }
 
     stepPx = slotWidth + gap;
 
-    /*
-      Create clones only after slot math is known and only when looping is needed.
-    */
     if (products.length > 3) {
       clones = makeLoopClones(track, products);
     }
@@ -702,17 +682,23 @@ JS_BLOCK = r"""
 
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
     plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
-    plate.style.setProperty('--dkg-mobile-pad-x-px', Math.round(padLeft) + 'px');
     plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
 
-    styleProductItems(allItems, slotWidth);
+    track.style.setProperty('padding-left', '0px', 'important');
+    track.style.setProperty('padding-right', '0px', 'important');
+    track.style.setProperty('margin-left', '0px', 'important');
+    track.style.setProperty('margin-right', '0px', 'important');
+    track.style.setProperty('left', '0px', 'important');
+    track.style.setProperty('right', 'auto', 'important');
 
+    styleProductItems(allItems, slotWidth);
     setTrackPosition(track, 0, stepPx, false);
 
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
     plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
     plate.setAttribute('data-dkg-mobile-step-width', String(stepPx));
     plate.setAttribute('data-dkg-mobile-plate-width', String(plateWidth));
+    plate.setAttribute('data-dkg-mobile-gap', String(gap));
     plate.setAttribute('data-dkg-mobile-autoscroll', products.length > 3 ? 'yes' : 'no');
 
     startAutoScroll(plate, track, products.length, stepPx);
@@ -820,7 +806,7 @@ JS_BLOCK = r"""
       applyMobilePlateLayout();
 
       /*
-        Second pass after images/fonts settle, because image loading can change dimensions.
+        Second pass after images/fonts settle.
       */
       window.setTimeout(applyMobilePlateLayout, 160);
     });
@@ -973,7 +959,7 @@ def main() -> int:
     js_path = root / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
 
     print("")
-    print("DKG mobile main homepage overhaul - step 4 autoscroll")
+    print("DKG mobile main homepage overhaul - step 5 clean clip")
     print("Repo root:", root)
     print("")
 
@@ -988,7 +974,7 @@ def main() -> int:
         changed.append("Mobile redirect hook already disabled or exact hook not found")
 
     if write_js_file(js_path):
-        changed.append("Updated assets/js/dkg-mobile-main-homepage-plates.js with looped autoscroll")
+        changed.append("Updated assets/js/dkg-mobile-main-homepage-plates.js with clean clipped autoscroll")
     else:
         changed.append("JS file already current")
 
@@ -1009,13 +995,11 @@ def main() -> int:
     print("")
     print("Next checks:")
     print(" 1. Clear cache / hard refresh.")
-    print(" 2. Confirm plates are centered.")
-    print(" 3. Confirm exactly 3 equal product spots are visible.")
-    print(" 4. Confirm product 4 does NOT show as a sliver before the auto-scroll.")
-    print(" 5. Confirm collections with 4+ products automatically advance one product at a time.")
-    print(" 6. Confirm the auto-scroll loops back to the beginning cleanly.")
-    print(" 7. Confirm product images fit inside their frames without cropping.")
-    print(" 8. Confirm the left-side decorative glide/palm image is gone on mobile only.")
+    print(" 2. Confirm plate contents are no longer pushed right.")
+    print(" 3. Confirm exactly 3 equal product spots are visible at rest.")
+    print(" 4. Confirm no previous/next product sliver is visible at rest.")
+    print(" 5. Confirm the autoscroll advances one product at a time and loops.")
+    print(" 6. Confirm product images are centered and uncropped.")
     print("")
     print("Header layout remains untouched.")
     print("")
