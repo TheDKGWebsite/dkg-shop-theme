@@ -2,16 +2,15 @@
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 6 safe viewport.
+    DKG mobile main homepage collection plate controller - Step 5 clean clip.
 
-    Safer model:
-    - Find product items inside each collection box.
-    - Move the product track into a dedicated viewport.
-    - Do NOT move collection-bg or labels.
-    - Do NOT position labels.
-    - 1-2 products: centered, static.
-    - 3 products: exact three slots, static.
-    - 4+ products: exact three visible slots, automated one-by-one loop.
+    Difference from step 4:
+    - No internal horizontal padding on the moving track.
+    - Exact 3-slot math uses the full plate width:
+        slotWidth = (plateWidth - 2 gaps) / 3
+    - Track starts exactly at x=0.
+    - Product 4 begins exactly outside the clipped plate window.
+    - No resting slivers of previous/next products.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -113,16 +112,7 @@
     return null;
   }
 
-  function stopPlateTimer(plate) {
-    var timer = plateTimers.get(plate);
-
-    if (timer) {
-      window.clearInterval(timer);
-      plateTimers.delete(plate);
-    }
-  }
-
-  function removeClones(plate) {
+  function removeExistingClones(plate) {
     var clones = plate.querySelectorAll('.dkg-mobile-product-clone');
 
     Array.prototype.forEach.call(clones, function (clone) {
@@ -132,72 +122,13 @@
     });
   }
 
-  function unwrapMobileViewport(plate) {
-    var viewport = plate.querySelector(':scope > .dkg-mobile-carousel-viewport');
-
-    if (!viewport) {
-      return;
-    }
-
-    var track = viewport.querySelector('.dkg-mobile-product-track');
-
-    if (track) {
-      while (track.firstChild) {
-        plate.appendChild(track.firstChild);
-      }
-    }
-
-    viewport.remove();
-  }
-
-  function clearPlate(plate) {
-    var marked;
-
-    stopPlateTimer(plate);
-    removeClones(plate);
-    unwrapMobileViewport(plate);
-
-    plate.classList.remove('dkg-mobile-main-plate-prepared');
-    plate.classList.remove('dkg-mobile-main-scrolls-after-3');
-    plate.classList.remove('dkg-mobile-main-no-scroll');
-    plate.classList.remove('dkg-mobile-main-count-1');
-    plate.classList.remove('dkg-mobile-main-count-2');
-    plate.classList.remove('dkg-mobile-main-count-3');
-
-    marked = plate.querySelectorAll(
-      '.dkg-mobile-product-track, .dkg-mobile-product-item, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
-    );
-
-    Array.prototype.forEach.call(marked, function (el) {
-      el.classList.remove('dkg-mobile-product-track');
-      el.classList.remove('dkg-mobile-product-item');
-      el.classList.remove('dkg-mobile-main-visible-product');
-      el.classList.remove('dkg-mobile-main-extra-product');
-      el.classList.remove('dkg-mobile-track-animate');
-      el.classList.remove('dkg-mobile-track-no-animate');
-
-      el.removeAttribute('aria-hidden');
-
-      el.style.removeProperty('flex');
-      el.style.removeProperty('width');
-      el.style.removeProperty('min-width');
-      el.style.removeProperty('max-width');
-      el.style.removeProperty('height');
-      el.style.removeProperty('max-height');
-      el.style.removeProperty('transform');
-      el.style.removeProperty('transition');
-      el.style.removeProperty('left');
-      el.style.removeProperty('right');
-      el.style.removeProperty('margin-left');
-      el.style.removeProperty('margin-right');
-      el.style.removeProperty('padding-left');
-      el.style.removeProperty('padding-right');
-    });
-  }
-
   function findProductsInPlate(plate) {
-    var raw = plate.querySelectorAll(PRODUCT_SELECTOR);
+    var raw;
     var mapped = [];
+
+    removeExistingClones(plate);
+
+    raw = plate.querySelectorAll(PRODUCT_SELECTOR);
 
     Array.prototype.forEach.call(raw, function (node) {
       var product = closestProductElement(node, plate);
@@ -228,26 +159,11 @@
         return false;
       }
 
-      if (product.closest('.dkg-mobile-carousel-viewport')) {
-        return true;
-      }
-
-      /*
-        Avoid selecting purely decorative/background elements.
-      */
-      if (product.closest('.collection-bg') && !product.matches('a[href*="/product/"]')) {
-        /*
-          A real product/card can still live inside collection-bg,
-          but this guards against catching the background wrapper itself.
-        */
-        return hasProductClass(product);
-      }
-
       return true;
     });
   }
 
-  function findExistingTrack(plate, products) {
+  function findTrack(plate, products) {
     var existing = plate.querySelector(TRACK_SELECTOR);
 
     if (existing) {
@@ -261,24 +177,54 @@
     return null;
   }
 
-  function createViewportAndTrack(plate, products) {
-    var viewport = document.createElement('div');
-    var track = document.createElement('div');
+  function stopPlateTimer(plate) {
+    var timer = plateTimers.get(plate);
 
-    viewport.className = 'dkg-mobile-carousel-viewport';
-    track.className = 'dkg-mobile-product-track dkg-mobile-track-no-animate';
+    if (timer) {
+      window.clearInterval(timer);
+      plateTimers.delete(plate);
+    }
+  }
 
-    plate.appendChild(viewport);
-    viewport.appendChild(track);
+  function clearPlateClassesAndStyles(plate) {
+    var marked;
 
-    products.forEach(function (product) {
-      track.appendChild(product);
+    stopPlateTimer(plate);
+    removeExistingClones(plate);
+
+    plate.classList.remove('dkg-mobile-main-plate-prepared');
+    plate.classList.remove('dkg-mobile-main-scrolls-after-3');
+    plate.classList.remove('dkg-mobile-main-no-scroll');
+
+    marked = plate.querySelectorAll(
+      '.dkg-mobile-product-track, .dkg-mobile-product-item, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
+    );
+
+    Array.prototype.forEach.call(marked, function (el) {
+      el.classList.remove('dkg-mobile-product-track');
+      el.classList.remove('dkg-mobile-product-item');
+      el.classList.remove('dkg-mobile-main-visible-product');
+      el.classList.remove('dkg-mobile-main-extra-product');
+      el.classList.remove('dkg-mobile-track-animate');
+      el.classList.remove('dkg-mobile-track-no-animate');
+
+      el.removeAttribute('aria-hidden');
+
+      el.style.removeProperty('flex');
+      el.style.removeProperty('width');
+      el.style.removeProperty('min-width');
+      el.style.removeProperty('max-width');
+      el.style.removeProperty('height');
+      el.style.removeProperty('max-height');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('transition');
+      el.style.removeProperty('left');
+      el.style.removeProperty('right');
+      el.style.removeProperty('margin-left');
+      el.style.removeProperty('margin-right');
+      el.style.removeProperty('padding-left');
+      el.style.removeProperty('padding-right');
     });
-
-    return {
-      viewport: viewport,
-      track: track
-    };
   }
 
   function setTrackPosition(track, index, stepPx, animate) {
@@ -352,69 +298,59 @@
     }, AUTOSCROLL_MS);
 
     plateTimers.set(plate, timer);
+
+    plate.addEventListener('touchstart', function () {
+      stopPlateTimer(plate);
+    }, { passive: true });
+
+    plate.addEventListener('touchend', function () {
+      window.setTimeout(function () {
+        startAutoScroll(plate, track, originalCount, stepPx);
+      }, 1800);
+    }, { passive: true });
   }
 
-  function preparePlate(plate) {
-    var products = findProductsInPlate(plate);
-    var setup;
-    var viewport;
-    var track;
-    var viewportWidth;
+  function calculateAndApplyExactSlotMath(plate, track, products) {
+    var plateWidth;
     var gap;
     var slotWidth;
     var stepPx;
     var clones = [];
     var allItems;
 
-    if (!products.length) {
-      return;
-    }
-
-    /*
-      Confirm there is some product structure before moving it.
-      This avoids using a background wrapper as the track.
-    */
-    findExistingTrack(plate, products);
-
-    setup = createViewportAndTrack(plate, products);
-    viewport = setup.viewport;
-    track = setup.track;
-
     plate.classList.add('dkg-mobile-main-plate-prepared');
 
-    if (products.length === 1) {
-      plate.classList.add('dkg-mobile-main-count-1');
-    } else if (products.length === 2) {
-      plate.classList.add('dkg-mobile-main-count-2');
-    } else if (products.length === 3) {
-      plate.classList.add('dkg-mobile-main-count-3');
-    } else {
+    if (products.length > 3) {
       plate.classList.add('dkg-mobile-main-scrolls-after-3');
-    }
-
-    gap = window.innerWidth <= 390 ? 6 : 8;
-
-    /*
-      Force layout after creating viewport.
-    */
-    viewport.getBoundingClientRect();
-    viewportWidth = viewport.getBoundingClientRect().width;
-
-    /*
-      If 1 or 2 products, size them like normal cards but centered.
-      If 3+ products, use exact three-slot math.
-    */
-    if (products.length < 3) {
-      slotWidth = Math.min(
-        170,
-        Math.max(96, (viewportWidth - gap) / 2)
-      );
     } else {
-      slotWidth = (viewportWidth - (gap * 2)) / 3;
+      plate.classList.add('dkg-mobile-main-no-scroll');
     }
+
+    track.classList.add('dkg-mobile-product-track');
+
+    products.forEach(function (product, index) {
+      if (index < 3) {
+        product.classList.add('dkg-mobile-main-visible-product');
+      } else {
+        product.classList.add('dkg-mobile-main-extra-product');
+      }
+    });
+
+    /*
+      Gap is fixed by viewport width; no side padding is used.
+      This is what prevents the pushed-right look.
+    */
+    gap = window.innerWidth <= 390 ? 5 : 6;
+
+    /*
+      Use decimal math so 3 slots + 2 gaps equals plate width exactly.
+      Do not floor this. Flooring can create a leftover pixel sliver.
+    */
+    plateWidth = plate.getBoundingClientRect().width;
+    slotWidth = (plateWidth - (gap * 2)) / 3;
 
     if (!Number.isFinite(slotWidth) || slotWidth < 40) {
-      slotWidth = 100;
+      slotWidth = (Math.max(240, plateWidth) - (gap * 2)) / 3;
     }
 
     stepPx = slotWidth + gap;
@@ -425,9 +361,16 @@
 
     allItems = products.concat(clones);
 
-    plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
+    plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
     plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
+
+    track.style.setProperty('padding-left', '0px', 'important');
+    track.style.setProperty('padding-right', '0px', 'important');
+    track.style.setProperty('margin-left', '0px', 'important');
+    track.style.setProperty('margin-right', '0px', 'important');
+    track.style.setProperty('left', '0px', 'important');
+    track.style.setProperty('right', 'auto', 'important');
 
     styleProductItems(allItems, slotWidth);
     setTrackPosition(track, 0, stepPx, false);
@@ -435,10 +378,28 @@
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
     plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
     plate.setAttribute('data-dkg-mobile-step-width', String(stepPx));
-    plate.setAttribute('data-dkg-mobile-viewport-width', String(viewportWidth));
+    plate.setAttribute('data-dkg-mobile-plate-width', String(plateWidth));
+    plate.setAttribute('data-dkg-mobile-gap', String(gap));
     plate.setAttribute('data-dkg-mobile-autoscroll', products.length > 3 ? 'yes' : 'no');
 
     startAutoScroll(plate, track, products.length, stepPx);
+  }
+
+  function preparePlate(plate) {
+    var products = findProductsInPlate(plate);
+    var track;
+
+    if (!products.length) {
+      return;
+    }
+
+    track = findTrack(plate, products);
+
+    if (!track) {
+      return;
+    }
+
+    calculateAndApplyExactSlotMath(plate, track, products);
   }
 
   function hideMobileLeftDecorImages() {
@@ -508,7 +469,7 @@
     plates = document.querySelectorAll(PLATE_SELECTOR);
 
     Array.prototype.forEach.call(plates, function (plate) {
-      clearPlate(plate);
+      clearPlateClassesAndStyles(plate);
 
       if (isMobile()) {
         preparePlate(plate);
@@ -528,7 +489,7 @@
       /*
         Second pass after images/fonts settle.
       */
-      window.setTimeout(applyMobilePlateLayout, 180);
+      window.setTimeout(applyMobilePlateLayout, 160);
     });
   }
 
