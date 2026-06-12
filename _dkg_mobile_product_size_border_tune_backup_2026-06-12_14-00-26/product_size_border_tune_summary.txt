@@ -1,0 +1,17 @@
+DKG mobile product size / border tune
+Timestamp: 2026-06-12_14-00-26
+Repo root: C:\Users\John\Desktop\shop dkg\dkg-shop-theme
+Backed up CSS to: C:\Users\John\Desktop\shop dkg\dkg-shop-theme\_dkg_mobile_product_size_border_tune_backup_2026-06-12_14-00-26\assets\css\front-page.css
+
+Removed existing tune blocks: 0
+Inserted new product size / border tune block.
+
+What changed:
+- Product cards inside the mobile clone layer are forced to fill their 1/3-width slots.
+- Product card borders now use collection accent colors instead of inherited black-only desktop borders.
+- Product images are scaled larger inside the frame while keeping object-fit: contain.
+- The carousel viewport is taller so products use more of the collection plate space.
+
+Notes:
+- This only edits assets/css/front-page.css.
+- It does not change the JS, redirect behavior, header, or page-mobile-shop.php.
