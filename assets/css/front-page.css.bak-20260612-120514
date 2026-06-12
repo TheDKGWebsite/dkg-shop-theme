@@ -827,16 +827,17 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates.
+  Step 1 mobile homepage overhaul.
 
-  Step 2:
-  - Phone users stay on normal homepage.
-  - Plates stay vertically stacked.
-  - Each plate is a horizontal 1x3 row on mobile.
-  - Exactly 3 product slots are visible at a time.
-  - If a collection has more than 3 products, horizontal scrolling starts on mobile.
-  - Product images fit inside their frames instead of being cropped.
-  - Header layout is intentionally not changed here.
+  Purpose:
+  - Keep phone users on the normal homepage instead of /mobile-shop/.
+  - Keep homepage collection plates vertically stacked.
+  - Keep each collection plate as one horizontal 1x3 row on phones.
+  - Scale the whole plate to the phone width.
+  - Do not change the header yet.
+
+  This is intentionally scoped away from page-mobile-shop so the old separate
+  mobile page can remain in the repo without driving the new behavior.
 */
 
 @media screen and (max-width: 767px) {
@@ -848,8 +849,8 @@ body.page-template-page-mobile-shop {
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
-    width: min(calc(100vw - 14px), 560px) !important;
-    max-width: min(calc(100vw - 14px), 560px) !important;
+    width: min(calc(100vw - 18px), 560px) !important;
+    max-width: min(calc(100vw - 18px), 560px) !important;
     margin-left: auto !important;
     margin-right: auto !important;
 
@@ -857,7 +858,7 @@ body.page-template-page-mobile-shop {
     flex-direction: column !important;
     align-items: stretch !important;
 
-    gap: clamp(20px, 5vw, 32px) !important;
+    gap: clamp(22px, 5.5vw, 34px) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 
@@ -876,11 +877,15 @@ body.page-template-page-mobile-shop {
     width: 100% !important;
     max-width: 100% !important;
 
-    min-height: clamp(132px, 38vw, 184px) !important;
-    height: clamp(132px, 38vw, 184px) !important;
+    /*
+      This scales the plate as a whole.
+      It gives phones a flatter horizontal plate instead of a giant tall card.
+    */
+    min-height: clamp(132px, 37vw, 190px) !important;
+    height: clamp(132px, 37vw, 190px) !important;
 
     position: relative !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     box-sizing: border-box !important;
 
     transform: none !important;
@@ -895,82 +900,58 @@ body.page-template-page-mobile-shop {
     box-sizing: border-box !important;
   }
 
+  /*
+    The JS adds .dkg-mobile-main-plate-prepared to collection boxes once it
+    identifies product elements inside them.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
-    --dkg-mobile-visible-count: 3;
-    --dkg-mobile-plate-gap: clamp(5px, 1.5vw, 8px);
-    --dkg-mobile-plate-pad-x: clamp(8px, 2.4vw, 12px);
-    --dkg-mobile-plate-pad-y: clamp(10px, 2.8vw, 14px);
-    --dkg-mobile-product-slot-width: calc(
-      (100% - (var(--dkg-mobile-plate-pad-x) * 2) - (var(--dkg-mobile-plate-gap) * 2)) / 3
-    );
+    --dkg-mobile-plate-gap: clamp(6px, 2vw, 10px);
+    --dkg-mobile-plate-pad: clamp(8px, 2.8vw, 14px);
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-main-visible-product {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    box-sizing: border-box !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-main-extra-product {
+    display: none !important;
   }
 
   /*
-    Product row/track.
-    This is the important part:
-    - flex row
-    - each product slot is exactly 1/3 of the visible interior width
-    - if there are 4+ products, the track scrolls horizontally
+    Common WooCommerce/product-grid structures.
+    These rules are intentionally broad but scoped to prepared collection boxes.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared ul.products,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .products,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .wc-block-grid__products,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-row,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-products,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-products {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: var(--dkg-mobile-plate-gap) !important;
 
     width: 100% !important;
     max-width: 100% !important;
-    height: 100% !important;
 
     margin: 0 !important;
-    padding: var(--dkg-mobile-plate-pad-y) var(--dkg-mobile-plate-pad-x) !important;
+    padding: var(--dkg-mobile-plate-pad) !important;
 
     box-sizing: border-box !important;
-
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-
-    scroll-snap-type: x proximity !important;
-    -webkit-overflow-scrolling: touch !important;
-
-    scrollbar-width: none !important;
+    overflow: visible !important;
   }
 
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared ul.products::-webkit-scrollbar,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .products::-webkit-scrollbar,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .wc-block-grid__products::-webkit-scrollbar,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-row::-webkit-scrollbar,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-products::-webkit-scrollbar,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  /*
-    Product/card slot.
-    Every product gets a fixed 1-of-3 slot on mobile.
-    Product 4+ remains available by horizontal scroll instead of being hidden.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared li.product,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .wc-block-grid__product,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-card,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-product,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-product-card,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item {
-    flex: 0 0 var(--dkg-mobile-product-slot-width) !important;
-    width: var(--dkg-mobile-product-slot-width) !important;
-    max-width: var(--dkg-mobile-product-slot-width) !important;
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-product-card {
+    width: auto !important;
+    max-width: 100% !important;
     min-width: 0 !important;
-
-    height: 100% !important;
-    max-height: 100% !important;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -978,64 +959,16 @@ body.page-template-page-mobile-shop {
     float: none !important;
     clear: none !important;
 
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
     box-sizing: border-box !important;
-    overflow: hidden !important;
-
-    scroll-snap-align: start !important;
   }
 
-  /*
-    Image fix:
-    Do not crop product artwork.
-    Fit the whole image inside the product slot.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared li.product img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .wc-block-grid__product img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-card img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-product img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-product-card img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item img {
-    width: 100% !important;
-    height: 100% !important;
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared img {
     max-width: 100% !important;
-    max-height: 100% !important;
-
-    object-fit: contain !important;
-    object-position: center center !important;
-
-    display: block !important;
-    box-sizing: border-box !important;
+    height: auto !important;
   }
 
   /*
-    If the product image is inside links/wrappers, let those wrappers fill the slot too.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared li.product a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .wc-block-grid__product a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .product-card a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .collection-product a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-product-card a,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item a {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    box-sizing: border-box !important;
-  }
-
-  /*
-    Label sizing only. Header still untouched.
+    Keep the floating collection label behavior, but size it better on phones.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-label {
     max-width: calc(100% - 24px) !important;
@@ -1050,23 +983,22 @@ body.page-template-page-mobile-shop {
     text-align: center !important;
     box-sizing: border-box !important;
   }
+
+  /*
+    Important: no header layout changes in this step.
+    Header-specific mobile work should be done later in its own block.
+  */
 }
 
 @media screen and (max-width: 390px) {
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
-    width: calc(100vw - 10px) !important;
-    max-width: calc(100vw - 10px) !important;
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
-    min-height: clamp(122px, 37vw, 155px) !important;
-    height: clamp(122px, 37vw, 155px) !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
-    --dkg-mobile-plate-gap: 5px;
-    --dkg-mobile-plate-pad-x: 7px;
-    --dkg-mobile-plate-pad-y: 9px;
+    min-height: clamp(118px, 35vw, 155px) !important;
+    height: clamp(118px, 35vw, 155px) !important;
   }
 }
 
