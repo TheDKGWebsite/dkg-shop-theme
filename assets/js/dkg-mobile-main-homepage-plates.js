@@ -1,494 +1,390 @@
+/*
+  DKG mobile homepage collection plates.
+
+  Cleanup version:
+  - Uses the real front-page.php structure.
+  - Reads products only from .collection-content .product-track > .product-card.
+  - Inserts the mobile viewport inside .collection-content after .collection-label.
+  - Never inserts into .collection-bg.
+  - Never clones .collection-label.
+  - Removes old mobile carousel wrappers before rebuilding.
+  - Hides only the original .carousel-shell after a clone layer has been built.
+*/
+
 (function () {
-  'use strict';
+  "use strict";
 
-  /*
-    DKG mobile main homepage collection plate controller - Step 7 cloned layer.
-
-    Safer strategy:
-    - Do not move original product DOM.
-    - Mark original products/tracks hidden on mobile.
-    - Clone product cards into a separate mobile carousel viewport.
-    - Background and labels stay in their original DOM positions.
-  */
-
-  var MOBILE_QUERY = '(max-width: 767px)';
+  var MOBILE_QUERY = "(max-width: 767px)";
+  var VISIBLE_SLOTS = 3;
   var AUTOSCROLL_MS = 2600;
-  var TRANSITION_MS = 520;
+  var TRANSITION_MS = 420;
+  var RESIZE_DEBOUNCE_MS = 180;
 
-  var mq = window.matchMedia ? window.matchMedia(MOBILE_QUERY) : null;
-  var plateTimers = new WeakMap();
+  var stateByBox = new WeakMap();
+  var resizeTimer = null;
 
-  var PLATE_SELECTOR = [
-    '.collections-stack .collection-box',
-    '.collection-link .collection-box',
-    '.dkg-collection-plate',
-    '.dkg-home-collection-plate'
-  ].join(',');
+  function matchesMobile() {
+    if (!window.matchMedia) {
+      return window.innerWidth <= 767;
+    }
 
-  var PRODUCT_SELECTOR = [
-    'li.product',
-    '.product-card',
-    '.collection-product',
-    '.dkg-product-card',
-    '.wc-block-grid__product',
-    'a[href*="/product/"]'
-  ].join(',');
-
-  var TRACK_SELECTOR = [
-    'ul.products',
-    '.products',
-    '.product-row',
-    '.collection-products',
-    '.wc-block-grid__products'
-  ].join(',');
-
-  function isOldMobileShopPage() {
-    return document.body.classList.contains('page-mobile-shop') ||
-      document.body.classList.contains('page-template-page-mobile-shop');
+    return window.matchMedia(MOBILE_QUERY).matches;
   }
 
-  function isProbablyHomepage() {
-    return document.body.classList.contains('home') ||
-      document.body.classList.contains('front-page') ||
-      document.body.classList.contains('page-template-front-page') ||
-      !!document.querySelector('.collections-stack');
+  function toArray(list) {
+    return Array.prototype.slice.call(list || []);
   }
 
-  function isMobile() {
-    return !mq || mq.matches;
-  }
-
-  function uniqueElements(list) {
-    var seen = [];
-    var out = [];
-
-    Array.prototype.forEach.call(list, function (el) {
-      if (!el || seen.indexOf(el) !== -1) {
-        return;
-      }
-
-      seen.push(el);
-      out.push(el);
-    });
-
-    return out;
-  }
-
-  function hasProductClass(el) {
-    return !!(
-      el &&
-      el.matches &&
-      el.matches('li.product, .product-card, .collection-product, .dkg-product-card, .wc-block-grid__product')
-    );
-  }
-
-  function closestProductElement(node, plate) {
-    var current;
-
-    if (!node || !plate) {
+  function directChildWithClass(parent, className) {
+    if (!parent) {
       return null;
     }
 
-    current = node;
+    var children = parent.children || [];
 
-    while (current && current !== plate && current.nodeType === 1) {
-      if (hasProductClass(current)) {
-        return current;
+    for (var i = 0; i < children.length; i += 1) {
+      if (children[i].classList && children[i].classList.contains(className)) {
+        return children[i];
       }
-
-      current = current.parentElement;
-    }
-
-    if (
-      node.matches &&
-      node.matches('a[href*="/product/"]') &&
-      plate.contains(node)
-    ) {
-      return node;
     }
 
     return null;
   }
 
-  function stopPlateTimer(plate) {
-    var timer = plateTimers.get(plate);
-
-    if (timer) {
-      window.clearInterval(timer);
-      plateTimers.delete(plate);
+  function queryDirect(parent, selector, fallbackSelector) {
+    if (!parent) {
+      return null;
     }
+
+    try {
+      var direct = parent.querySelector(":scope > " + selector);
+      if (direct) {
+        return direct;
+      }
+    } catch (error) {
+      /* Some older browsers may not support :scope. */
+    }
+
+    return parent.querySelector(fallbackSelector || selector);
   }
 
-  function removeMobileCarousel(plate) {
-    var viewports = plate.querySelectorAll(':scope > .dkg-mobile-carousel-viewport');
+  function clearTimer(box) {
+    var oldState = stateByBox.get(box);
 
-    Array.prototype.forEach.call(viewports, function (viewport) {
-      viewport.remove();
-    });
+    if (oldState && oldState.timer) {
+      window.clearInterval(oldState.timer);
+    }
+
+    stateByBox.delete(box);
   }
 
-  function clearPlate(plate) {
-    var marked;
+  function removeMobileLayer(box) {
+    if (!box) {
+      return;
+    }
 
-    stopPlateTimer(plate);
-    removeMobileCarousel(plate);
+    clearTimer(box);
 
-    plate.classList.remove('dkg-mobile-main-plate-prepared');
-    plate.classList.remove('dkg-mobile-main-scrolls-after-3');
-    plate.classList.remove('dkg-mobile-main-no-scroll');
-    plate.classList.remove('dkg-mobile-main-count-1');
-    plate.classList.remove('dkg-mobile-main-count-2');
-    plate.classList.remove('dkg-mobile-main-count-3');
-
-    marked = plate.querySelectorAll(
-      '.dkg-mobile-original-product-source, .dkg-mobile-original-track-source, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
-    );
-
-    Array.prototype.forEach.call(marked, function (el) {
-      el.classList.remove('dkg-mobile-original-product-source');
-      el.classList.remove('dkg-mobile-original-track-source');
-      el.classList.remove('dkg-mobile-main-visible-product');
-      el.classList.remove('dkg-mobile-main-extra-product');
-      el.removeAttribute('aria-hidden');
+    toArray(box.querySelectorAll(".dkg-mobile-carousel-viewport")).forEach(function (node) {
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node);
+      }
     });
+
+    toArray(box.querySelectorAll(".dkg-mobile-original-product-source")).forEach(function (node) {
+      node.classList.remove("dkg-mobile-original-product-source");
+    });
+
+    toArray(box.querySelectorAll(".dkg-mobile-original-track-source")).forEach(function (node) {
+      node.classList.remove("dkg-mobile-original-track-source");
+    });
+
+    box.removeAttribute("data-dkg-mobile-plates-ready");
   }
 
-  function findProductsInPlate(plate) {
-    var raw = plate.querySelectorAll(PRODUCT_SELECTOR);
-    var mapped = [];
+  function getParts(box) {
+    var bg = directChildWithClass(box, "collection-bg");
+    var content = directChildWithClass(box, "collection-content") || box.querySelector(".collection-content");
 
-    Array.prototype.forEach.call(raw, function (node) {
-      var product = closestProductElement(node, plate);
+    if (!content) {
+      return null;
+    }
 
-      if (product) {
-        mapped.push(product);
-      }
-    });
+    var label = directChildWithClass(content, "collection-label") || content.querySelector(".collection-label");
 
-    return uniqueElements(mapped).filter(function (product) {
-      if (!product || !product.classList) {
-        return false;
-      }
+    /*
+      Important:
+      Original products are inside .collection-content, not inside .collection-bg.
+      This intentionally avoids querying through .collection-bg.
+    */
+    var shell = queryDirect(content, ".carousel-shell", ".carousel-shell");
+    var viewport = shell ? shell.querySelector(".product-viewport") : content.querySelector(".product-viewport");
+    var track = viewport ? viewport.querySelector(".product-track") : null;
 
-      if (product.closest('.dkg-mobile-carousel-viewport')) {
-        return false;
-      }
+    if (!track) {
+      track = content.querySelector(".product-track");
+    }
 
-      if (product.classList.contains('collection-link')) {
-        return false;
-      }
-
-      if (product.classList.contains('collection-label')) {
-        return false;
-      }
-
-      if (product.closest('.site-header')) {
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  function markOriginalSources(plate, products) {
-    products.forEach(function (product, index) {
-      product.classList.add('dkg-mobile-original-product-source');
-
-      if (index < 3) {
-        product.classList.add('dkg-mobile-main-visible-product');
-      } else {
-        product.classList.add('dkg-mobile-main-extra-product');
-      }
-
-      var track = product.closest(TRACK_SELECTOR);
-      if (track && track !== plate && !track.classList.contains('collection-bg')) {
-        track.classList.add('dkg-mobile-original-track-source');
-      }
-    });
-  }
-
-  function createViewportAndTrack(plate, products) {
-    var viewport = document.createElement('div');
-    var track = document.createElement('div');
-
-    viewport.className = 'dkg-mobile-carousel-viewport';
-    track.className = 'dkg-mobile-product-track dkg-mobile-track-no-animate';
-
-    products.forEach(function (product) {
-      var clone = product.cloneNode(true);
-
-      clone.classList.remove('dkg-mobile-original-product-source');
-      clone.classList.remove('dkg-mobile-original-track-source');
-      clone.classList.add('dkg-mobile-product-item');
-      clone.setAttribute('data-dkg-mobile-display-clone', '1');
-
-      track.appendChild(clone);
-    });
-
-    viewport.appendChild(track);
-    plate.appendChild(viewport);
+    var cards = track
+      ? toArray(track.children).filter(function (child) {
+          return (
+            child &&
+            child.classList &&
+            child.classList.contains("product-card") &&
+            !child.classList.contains("product-card--empty") &&
+            child.querySelector("img")
+          );
+        })
+      : [];
 
     return {
+      box: box,
+      bg: bg,
+      content: content,
+      label: label,
+      shell: shell,
       viewport: viewport,
       track: track,
-      displayItems: Array.prototype.slice.call(track.children)
+      cards: cards
     };
   }
 
-  function makeLoopClones(track, displayItems) {
-    var clones = [];
+  function cloneCardIntoItem(card, index, isLoopClone) {
+    var item = document.createElement("div");
+    item.className = "dkg-mobile-product-item";
+    item.setAttribute("data-dkg-mobile-product-index", String(index));
 
-    displayItems.slice(0, 3).forEach(function (item) {
-      var clone = item.cloneNode(true);
+    if (isLoopClone) {
+      item.classList.add("dkg-mobile-product-clone");
+      item.setAttribute("aria-hidden", "true");
+    }
 
-      clone.classList.add('dkg-mobile-product-clone');
-      clone.setAttribute('data-dkg-mobile-loop-clone', '1');
+    var clone = card.cloneNode(true);
+    clone.classList.add("dkg-mobile-product-card-inner");
 
-      track.appendChild(clone);
-      clones.push(clone);
+    /*
+      Remove IDs from cloned markup so duplicate IDs cannot appear.
+    */
+    if (clone.id) {
+      clone.removeAttribute("id");
+    }
+
+    toArray(clone.querySelectorAll("[id]")).forEach(function (node) {
+      node.removeAttribute("id");
     });
 
-    return clones;
+    item.appendChild(clone);
+    return item;
   }
 
-  function setTrackPosition(track, index, stepPx, animate) {
-    var x = -(index * stepPx);
+  function insertAfterLabel(parts, viewport) {
+    var content = parts.content;
+    var label = parts.label;
 
-    track.classList.toggle('dkg-mobile-track-animate', !!animate);
-    track.classList.toggle('dkg-mobile-track-no-animate', !animate);
+    if (label && label.parentNode === content && label.nextSibling) {
+      content.insertBefore(viewport, label.nextSibling);
+      return;
+    }
 
-    track.style.setProperty(
-      'transform',
-      'translate3d(' + x + 'px, 0, 0)',
-      'important'
-    );
+    if (label && label.parentNode === content) {
+      content.appendChild(viewport);
+      return;
+    }
+
+    content.insertBefore(viewport, content.firstChild);
   }
 
-  function styleProductItems(items, slotWidth) {
-    items.forEach(function (product) {
-      product.classList.add('dkg-mobile-product-item');
+  function measureStep(track) {
+    if (!track || !track.children || !track.children.length) {
+      return 0;
+    }
 
-      product.style.setProperty('flex', '0 0 ' + slotWidth + 'px', 'important');
-      product.style.setProperty('width', slotWidth + 'px', 'important');
-      product.style.setProperty('min-width', slotWidth + 'px', 'important');
-      product.style.setProperty('max-width', slotWidth + 'px', 'important');
-      product.style.setProperty('height', '100%', 'important');
-      product.style.setProperty('max-height', '100%', 'important');
+    var first = track.children[0];
+    var rect = first.getBoundingClientRect();
+    var styles = window.getComputedStyle(track);
+    var gap = parseFloat(styles.columnGap || styles.gap || "0");
 
-      product.removeAttribute('aria-hidden');
-    });
+    if (!isFinite(gap)) {
+      gap = 0;
+    }
+
+    return rect.width + gap;
   }
 
-  function startAutoScroll(plate, track, originalCount, stepPx) {
+  function setTrackPosition(track, index, step, animate) {
+    if (!track) {
+      return;
+    }
+
+    if (animate) {
+      track.style.transition = "transform " + TRANSITION_MS + "ms ease";
+    } else {
+      track.style.transition = "none";
+    }
+
+    track.style.transform = "translate3d(" + (-Math.round(index * step)) + "px, 0, 0)";
+  }
+
+  function buildStatic(parts, viewport, track) {
+    viewport.classList.add("dkg-mobile-static");
+    viewport.classList.add("dkg-mobile-count-" + parts.cards.length);
+    track.style.transition = "none";
+    track.style.transform = "translate3d(0, 0, 0)";
+  }
+
+  function buildAutoscroll(parts, viewport, track) {
     var index = 0;
-    var timer;
+    var totalReal = parts.cards.length;
+    var step = 0;
 
-    stopPlateTimer(plate);
+    viewport.classList.add("dkg-mobile-autoscroll");
+    viewport.setAttribute("data-dkg-mobile-real-count", String(totalReal));
 
-    if (originalCount <= 3) {
-      setTrackPosition(track, 0, stepPx, false);
-      return;
+    function recalc() {
+      step = measureStep(track);
+      setTrackPosition(track, index, step, false);
     }
 
-    setTrackPosition(track, 0, stepPx, false);
-
-    timer = window.setInterval(function () {
-      index += 1;
-      setTrackPosition(track, index, stepPx, true);
-
-      if (index >= originalCount) {
-        window.setTimeout(function () {
-          index = 0;
-          setTrackPosition(track, 0, stepPx, false);
-        }, TRANSITION_MS + 40);
-      }
-    }, AUTOSCROLL_MS);
-
-    plateTimers.set(plate, timer);
-  }
-
-  function preparePlate(plate) {
-    var products = findProductsInPlate(plate);
-    var setup;
-    var viewport;
-    var track;
-    var displayItems;
-    var loopClones = [];
-    var allDisplayItems;
-    var viewportWidth;
-    var gap;
-    var slotWidth;
-    var stepPx;
-
-    if (!products.length) {
-      return;
-    }
-
-    plate.classList.add('dkg-mobile-main-plate-prepared');
-
-    if (products.length === 1) {
-      plate.classList.add('dkg-mobile-main-count-1');
-    } else if (products.length === 2) {
-      plate.classList.add('dkg-mobile-main-count-2');
-    } else if (products.length === 3) {
-      plate.classList.add('dkg-mobile-main-count-3');
-    } else {
-      plate.classList.add('dkg-mobile-main-scrolls-after-3');
-    }
-
-    markOriginalSources(plate, products);
-
-    setup = createViewportAndTrack(plate, products);
-    viewport = setup.viewport;
-    track = setup.track;
-    displayItems = setup.displayItems;
-
-    gap = window.innerWidth <= 390 ? 6 : 8;
-
-    viewport.getBoundingClientRect();
-    viewportWidth = viewport.getBoundingClientRect().width;
-
-    if (products.length < 3) {
-      slotWidth = Math.min(
-        170,
-        Math.max(96, (viewportWidth - gap) / 2)
-      );
-    } else {
-      slotWidth = (viewportWidth - (gap * 2)) / 3;
-    }
-
-    if (!Number.isFinite(slotWidth) || slotWidth < 40) {
-      slotWidth = 100;
-    }
-
-    stepPx = slotWidth + gap;
-
-    if (products.length > 3) {
-      loopClones = makeLoopClones(track, displayItems);
-    }
-
-    allDisplayItems = displayItems.concat(loopClones);
-
-    plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
-    plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
-    plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
-
-    styleProductItems(allDisplayItems, slotWidth);
-    setTrackPosition(track, 0, stepPx, false);
-
-    plate.setAttribute('data-dkg-mobile-products', String(products.length));
-    plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
-    plate.setAttribute('data-dkg-mobile-step-width', String(stepPx));
-    plate.setAttribute('data-dkg-mobile-viewport-width', String(viewportWidth));
-    plate.setAttribute('data-dkg-mobile-autoscroll', products.length > 3 ? 'yes' : 'no');
-
-    startAutoScroll(plate, track, products.length, stepPx);
-  }
-
-  function hideMobileLeftDecorImages() {
-    var header = document.querySelector('.site-header');
-    var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-    var imgs = document.querySelectorAll('img');
-
-    Array.prototype.forEach.call(imgs, function (img) {
-      var rect;
-      var srcAltClass;
-
-      if (
-        !img ||
-        img.closest('.site-header') ||
-        img.closest('.collection-box') ||
-        img.closest('.collections-stack')
-      ) {
+    function advance() {
+      if (!matchesMobile() || !document.body.contains(parts.box)) {
         return;
       }
 
-      rect = img.getBoundingClientRect();
+      step = measureStep(track);
 
-      srcAltClass = [
-        img.getAttribute('src') || '',
-        img.getAttribute('alt') || '',
-        img.className || '',
-        img.parentElement ? img.parentElement.className || '' : ''
-      ].join(' ').toLowerCase();
-
-      if (
-        srcAltClass.indexOf('palm') !== -1 ||
-        srcAltClass.indexOf('glide') !== -1 ||
-        srcAltClass.indexOf('left') !== -1 ||
-        (
-          rect.width >= 70 &&
-          rect.height >= 120 &&
-          rect.left < 45 &&
-          rect.top > headerBottom - 10
-        )
-      ) {
-        img.classList.add('dkg-mobile-hide-left-decor');
+      if (!step) {
+        return;
       }
-    });
-  }
 
-  function centerCollectionStack() {
-    var stack = document.querySelector('.collections-stack');
-
-    if (!stack) {
-      return;
-    }
-
-    stack.style.setProperty('left', '50%', 'important');
-    stack.style.setProperty('right', 'auto', 'important');
-    stack.style.setProperty('transform', 'translateX(-50%)', 'important');
-    stack.style.setProperty('margin-left', '0', 'important');
-    stack.style.setProperty('margin-right', '0', 'important');
-  }
-
-  function applyMobilePlateLayout() {
-    var plates;
-
-    if (isOldMobileShopPage() || !isProbablyHomepage()) {
-      return;
-    }
-
-    plates = document.querySelectorAll(PLATE_SELECTOR);
-
-    Array.prototype.forEach.call(plates, function (plate) {
-      clearPlate(plate);
-
-      if (isMobile()) {
-        preparePlate(plate);
-      }
-    });
-
-    if (isMobile()) {
-      centerCollectionStack();
-      hideMobileLeftDecorImages();
-    }
-  }
-
-  function scheduleApply() {
-    window.requestAnimationFrame(function () {
-      applyMobilePlateLayout();
+      index += 1;
+      setTrackPosition(track, index, step, true);
 
       /*
-        Second pass after images/fonts settle.
+        When index reaches totalReal, the visible items are the appended clones
+        of the first 3 products. Snap back to real index 0 after transition.
       */
-      window.setTimeout(applyMobilePlateLayout, 180);
+      if (index >= totalReal) {
+        window.setTimeout(function () {
+          index = 0;
+          step = measureStep(track);
+          setTrackPosition(track, index, step, false);
+        }, TRANSITION_MS + 40);
+      }
+    }
+
+    window.requestAnimationFrame(function () {
+      recalc();
+      window.setTimeout(recalc, 80);
+    });
+
+    var timer = window.setInterval(advance, AUTOSCROLL_MS);
+
+    stateByBox.set(parts.box, {
+      timer: timer,
+      recalc: recalc
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scheduleApply);
-  } else {
-    scheduleApply();
+  function setupBox(box) {
+    if (!box) {
+      return;
+    }
+
+    removeMobileLayer(box);
+
+    var parts = getParts(box);
+
+    if (!parts || !parts.content || !parts.track || !parts.cards.length) {
+      return;
+    }
+
+    /*
+      Do not ever use .collection-bg as the mobile insertion point.
+    */
+    if (parts.bg && parts.bg.contains(parts.track)) {
+      return;
+    }
+
+    var viewport = document.createElement("div");
+    viewport.className = "dkg-mobile-carousel-viewport";
+    viewport.setAttribute("aria-hidden", "true");
+
+    var mobileTrack = document.createElement("div");
+    mobileTrack.className = "dkg-mobile-product-track";
+
+    parts.cards.forEach(function (card, index) {
+      mobileTrack.appendChild(cloneCardIntoItem(card, index, false));
+    });
+
+    if (parts.cards.length > VISIBLE_SLOTS) {
+      for (var i = 0; i < VISIBLE_SLOTS; i += 1) {
+        mobileTrack.appendChild(cloneCardIntoItem(parts.cards[i], i, true));
+      }
+    }
+
+    viewport.appendChild(mobileTrack);
+    insertAfterLabel(parts, viewport);
+
+    /*
+      Hide only the original product shell/track, not the whole content area,
+      not the label, and never the background.
+    */
+    if (parts.shell) {
+      parts.shell.classList.add("dkg-mobile-original-product-source");
+    }
+
+    if (parts.track) {
+      parts.track.classList.add("dkg-mobile-original-track-source");
+    }
+
+    box.setAttribute("data-dkg-mobile-plates-ready", "true");
+
+    if (parts.cards.length <= VISIBLE_SLOTS) {
+      buildStatic(parts, viewport, mobileTrack);
+    } else {
+      buildAutoscroll(parts, viewport, mobileTrack);
+    }
   }
 
-  window.addEventListener('load', scheduleApply);
-  window.addEventListener('resize', scheduleApply);
-  window.addEventListener('orientationchange', scheduleApply);
+  function setupAll() {
+    var boxes = toArray(document.querySelectorAll(".collections-stack .collection-box"));
 
-  if (mq && mq.addEventListener) {
-    mq.addEventListener('change', scheduleApply);
-  } else if (mq && mq.addListener) {
-    mq.addListener(scheduleApply);
+    if (!matchesMobile()) {
+      boxes.forEach(removeMobileLayer);
+      return;
+    }
+
+    boxes.forEach(setupBox);
+  }
+
+  function scheduleSetup() {
+    if (resizeTimer) {
+      window.clearTimeout(resizeTimer);
+    }
+
+    resizeTimer = window.setTimeout(setupAll, RESIZE_DEBOUNCE_MS);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupAll);
+  } else {
+    setupAll();
+  }
+
+  window.addEventListener("resize", scheduleSetup);
+  window.addEventListener("orientationchange", scheduleSetup);
+
+  if (window.matchMedia) {
+    try {
+      var mq = window.matchMedia(MOBILE_QUERY);
+
+      if (mq.addEventListener) {
+        mq.addEventListener("change", scheduleSetup);
+      } else if (mq.addListener) {
+        mq.addListener(scheduleSetup);
+      }
+    } catch (error) {
+      /* Non-critical. Resize listener still handles changes. */
+    }
   }
 })();

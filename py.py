@@ -1,1415 +1,1033 @@
 #!/usr/bin/env python3
 """
-DKG Shop Theme - Mobile Homepage Collection Plate Inspector
+DKG mobile homepage cleanup updater.
 
-READ-ONLY inspector for WooCommerce / WordPress theme mobile homepage overhaul.
+Goal:
+- Keep mobile users on the normal homepage.
+- Replace the old/stacked mobile homepage collection-plate CSS block.
+- Replace assets/js/dkg-mobile-main-homepage-plates.js with a stricter version.
+- Keep .collection-bg decorative only.
+- Insert the mobile carousel INSIDE .collection-content, after .collection-label.
+- Hide the original .carousel-shell only on mobile and only after JS successfully builds the cloned layer.
+- Disable any active mobile redirect hook if it has reappeared.
+- Ensure the mobile JS enqueue exists and is front-page-only.
 
-Run from theme repo root:
-    python inspect_mobile_homepage_overhaul.py
+Run from the root of the theme repo:
+    python mobile_main_homepage_cleanup_updater.py
 
-Outputs:
-    _dkg_mobile_homepage_inspection_YYYY-MM-DD_HH-MM-SS/
-        inspection_report.md
-        findings.json
-        all_matched_snippets.txt
-        likely_dom_structure.md
+This script edits:
+    assets/css/front-page.css
+    assets/js/dkg-mobile-main-homepage-plates.js
+    functions.php
 
-Uses only Python standard library.
-Makes no edits.
+It creates backups first.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
-import sys
-from dataclasses import dataclass, asdict
+import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
 
 
-# -----------------------------
-# Configuration
-# -----------------------------
+CSS_START = "/* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */"
+CSS_END = "/* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES END === */"
 
-TEXT_EXTENSIONS = {
-    ".php", ".css", ".js", ".json", ".html", ".htm", ".txt", ".md",
-    ".scss", ".sass", ".less", ".xml", ".inc", ".twig"
+ENQUEUE_START = "// === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE START ==="
+ENQUEUE_END = "// === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE END ==="
+
+
+NEW_CSS_BLOCK = r'''/* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
+
+/*
+  DKG mobile homepage collection plates - cleanup layer.
+
+  Important structure from front-page.php:
+
+  .collection-box
+    .collection-bg
+      img
+    .collection-content
+      .collection-label
+      .carousel-shell
+        .product-viewport
+          .product-track
+            .product-card
+              img.product-image
+
+  Rules:
+  - .collection-bg stays decorative only.
+  - .collection-label stays stable and centered.
+  - JS inserts .dkg-mobile-carousel-viewport inside .collection-content after .collection-label.
+  - JS hides only the original .carousel-shell after clone layer is built.
+  - Nothing here targets /mobile-shop/ specific classes.
+  - Header overhaul is intentionally not handled here.
+*/
+
+@media screen and (max-width: 767px) {
+
+  html,
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .page-overlay,
+  .collections-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .collections-section {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .collections-stack {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+    overflow: visible !important;
+  }
+
+  .collection-link {
+    width: 100% !important;
+    max-width: 520px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    text-decoration: none !important;
+    overflow: visible !important;
+  }
+
+  .collection-box {
+    --dkg-mobile-card-gap: 8px;
+
+    position: relative !important;
+    width: calc(100vw - 20px) !important;
+    max-width: 520px !important;
+    min-height: 0 !important;
+    height: auto !important;
+
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 14px 12px 14px !important;
+
+    display: block !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border-radius: 24px !important;
+
+    transform: none !important;
+    background: transparent !important;
+  }
+
+  /*
+    The background is a real child element with an img.
+    Keep it below everything and never use it as a product/carousel container.
+  */
+  .collection-box > .collection-bg {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    display: block !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    border-radius: inherit !important;
+
+    transform: none !important;
+    background: transparent !important;
+  }
+
+  .collection-box > .collection-bg img {
+    position: absolute !important;
+    inset: 0 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+
+    display: block !important;
+    object-fit: fill !important;
+    object-position: center center !important;
+
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .collection-content {
+    position: relative !important;
+    z-index: 2 !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .collection-label {
+    position: relative !important;
+    z-index: 3 !important;
+
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+
+    width: calc(100% - 16px) !important;
+    max-width: 440px !important;
+    min-width: 0 !important;
+
+    margin: 0 auto 2px !important;
+    padding: 8px 10px !important;
+    box-sizing: border-box !important;
+
+    display: block !important;
+    overflow: visible !important;
+
+    text-align: center !important;
+    white-space: normal !important;
+    line-height: 1.12 !important;
+
+    border-radius: 14px !important;
+  }
+
+  /*
+    Hide original homepage product layer only after JS marks it as the source.
+    This avoids hiding the background/title if JS fails or selectors change.
+  */
+  .collection-content > .carousel-shell.dkg-mobile-original-product-source {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .collection-content > .dkg-mobile-carousel-viewport {
+    position: relative !important;
+    z-index: 2 !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+
+    display: block !important;
+    overflow: hidden !important;
+
+    background: transparent !important;
+    border: 0 !important;
+    transform: none !important;
+    contain: paint !important;
+  }
+
+  .dkg-mobile-product-track {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: var(--dkg-mobile-card-gap) !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+
+    list-style: none !important;
+    will-change: transform !important;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .dkg-mobile-carousel-viewport.dkg-mobile-static .dkg-mobile-product-track {
+    justify-content: center !important;
+    transform: translate3d(0, 0, 0) !important;
+    transition: none !important;
+  }
+
+  .dkg-mobile-product-item {
+    flex: 0 0 calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
+    width: calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
+    min-width: 0 !important;
+    max-width: calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
+
+    height: clamp(96px, 28vw, 132px) !important;
+    min-height: clamp(96px, 28vw, 132px) !important;
+    max-height: clamp(96px, 28vw, 132px) !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  .dkg-mobile-product-item .product-card,
+  .dkg-mobile-product-item .dkg-mobile-product-card-inner {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 5px !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: hidden !important;
+    border-radius: 14px !important;
+    transform: none !important;
+  }
+
+  .dkg-mobile-product-item img,
+  .dkg-mobile-product-item .product-image {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+
+    display: block !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .dkg-mobile-product-item .product-card--empty {
+    visibility: hidden !important;
+  }
+
+  @media screen and (max-width: 390px) {
+    .collections-stack {
+      gap: 13px !important;
+    }
+
+    .collection-box {
+      --dkg-mobile-card-gap: 7px;
+      width: calc(100vw - 14px) !important;
+      padding: 12px 9px 12px !important;
+      border-radius: 20px !important;
+    }
+
+    .collection-content {
+      gap: 8px !important;
+    }
+
+    .collection-label {
+      width: calc(100% - 10px) !important;
+      padding: 7px 8px !important;
+      font-size: clamp(0.72rem, 3.45vw, 0.92rem) !important;
+    }
+
+    .dkg-mobile-product-item {
+      height: clamp(88px, 27vw, 118px) !important;
+      min-height: clamp(88px, 27vw, 118px) !important;
+      max-height: clamp(88px, 27vw, 118px) !important;
+    }
+
+    .dkg-mobile-product-item .product-card,
+    .dkg-mobile-product-item .dkg-mobile-product-card-inner {
+      padding: 4px !important;
+      border-radius: 12px !important;
+    }
+  }
 }
 
-SKIP_DIR_NAMES = {
-    ".git",
-    "node_modules",
-    "vendor",
-    "__pycache__",
-    ".idea",
-    ".vscode",
-    "dist",
-    "build",
-    "cache",
-    ".cache",
-    "coverage",
+/* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES END === */
+'''
+
+
+NEW_JS = r'''/*
+  DKG mobile homepage collection plates.
+
+  Cleanup version:
+  - Uses the real front-page.php structure.
+  - Reads products only from .collection-content .product-track > .product-card.
+  - Inserts the mobile viewport inside .collection-content after .collection-label.
+  - Never inserts into .collection-bg.
+  - Never clones .collection-label.
+  - Removes old mobile carousel wrappers before rebuilding.
+  - Hides only the original .carousel-shell after a clone layer has been built.
+*/
+
+(function () {
+  "use strict";
+
+  var MOBILE_QUERY = "(max-width: 767px)";
+  var VISIBLE_SLOTS = 3;
+  var AUTOSCROLL_MS = 2600;
+  var TRANSITION_MS = 420;
+  var RESIZE_DEBOUNCE_MS = 180;
+
+  var stateByBox = new WeakMap();
+  var resizeTimer = null;
+
+  function matchesMobile() {
+    if (!window.matchMedia) {
+      return window.innerWidth <= 767;
+    }
+
+    return window.matchMedia(MOBILE_QUERY).matches;
+  }
+
+  function toArray(list) {
+    return Array.prototype.slice.call(list || []);
+  }
+
+  function directChildWithClass(parent, className) {
+    if (!parent) {
+      return null;
+    }
+
+    var children = parent.children || [];
+
+    for (var i = 0; i < children.length; i += 1) {
+      if (children[i].classList && children[i].classList.contains(className)) {
+        return children[i];
+      }
+    }
+
+    return null;
+  }
+
+  function queryDirect(parent, selector, fallbackSelector) {
+    if (!parent) {
+      return null;
+    }
+
+    try {
+      var direct = parent.querySelector(":scope > " + selector);
+      if (direct) {
+        return direct;
+      }
+    } catch (error) {
+      /* Some older browsers may not support :scope. */
+    }
+
+    return parent.querySelector(fallbackSelector || selector);
+  }
+
+  function clearTimer(box) {
+    var oldState = stateByBox.get(box);
+
+    if (oldState && oldState.timer) {
+      window.clearInterval(oldState.timer);
+    }
+
+    stateByBox.delete(box);
+  }
+
+  function removeMobileLayer(box) {
+    if (!box) {
+      return;
+    }
+
+    clearTimer(box);
+
+    toArray(box.querySelectorAll(".dkg-mobile-carousel-viewport")).forEach(function (node) {
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node);
+      }
+    });
+
+    toArray(box.querySelectorAll(".dkg-mobile-original-product-source")).forEach(function (node) {
+      node.classList.remove("dkg-mobile-original-product-source");
+    });
+
+    toArray(box.querySelectorAll(".dkg-mobile-original-track-source")).forEach(function (node) {
+      node.classList.remove("dkg-mobile-original-track-source");
+    });
+
+    box.removeAttribute("data-dkg-mobile-plates-ready");
+  }
+
+  function getParts(box) {
+    var bg = directChildWithClass(box, "collection-bg");
+    var content = directChildWithClass(box, "collection-content") || box.querySelector(".collection-content");
+
+    if (!content) {
+      return null;
+    }
+
+    var label = directChildWithClass(content, "collection-label") || content.querySelector(".collection-label");
+
+    /*
+      Important:
+      Original products are inside .collection-content, not inside .collection-bg.
+      This intentionally avoids querying through .collection-bg.
+    */
+    var shell = queryDirect(content, ".carousel-shell", ".carousel-shell");
+    var viewport = shell ? shell.querySelector(".product-viewport") : content.querySelector(".product-viewport");
+    var track = viewport ? viewport.querySelector(".product-track") : null;
+
+    if (!track) {
+      track = content.querySelector(".product-track");
+    }
+
+    var cards = track
+      ? toArray(track.children).filter(function (child) {
+          return (
+            child &&
+            child.classList &&
+            child.classList.contains("product-card") &&
+            !child.classList.contains("product-card--empty") &&
+            child.querySelector("img")
+          );
+        })
+      : [];
+
+    return {
+      box: box,
+      bg: bg,
+      content: content,
+      label: label,
+      shell: shell,
+      viewport: viewport,
+      track: track,
+      cards: cards
+    };
+  }
+
+  function cloneCardIntoItem(card, index, isLoopClone) {
+    var item = document.createElement("div");
+    item.className = "dkg-mobile-product-item";
+    item.setAttribute("data-dkg-mobile-product-index", String(index));
+
+    if (isLoopClone) {
+      item.classList.add("dkg-mobile-product-clone");
+      item.setAttribute("aria-hidden", "true");
+    }
+
+    var clone = card.cloneNode(true);
+    clone.classList.add("dkg-mobile-product-card-inner");
+
+    /*
+      Remove IDs from cloned markup so duplicate IDs cannot appear.
+    */
+    if (clone.id) {
+      clone.removeAttribute("id");
+    }
+
+    toArray(clone.querySelectorAll("[id]")).forEach(function (node) {
+      node.removeAttribute("id");
+    });
+
+    item.appendChild(clone);
+    return item;
+  }
+
+  function insertAfterLabel(parts, viewport) {
+    var content = parts.content;
+    var label = parts.label;
+
+    if (label && label.parentNode === content && label.nextSibling) {
+      content.insertBefore(viewport, label.nextSibling);
+      return;
+    }
+
+    if (label && label.parentNode === content) {
+      content.appendChild(viewport);
+      return;
+    }
+
+    content.insertBefore(viewport, content.firstChild);
+  }
+
+  function measureStep(track) {
+    if (!track || !track.children || !track.children.length) {
+      return 0;
+    }
+
+    var first = track.children[0];
+    var rect = first.getBoundingClientRect();
+    var styles = window.getComputedStyle(track);
+    var gap = parseFloat(styles.columnGap || styles.gap || "0");
+
+    if (!isFinite(gap)) {
+      gap = 0;
+    }
+
+    return rect.width + gap;
+  }
+
+  function setTrackPosition(track, index, step, animate) {
+    if (!track) {
+      return;
+    }
+
+    if (animate) {
+      track.style.transition = "transform " + TRANSITION_MS + "ms ease";
+    } else {
+      track.style.transition = "none";
+    }
+
+    track.style.transform = "translate3d(" + (-Math.round(index * step)) + "px, 0, 0)";
+  }
+
+  function buildStatic(parts, viewport, track) {
+    viewport.classList.add("dkg-mobile-static");
+    viewport.classList.add("dkg-mobile-count-" + parts.cards.length);
+    track.style.transition = "none";
+    track.style.transform = "translate3d(0, 0, 0)";
+  }
+
+  function buildAutoscroll(parts, viewport, track) {
+    var index = 0;
+    var totalReal = parts.cards.length;
+    var step = 0;
+
+    viewport.classList.add("dkg-mobile-autoscroll");
+    viewport.setAttribute("data-dkg-mobile-real-count", String(totalReal));
+
+    function recalc() {
+      step = measureStep(track);
+      setTrackPosition(track, index, step, false);
+    }
+
+    function advance() {
+      if (!matchesMobile() || !document.body.contains(parts.box)) {
+        return;
+      }
+
+      step = measureStep(track);
+
+      if (!step) {
+        return;
+      }
+
+      index += 1;
+      setTrackPosition(track, index, step, true);
+
+      /*
+        When index reaches totalReal, the visible items are the appended clones
+        of the first 3 products. Snap back to real index 0 after transition.
+      */
+      if (index >= totalReal) {
+        window.setTimeout(function () {
+          index = 0;
+          step = measureStep(track);
+          setTrackPosition(track, index, step, false);
+        }, TRANSITION_MS + 40);
+      }
+    }
+
+    window.requestAnimationFrame(function () {
+      recalc();
+      window.setTimeout(recalc, 80);
+    });
+
+    var timer = window.setInterval(advance, AUTOSCROLL_MS);
+
+    stateByBox.set(parts.box, {
+      timer: timer,
+      recalc: recalc
+    });
+  }
+
+  function setupBox(box) {
+    if (!box) {
+      return;
+    }
+
+    removeMobileLayer(box);
+
+    var parts = getParts(box);
+
+    if (!parts || !parts.content || !parts.track || !parts.cards.length) {
+      return;
+    }
+
+    /*
+      Do not ever use .collection-bg as the mobile insertion point.
+    */
+    if (parts.bg && parts.bg.contains(parts.track)) {
+      return;
+    }
+
+    var viewport = document.createElement("div");
+    viewport.className = "dkg-mobile-carousel-viewport";
+    viewport.setAttribute("aria-hidden", "true");
+
+    var mobileTrack = document.createElement("div");
+    mobileTrack.className = "dkg-mobile-product-track";
+
+    parts.cards.forEach(function (card, index) {
+      mobileTrack.appendChild(cloneCardIntoItem(card, index, false));
+    });
+
+    if (parts.cards.length > VISIBLE_SLOTS) {
+      for (var i = 0; i < VISIBLE_SLOTS; i += 1) {
+        mobileTrack.appendChild(cloneCardIntoItem(parts.cards[i], i, true));
+      }
+    }
+
+    viewport.appendChild(mobileTrack);
+    insertAfterLabel(parts, viewport);
+
+    /*
+      Hide only the original product shell/track, not the whole content area,
+      not the label, and never the background.
+    */
+    if (parts.shell) {
+      parts.shell.classList.add("dkg-mobile-original-product-source");
+    }
+
+    if (parts.track) {
+      parts.track.classList.add("dkg-mobile-original-track-source");
+    }
+
+    box.setAttribute("data-dkg-mobile-plates-ready", "true");
+
+    if (parts.cards.length <= VISIBLE_SLOTS) {
+      buildStatic(parts, viewport, mobileTrack);
+    } else {
+      buildAutoscroll(parts, viewport, mobileTrack);
+    }
+  }
+
+  function setupAll() {
+    var boxes = toArray(document.querySelectorAll(".collections-stack .collection-box"));
+
+    if (!matchesMobile()) {
+      boxes.forEach(removeMobileLayer);
+      return;
+    }
+
+    boxes.forEach(setupBox);
+  }
+
+  function scheduleSetup() {
+    if (resizeTimer) {
+      window.clearTimeout(resizeTimer);
+    }
+
+    resizeTimer = window.setTimeout(setupAll, RESIZE_DEBOUNCE_MS);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupAll);
+  } else {
+    setupAll();
+  }
+
+  window.addEventListener("resize", scheduleSetup);
+  window.addEventListener("orientationchange", scheduleSetup);
+
+  if (window.matchMedia) {
+    try {
+      var mq = window.matchMedia(MOBILE_QUERY);
+
+      if (mq.addEventListener) {
+        mq.addEventListener("change", scheduleSetup);
+      } else if (mq.addListener) {
+        mq.addListener(scheduleSetup);
+      }
+    } catch (error) {
+      /* Non-critical. Resize listener still handles changes. */
+    }
+  }
+})();
+'''
+
+
+NEW_ENQUEUE_BLOCK = r'''// === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE START ===
+
+function dkg_enqueue_mobile_main_homepage_collection_plates() {
+    if (is_admin()) {
+        return;
+    }
+
+    /*
+     * This script is only for the normal homepage collection plates.
+     * Mobile users should stay on the normal homepage, not /mobile-shop/.
+     */
+    if (!is_front_page()) {
+        return;
+    }
+
+    $script_path = get_template_directory() . '/assets/js/dkg-mobile-main-homepage-plates.js';
+    $script_uri  = get_template_directory_uri() . '/assets/js/dkg-mobile-main-homepage-plates.js';
+
+    if (file_exists($script_path)) {
+        wp_enqueue_script(
+            'dkg-mobile-main-homepage-plates',
+            $script_uri,
+            array(),
+            filemtime($script_path),
+            true
+        );
+    }
 }
+add_action('wp_enqueue_scripts', 'dkg_enqueue_mobile_main_homepage_collection_plates', 30);
 
-CORE_FILES = [
-    "functions.php",
-    "assets/css/front-page.css",
-    "assets/js/dkg-mobile-main-homepage-plates.js",
-    "front-page.php",
-    "header.php",
-    "page-mobile-shop.php",
-]
-
-MOBILE_MARKERS = [
-    "DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES",
-    "dkg-mobile-main-homepage-plates",
-    "dkg-mobile-carousel-viewport",
-    "dkg-mobile-product-track",
-    "dkg-mobile-product-item",
-    "dkg-mobile-original-product-source",
-    "dkg-mobile-original-track-source",
-    "dkg-mobile-product-clone",
-]
-
-MOBILE_REDIRECT_TERMS = [
-    "dkg_redirect_mobile_shop_visitors",
-    "template_redirect",
-    "wp_is_mobile",
-    "/mobile-shop/",
-    "mobile-shop",
-    "page-mobile-shop.php",
-]
-
-COLLECTION_DOM_TERMS = [
-    "collections-stack",
-    "collection-link",
-    "collection-box",
-    "collection-bg",
-    "collection-label",
-    "product-image",
-    "ul.products",
-    "products",
-    "product",
-    "woocommerce",
-]
-
-CSS_SELECTORS_OF_INTEREST = [
-    ".collections-stack",
-    ".collection-link",
-    ".collection-box",
-    ".collection-bg",
-    ".collection-label",
-    ".product-image",
-    "ul.products",
-    ".products",
-    ".product",
-    ".dkg-mobile-carousel-viewport",
-    ".dkg-mobile-product-track",
-    ".dkg-mobile-product-item",
-    ".dkg-mobile-original-product-source",
-    ".dkg-mobile-original-track-source",
-    ".dkg-mobile-product-clone",
-    ".mobile-shop",
-]
-
-CSS_PROPERTIES_OF_INTEREST = [
-    "background",
-    "background-image",
-    "background-size",
-    "background-position",
-    "background-repeat",
-    "overflow",
-    "position",
-    "transform",
-    "translate",
-    "z-index",
-    "object-fit",
-    "display",
-    "grid",
-    "flex",
-    "width",
-    "height",
-    "max-width",
-    "min-width",
-    "left",
-    "right",
-    "top",
-    "bottom",
-    "margin",
-    "padding",
-    "gap",
-    "justify-content",
-    "align-items",
-    "visibility",
-    "opacity",
-]
-
-JS_TERMS_OF_INTEREST = [
-    "collection",
-    "collections-stack",
-    "collection-box",
-    "collection-bg",
-    "collection-label",
-    "product",
-    "product-image",
-    "dkg-mobile",
-    "carousel",
-    "viewport",
-    "track",
-    "clone",
-    "setInterval",
-    "setTimeout",
-    "requestAnimationFrame",
-    "transform",
-    "translateX",
-    "scroll",
-    "classList",
-    "querySelector",
-    "querySelectorAll",
-    "appendChild",
-    "insertBefore",
-    "remove",
-    "style.",
-    "matchMedia",
-    "innerWidth",
-    "resize",
-    "DOMContentLoaded",
-]
-
-ENQUEUE_TERMS = [
-    "wp_enqueue_script",
-    "wp_enqueue_style",
-    "dkg-mobile-main-homepage-plates",
-    "front-page.css",
-    "mobile-shop",
-]
-
-BACKGROUND_TERMS = [
-    "collection-bg",
-    "background",
-    "background-image",
-    "background-size",
-    "background-position",
-    "background-repeat",
-]
+// === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE END ===
+'''
 
 
-# -----------------------------
-# Data containers
-# -----------------------------
-
-@dataclass
-class MatchRecord:
-    file: str
-    line: int
-    term: str
-    category: str
-    snippet: str
-
-
-@dataclass
-class FileSummary:
-    path: str
-    exists: bool
-    line_count: int = 0
-    size_bytes: int = 0
-    marker_counts: Dict[str, int] = None
-    redirect_counts: Dict[str, int] = None
-    collection_term_counts: Dict[str, int] = None
-
-
-# -----------------------------
-# Utility functions
-# -----------------------------
-
-def safe_read_text(path: Path) -> Optional[str]:
-    encodings = ["utf-8", "utf-8-sig", "cp1252", "latin-1"]
-    for enc in encodings:
-        try:
-            return path.read_text(encoding=enc, errors="replace")
-        except UnicodeDecodeError:
-            continue
-        except Exception:
-            return None
-    return None
-
-
-def relpath(path: Path, root: Path) -> str:
-    try:
-        return str(path.relative_to(root)).replace("\\", "/")
-    except ValueError:
-        return str(path).replace("\\", "/")
-
-
-def is_probably_text_file(path: Path) -> bool:
-    return path.suffix.lower() in TEXT_EXTENSIONS
-
-
-def iter_repo_files(root: Path) -> List[Path]:
-    files: List[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in SKIP_DIR_NAMES and not d.startswith("_dkg_mobile_homepage_inspection_")
-        ]
-        current = Path(dirpath)
-        for filename in filenames:
-            path = current / filename
-            if is_probably_text_file(path):
-                files.append(path)
-    return sorted(files)
-
-
-def line_number_for_index(text: str, index: int) -> int:
-    return text.count("\n", 0, index) + 1
-
-
-def get_lines(text: str) -> List[str]:
-    return text.splitlines()
-
-
-def snippet_around_line(text: str, line_no: int, context: int = 8) -> str:
-    lines = get_lines(text)
-    start = max(1, line_no - context)
-    end = min(len(lines), line_no + context)
-
-    out = []
-    for n in range(start, end + 1):
-        marker = ">>" if n == line_no else "  "
-        line = lines[n - 1] if n - 1 < len(lines) else ""
-        out.append(f"{marker} {n:5d}: {line}")
-    return "\n".join(out)
-
-
-def count_occurrences_case_insensitive(text: str, term: str) -> int:
-    return len(re.findall(re.escape(term), text, flags=re.IGNORECASE))
-
-
-def find_matches(
-    root: Path,
-    files: List[Path],
-    terms: List[str],
-    category: str,
-    context: int = 8,
-) -> List[MatchRecord]:
-    records: List[MatchRecord] = []
-
-    for path in files:
-        text = safe_read_text(path)
-        if text is None:
-            continue
-
-        for term in terms:
-            for match in re.finditer(re.escape(term), text, flags=re.IGNORECASE):
-                line_no = line_number_for_index(text, match.start())
-                records.append(
-                    MatchRecord(
-                        file=relpath(path, root),
-                        line=line_no,
-                        term=term,
-                        category=category,
-                        snippet=snippet_around_line(text, line_no, context=context),
-                    )
-                )
-
-    return records
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
 
 
 def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", errors="replace")
 
 
-def make_heading(title: str, level: int = 2) -> str:
-    return f"{'#' * level} {title}\n\n"
+def make_backup(root: Path, backup_dir: Path, rel_path: str) -> None:
+    src = root / rel_path
+    if not src.exists():
+        return
+
+    dest = backup_dir / rel_path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dest)
 
 
-def fence(text: str, language: str = "") -> str:
-    return f"```{language}\n{text.rstrip()}\n```\n\n"
-
-
-def compact_ws(s: str) -> str:
-    return re.sub(r"\s+", " ", s).strip()
-
-
-# -----------------------------
-# CSS analysis
-# -----------------------------
-
-def extract_css_blocks(text: str) -> List[Tuple[int, str, str]]:
+def replace_marker_block(text: str, start_marker: str, end_marker: str, new_block: str) -> tuple[str, int]:
     """
-    Lightweight CSS block extractor.
-    Returns tuples:
-        line_number, selector_text, block_text
-    Handles @media blocks imperfectly but usefully for inspection.
+    Replaces from the first start marker through the last end marker.
+    This intentionally collapses duplicate leftover blocks into one clean block.
     """
-    blocks: List[Tuple[int, str, str]] = []
+    start_positions = [m.start() for m in re.finditer(re.escape(start_marker), text)]
+    end_positions = [m.end() for m in re.finditer(re.escape(end_marker), text)]
 
-    i = 0
-    n = len(text)
+    if not start_positions or not end_positions:
+        cleaned = text.rstrip() + "\n\n" + new_block.rstrip() + "\n"
+        return cleaned, 0
 
-    while i < n:
-        brace = text.find("{", i)
-        if brace == -1:
-            break
+    first_start = min(start_positions)
+    last_end = max(end_positions)
 
-        selector_start = max(text.rfind("}", 0, brace), text.rfind(";", 0, brace), text.rfind("\n\n", 0, brace))
-        selector = text[selector_start + 1:brace].strip()
+    if first_start > last_end:
+        cleaned = text.rstrip() + "\n\n" + new_block.rstrip() + "\n"
+        return cleaned, 0
 
-        if not selector:
-            i = brace + 1
-            continue
-
-        depth = 1
-        j = brace + 1
-        in_string: Optional[str] = None
-        escaped = False
-
-        while j < n and depth > 0:
-            ch = text[j]
-
-            if in_string:
-                if escaped:
-                    escaped = False
-                elif ch == "\\":
-                    escaped = True
-                elif ch == in_string:
-                    in_string = None
-            else:
-                if ch in ("'", '"'):
-                    in_string = ch
-                elif ch == "{":
-                    depth += 1
-                elif ch == "}":
-                    depth -= 1
-            j += 1
-
-        block = text[brace + 1:j - 1] if j <= n else text[brace + 1:]
-        line_no = line_number_for_index(text, max(0, selector_start + 1))
-        blocks.append((line_no, selector, block))
-        i = j
-
-    return blocks
+    replaced = text[:first_start].rstrip() + "\n\n" + new_block.rstrip() + "\n\n" + text[last_end:].lstrip()
+    return replaced, len(start_positions)
 
 
-def css_block_matches(selector: str, block: str) -> bool:
-    selector_lower = selector.lower()
-    block_lower = block.lower()
+def update_css(root: Path) -> str:
+    css_path = root / "assets" / "css" / "front-page.css"
 
-    selector_hit = any(sel.lower() in selector_lower for sel in CSS_SELECTORS_OF_INTEREST)
-    prop_hit = any(prop.lower() in block_lower for prop in CSS_PROPERTIES_OF_INTEREST)
-    background_hit = "background" in block_lower and any(
-        term.lower() in selector_lower or term.lower() in block_lower
-        for term in ["collection", "product", "plate", "mobile", "homepage", "front-page"]
+    if not css_path.exists():
+        raise FileNotFoundError(f"Missing CSS file: {css_path}")
+
+    old = read_text(css_path)
+    new, replaced_count = replace_marker_block(old, CSS_START, CSS_END, NEW_CSS_BLOCK)
+
+    if new != old:
+        write_text(css_path, new)
+
+    if replaced_count:
+        return f"Updated CSS: replaced/collapsed {replaced_count} mobile block start marker(s)."
+    return "Updated CSS: no old marker block found, appended new mobile block."
+
+
+def update_js(root: Path) -> str:
+    js_dir = root / "assets" / "js"
+    js_dir.mkdir(parents=True, exist_ok=True)
+
+    js_path = js_dir / "dkg-mobile-main-homepage-plates.js"
+    old = read_text(js_path) if js_path.exists() else ""
+
+    if old != NEW_JS:
+        write_text(js_path, NEW_JS)
+
+    return "Updated JS: replaced assets/js/dkg-mobile-main-homepage-plates.js with cleanup carousel script."
+
+
+def disable_mobile_redirect_hook(functions_text: str) -> tuple[str, int]:
+    """
+    Comments active add_action('template_redirect', 'dkg_redirect_mobile_shop_visitors', ...)
+    lines if they exist.
+
+    Already-commented lines are ignored.
+    """
+    changed = 0
+    output_lines = []
+
+    redirect_line_re = re.compile(
+        r"add_action\s*\(\s*['\"]template_redirect['\"]\s*,\s*['\"]dkg_redirect_mobile_shop_visitors['\"]",
+        re.IGNORECASE,
     )
-    media_hit = "@media" in selector_lower or "@media" in block_lower
 
-    return (selector_hit and prop_hit) or background_hit or (media_hit and (selector_hit or "dkg-mobile" in block_lower))
+    for line in functions_text.splitlines():
+        stripped = line.lstrip()
 
-
-def analyze_css_files(root: Path, files: List[Path]) -> List[Dict[str, Any]]:
-    css_findings: List[Dict[str, Any]] = []
-
-    for path in files:
-        if path.suffix.lower() not in {".css", ".scss", ".sass", ".less", ".php"}:
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        blocks = extract_css_blocks(text)
-        for line_no, selector, block in blocks:
-            if css_block_matches(selector, block):
-                css_findings.append({
-                    "file": relpath(path, root),
-                    "line": line_no,
-                    "selector": selector.strip(),
-                    "block": block.strip(),
-                    "properties_detected": sorted([
-                        prop for prop in CSS_PROPERTIES_OF_INTEREST
-                        if re.search(rf"(^|[\s{{;]){re.escape(prop)}\s*:", block, flags=re.IGNORECASE)
-                    ]),
-                    "contains_media": "@media" in selector.lower() or "@media" in block.lower(),
-                    "contains_background": "background" in block.lower(),
-                    "contains_mobile_marker": "dkg mobile" in block.lower() or "dkg-mobile" in block.lower(),
-                })
-
-    return css_findings
-
-
-# -----------------------------
-# JS analysis
-# -----------------------------
-
-def extract_js_functionish_blocks(text: str) -> List[Tuple[int, str]]:
-    """
-    Lightweight JS block extractor around important terms.
-    This is intentionally broad and line based.
-    """
-    lines = text.splitlines()
-    hits: List[int] = []
-
-    for i, line in enumerate(lines, start=1):
-        low = line.lower()
-        if any(term.lower() in low for term in JS_TERMS_OF_INTEREST):
-            hits.append(i)
-
-    # Merge nearby hits
-    ranges: List[Tuple[int, int]] = []
-    for line_no in hits:
-        start = max(1, line_no - 12)
-        end = min(len(lines), line_no + 18)
-        if ranges and start <= ranges[-1][1] + 3:
-            ranges[-1] = (ranges[-1][0], max(ranges[-1][1], end))
+        if redirect_line_re.search(line) and not stripped.startswith("//") and not stripped.startswith("#") and not stripped.startswith("/*"):
+            indent = line[: len(line) - len(stripped)]
+            output_lines.append(
+                indent + "// DKG disabled by mobile_main_homepage_cleanup_updater.py: " + stripped
+            )
+            changed += 1
         else:
-            ranges.append((start, end))
+            output_lines.append(line)
 
-    blocks = []
-    for start, end in ranges:
-        block_lines = [f"{n:5d}: {lines[n - 1]}" for n in range(start, end + 1)]
-        blocks.append((start, "\n".join(block_lines)))
+    return "\n".join(output_lines) + ("\n" if functions_text.endswith("\n") else ""), changed
 
-    return blocks
 
+def update_enqueue_block(functions_text: str) -> tuple[str, str]:
+    if ENQUEUE_START in functions_text and ENQUEUE_END in functions_text:
+        new_text, count = replace_marker_block(functions_text, ENQUEUE_START, ENQUEUE_END, NEW_ENQUEUE_BLOCK)
+        return new_text, f"Updated functions.php enqueue block: replaced/collapsed {count} enqueue marker block(s)."
 
-def analyze_js_files(root: Path, files: List[Path]) -> List[Dict[str, Any]]:
-    js_findings: List[Dict[str, Any]] = []
-
-    for path in files:
-        if path.suffix.lower() not in {".js", ".php"}:
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        lower = text.lower()
-        if not any(term.lower() in lower for term in JS_TERMS_OF_INTEREST + MOBILE_MARKERS):
-            continue
-
-        blocks = extract_js_functionish_blocks(text)
-        for line_no, block in blocks:
-            js_findings.append({
-                "file": relpath(path, root),
-                "line": line_no,
-                "terms_detected": sorted([
-                    term for term in JS_TERMS_OF_INTEREST + MOBILE_MARKERS
-                    if term.lower() in block.lower()
-                ]),
-                "block": block,
-            })
-
-    return js_findings
-
-
-# -----------------------------
-# PHP / DOM analysis
-# -----------------------------
-
-CLASS_ATTR_RE = re.compile(r'class\s*=\s*([\'"])(.*?)\1', re.IGNORECASE | re.DOTALL)
-ID_ATTR_RE = re.compile(r'id\s*=\s*([\'"])(.*?)\1', re.IGNORECASE | re.DOTALL)
-HTML_TAG_RE = re.compile(r'<([a-zA-Z0-9:-]+)([^>]*)>', re.DOTALL)
-
-
-def extract_classes_and_ids(root: Path, files: List[Path]) -> Dict[str, Any]:
-    class_map: Dict[str, List[Dict[str, Any]]] = {}
-    id_map: Dict[str, List[Dict[str, Any]]] = {}
-
-    for path in files:
-        if path.suffix.lower() not in {".php", ".html", ".htm", ".js"}:
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        for m in CLASS_ATTR_RE.finditer(text):
-            raw = compact_ws(m.group(2))
-            line_no = line_number_for_index(text, m.start())
-            for cls in raw.split():
-                if not cls:
-                    continue
-                class_map.setdefault(cls, []).append({
-                    "file": relpath(path, root),
-                    "line": line_no,
-                    "raw_class_attribute": raw,
-                })
-
-        for m in ID_ATTR_RE.finditer(text):
-            raw = compact_ws(m.group(2))
-            line_no = line_number_for_index(text, m.start())
-            id_map.setdefault(raw, []).append({
-                "file": relpath(path, root),
-                "line": line_no,
-            })
-
-    return {"classes": class_map, "ids": id_map}
-
-
-def extract_relevant_html_snippets(root: Path, files: List[Path]) -> List[Dict[str, Any]]:
-    snippets: List[Dict[str, Any]] = []
-
-    interesting = [
-        "collections-stack",
-        "collection-link",
-        "collection-box",
-        "collection-bg",
-        "collection-label",
-        "product-image",
-        "woocommerce",
-        "products",
-        "product",
-        "mobile-shop",
-    ]
-
-    for path in files:
-        if path.suffix.lower() not in {".php", ".html", ".htm"}:
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        lower = text.lower()
-        if not any(term.lower() in lower for term in interesting):
-            continue
-
-        lines = text.splitlines()
-        hit_lines = []
-        for i, line in enumerate(lines, start=1):
-            if any(term.lower() in line.lower() for term in interesting):
-                hit_lines.append(i)
-
-        # Merge nearby ranges
-        ranges = []
-        for line_no in hit_lines:
-            start = max(1, line_no - 10)
-            end = min(len(lines), line_no + 18)
-            if ranges and start <= ranges[-1][1] + 5:
-                ranges[-1] = (ranges[-1][0], max(ranges[-1][1], end))
-            else:
-                ranges.append((start, end))
-
-        for start, end in ranges:
-            block = "\n".join(f"{n:5d}: {lines[n - 1]}" for n in range(start, end + 1))
-            snippets.append({
-                "file": relpath(path, root),
-                "line": start,
-                "block": block,
-                "terms_detected": sorted([
-                    term for term in interesting
-                    if term.lower() in block.lower()
-                ]),
-            })
-
-    return snippets
-
-
-def infer_dom_structure(html_snippets: List[Dict[str, Any]], css_findings: List[Dict[str, Any]], js_findings: List[Dict[str, Any]]) -> str:
-    out: List[str] = []
-    out.append("# Likely DOM Structure Reconstruction\n")
-    out.append("This is an evidence-based reconstruction from PHP/HTML snippets, CSS selectors, and JS selectors. It may not perfectly match runtime DOM if WooCommerce hooks or JS mutate the page after load.\n\n")
-
-    key_classes = [
-        "collections-stack",
-        "collection-link",
-        "collection-box",
-        "collection-bg",
-        "collection-label",
-        "product-image",
-        "products",
-        "product",
-        "dkg-mobile-carousel-viewport",
-        "dkg-mobile-product-track",
-        "dkg-mobile-product-item",
-        "dkg-mobile-original-product-source",
-        "dkg-mobile-original-track-source",
-        "dkg-mobile-product-clone",
-    ]
-
-    out.append("## Classes Found in Relevant Evidence\n\n")
-    evidence_by_class: Dict[str, Dict[str, List[str]]] = {cls: {"html": [], "css": [], "js": []} for cls in key_classes}
-
-    for snip in html_snippets:
-        block = snip["block"]
-        for cls in key_classes:
-            if cls in block:
-                evidence_by_class[cls]["html"].append(f'{snip["file"]}: line {snip["line"]}')
-
-    for css in css_findings:
-        combined = css["selector"] + "\n" + css["block"]
-        for cls in key_classes:
-            if cls in combined:
-                evidence_by_class[cls]["css"].append(f'{css["file"]}: line {css["line"]}')
-
-    for js in js_findings:
-        block = js["block"]
-        for cls in key_classes:
-            if cls in block:
-                evidence_by_class[cls]["js"].append(f'{js["file"]}: line {js["line"]}')
-
-    for cls in key_classes:
-        ev = evidence_by_class[cls]
-        if ev["html"] or ev["css"] or ev["js"]:
-            out.append(f"### `.{cls}`\n\n")
-            if ev["html"]:
-                out.append("- HTML/PHP evidence:\n")
-                for item in sorted(set(ev["html"])):
-                    out.append(f"  - {item}\n")
-            if ev["css"]:
-                out.append("- CSS evidence:\n")
-                for item in sorted(set(ev["css"])):
-                    out.append(f"  - {item}\n")
-            if ev["js"]:
-                out.append("- JS evidence:\n")
-                for item in sorted(set(ev["js"])):
-                    out.append(f"  - {item}\n")
-            out.append("\n")
-
-    out.append("## Probable Collection Plate Shape\n\n")
-    out.append("Based on requested selectors and common homepage structure, inspect whether the actual snippets below confirm or contradict this shape:\n\n")
-    out.append("```text\n")
-    out.append(".collections-stack\n")
-    out.append("  .collection-link\n")
-    out.append("    .collection-box\n")
-    out.append("      .collection-bg                  <-- should be background/decor only if possible\n")
-    out.append("      .collection-label               <-- title/tab should not be inside moving carousel track\n")
-    out.append("      original product row / products <-- location must be confirmed\n")
-    out.append("      .dkg-mobile-carousel-viewport   <-- Step 7 clone layer, if present\n")
-    out.append("        .dkg-mobile-product-track\n")
-    out.append("          .dkg-mobile-product-item / .dkg-mobile-product-clone\n")
-    out.append("```\n\n")
-
-    out.append("## High-Risk Structure Questions to Confirm from Report\n\n")
-    out.append("- Is the original product row inside `.collection-bg`? If yes, hiding the original row with a broad parent selector may also damage the background.\n")
-    out.append("- Is `.collection-bg` receiving cloned products or a track? If yes, the background may repeat/glitch because the decorative layer is being used as a content container.\n")
-    out.append("- Is `.collection-label` inside a transformed or cloned element? If yes, the title/tab can shift or duplicate during carousel setup.\n")
-    out.append("- Are mobile carousel wrappers inserted more than once on resize or repeated initialization? If yes, backgrounds/titles/products may duplicate.\n")
-    out.append("- Are old mobile-shop selectors still matching the normal homepage? If yes, old mobile rules can fight the new responsive homepage rules.\n\n")
-
-    out.append("## Relevant HTML/PHP Evidence Blocks\n\n")
-    if not html_snippets:
-        out.append("No relevant PHP/HTML snippets found.\n\n")
-    else:
-        for snip in html_snippets:
-            out.append(f'### {snip["file"]} around line {snip["line"]}\n\n')
-            out.append(f'Terms: {", ".join(snip["terms_detected"])}\n\n')
-            out.append(fence(snip["block"], ""))
-
-    return "".join(out)
-
-
-# -----------------------------
-# Deeper heuristics
-# -----------------------------
-
-def detect_duplicate_marker_blocks(root: Path, files: List[Path]) -> Dict[str, Any]:
-    result: Dict[str, Any] = {}
-
-    for marker in MOBILE_MARKERS:
-        occurrences = []
-        for path in files:
-            text = safe_read_text(path)
-            if not text:
-                continue
-            for m in re.finditer(re.escape(marker), text, flags=re.IGNORECASE):
-                occurrences.append({
-                    "file": relpath(path, root),
-                    "line": line_number_for_index(text, m.start())
-                })
-        result[marker] = {
-            "count": len(occurrences),
-            "occurrences": occurrences,
-            "appears_more_than_once": len(occurrences) > 1,
-        }
-
-    return result
-
-
-def detect_enqueues(root: Path, files: List[Path]) -> Dict[str, Any]:
-    enqueues: List[Dict[str, Any]] = []
-
-    enqueue_re = re.compile(
-        r'wp_enqueue_(script|style)\s*\((.*?)\)\s*;',
-        flags=re.IGNORECASE | re.DOTALL
-    )
-
-    for path in files:
-        if path.suffix.lower() != ".php":
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        for m in enqueue_re.finditer(text):
-            call = m.group(0)
-            if any(term.lower() in call.lower() for term in ENQUEUE_TERMS):
-                enqueues.append({
-                    "file": relpath(path, root),
-                    "line": line_number_for_index(text, m.start()),
-                    "type": m.group(1).lower(),
-                    "call": compact_ws(call),
-                    "snippet": snippet_around_line(text, line_number_for_index(text, m.start()), context=8),
-                })
-
-    handle_counts: Dict[str, int] = {}
-    for item in enqueues:
-        call = item["call"]
-        handle_match = re.search(r'wp_enqueue_(?:script|style)\s*\(\s*([\'"])(.*?)\1', call, flags=re.IGNORECASE)
-        if handle_match:
-            handle = handle_match.group(2)
-            handle_counts[handle] = handle_counts.get(handle, 0) + 1
-
-    return {
-        "enqueues": enqueues,
-        "handle_counts": handle_counts,
-        "potential_duplicate_handles": {
-            handle: count for handle, count in handle_counts.items() if count > 1
-        },
-        "dkg_mobile_js_enqueue_count": sum(
-            1 for e in enqueues
-            if "dkg-mobile-main-homepage-plates" in e["call"].lower()
-        ),
-    }
-
-
-def detect_mobile_redirects(root: Path, files: List[Path]) -> List[Dict[str, Any]]:
-    redirects: List[Dict[str, Any]] = []
-
-    for path in files:
-        if path.suffix.lower() != ".php":
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        lower = text.lower()
-        if not any(term.lower() in lower for term in MOBILE_REDIRECT_TERMS):
-            continue
-
-        lines = text.splitlines()
-        hit_lines = []
-        for i, line in enumerate(lines, start=1):
-            if any(term.lower() in line.lower() for term in MOBILE_REDIRECT_TERMS):
-                hit_lines.append(i)
-
-        ranges = []
-        for line_no in hit_lines:
-            start = max(1, line_no - 12)
-            end = min(len(lines), line_no + 18)
-            if ranges and start <= ranges[-1][1] + 5:
-                ranges[-1] = (ranges[-1][0], max(ranges[-1][1], end))
-            else:
-                ranges.append((start, end))
-
-        for start, end in ranges:
-            block = "\n".join(f"{n:5d}: {lines[n - 1]}" for n in range(start, end + 1))
-            redirects.append({
-                "file": relpath(path, root),
-                "line": start,
-                "terms_detected": sorted([
-                    term for term in MOBILE_REDIRECT_TERMS
-                    if term.lower() in block.lower()
-                ]),
-                "block": block,
-            })
-
-    return redirects
-
-
-def detect_mobile_shop_influence(root: Path, files: List[Path]) -> List[Dict[str, Any]]:
-    findings: List[Dict[str, Any]] = []
-
-    terms = ["mobile-shop", "page-mobile-shop", "/mobile-shop/", "is_page('mobile-shop')", 'is_page("mobile-shop")']
-
-    for path in files:
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        lower = text.lower()
-        if not any(term.lower() in lower for term in terms):
-            continue
-
-        for term in terms:
-            for m in re.finditer(re.escape(term), text, flags=re.IGNORECASE):
-                line_no = line_number_for_index(text, m.start())
-                findings.append({
-                    "file": relpath(path, root),
-                    "line": line_no,
-                    "term": term,
-                    "snippet": snippet_around_line(text, line_no, context=10),
-                })
-
-    return findings
-
-
-def detect_collection_bg_as_container(html_snippets: List[Dict[str, Any]], js_findings: List[Dict[str, Any]], css_findings: List[Dict[str, Any]]) -> Dict[str, Any]:
-    evidence = {
-        "html_collection_bg_near_products": [],
-        "js_collection_bg_targeting": [],
-        "css_collection_bg_layout_rules": [],
-        "risk_summary": [],
-    }
-
-    for snip in html_snippets:
-        block_lower = snip["block"].lower()
-        if "collection-bg" in block_lower and any(term in block_lower for term in ["product", "products", "product-image", "woocommerce"]):
-            evidence["html_collection_bg_near_products"].append({
-                "file": snip["file"],
-                "line": snip["line"],
-                "block": snip["block"],
-            })
-
-    for js in js_findings:
-        block_lower = js["block"].lower()
-        if "collection-bg" in block_lower:
-            evidence["js_collection_bg_targeting"].append({
-                "file": js["file"],
-                "line": js["line"],
-                "terms_detected": js["terms_detected"],
-                "block": js["block"],
-            })
-
-    for css in css_findings:
-        combined = (css["selector"] + "\n" + css["block"]).lower()
-        if "collection-bg" in combined and any(prop in combined for prop in ["display", "position", "overflow", "transform", "z-index", "background"]):
-            evidence["css_collection_bg_layout_rules"].append({
-                "file": css["file"],
-                "line": css["line"],
-                "selector": css["selector"],
-                "properties_detected": css["properties_detected"],
-                "block": css["block"],
-            })
-
-    if evidence["js_collection_bg_targeting"]:
-        evidence["risk_summary"].append("JS targets `.collection-bg`; verify it is not appending carousel nodes into the decorative background layer.")
-    if evidence["html_collection_bg_near_products"]:
-        evidence["risk_summary"].append("HTML/PHP evidence places `.collection-bg` near product markup; verify parent/child relationship before hiding original rows.")
-    if evidence["css_collection_bg_layout_rules"]:
-        evidence["risk_summary"].append("CSS layout/background rules affect `.collection-bg`; broad mobile overrides may cause repeated/glitchy background rendering.")
-
-    return evidence
-
-
-def detect_images_vs_backgrounds(root: Path, files: List[Path]) -> Dict[str, Any]:
-    result = {
-        "img_tags_near_product_or_collection": [],
-        "background_image_rules_or_inline_styles": [],
-    }
-
-    img_re = re.compile(r'<img\b[^>]*>', flags=re.IGNORECASE | re.DOTALL)
-    bg_re = re.compile(r'(background(?:-image)?\s*:\s*[^;}{]+|style\s*=\s*["\'][^"\']*background[^"\']*["\'])', flags=re.IGNORECASE | re.DOTALL)
-
-    for path in files:
-        if path.suffix.lower() not in {".php", ".html", ".htm", ".css", ".js"}:
-            continue
-
-        text = safe_read_text(path)
-        if not text:
-            continue
-
-        for m in img_re.finditer(text):
-            tag = compact_ws(m.group(0))
-            if any(term in tag.lower() for term in ["product", "collection", "woocommerce", "image", "src"]):
-                line_no = line_number_for_index(text, m.start())
-                result["img_tags_near_product_or_collection"].append({
-                    "file": relpath(path, root),
-                    "line": line_no,
-                    "tag": tag[:500],
-                    "snippet": snippet_around_line(text, line_no, context=5),
-                })
-
-        for m in bg_re.finditer(text):
-            rule = compact_ws(m.group(0))
-            context_text = text[max(0, m.start() - 300): min(len(text), m.end() + 300)]
-            if any(term in context_text.lower() for term in ["collection", "product", "plate", "mobile", "front-page", "homepage"]):
-                line_no = line_number_for_index(text, m.start())
-                result["background_image_rules_or_inline_styles"].append({
-                    "file": relpath(path, root),
-                    "line": line_no,
-                    "rule": rule[:500],
-                    "snippet": snippet_around_line(text, line_no, context=6),
-                })
-
-    return result
-
-
-def find_woocommerce_template_files(root: Path, files: List[Path]) -> List[str]:
-    candidates = []
-
-    for path in files:
-        rp = relpath(path, root)
-        low = rp.lower()
-        if (
-            "woocommerce" in low
-            or "wc-" in low
-            or "product" in low
-            or "archive-product" in low
-            or "content-product" in low
-            or "single-product" in low
-        ):
-            candidates.append(rp)
-
-    return sorted(set(candidates))
-
-
-def summarize_core_files(root: Path) -> List[FileSummary]:
-    summaries: List[FileSummary] = []
-
-    for rel in CORE_FILES:
-        path = root / rel
-        exists = path.exists()
-        summary = FileSummary(
-            path=rel,
-            exists=exists,
-            marker_counts={},
-            redirect_counts={},
-            collection_term_counts={},
+    if "dkg-mobile-main-homepage-plates" in functions_text:
+        # Existing enqueue exists but marker shape was unexpected. Do not risk duplicating it.
+        return functions_text, (
+            "functions.php enqueue: found dkg-mobile-main-homepage-plates but did not find expected markers; "
+            "left existing enqueue in place to avoid duplication."
         )
 
-        if exists:
-            text = safe_read_text(path) or ""
-            summary.line_count = len(text.splitlines())
-            try:
-                summary.size_bytes = path.stat().st_size
-            except OSError:
-                summary.size_bytes = 0
-            summary.marker_counts = {
-                term: count_occurrences_case_insensitive(text, term)
-                for term in MOBILE_MARKERS
-            }
-            summary.redirect_counts = {
-                term: count_occurrences_case_insensitive(text, term)
-                for term in MOBILE_REDIRECT_TERMS
-            }
-            summary.collection_term_counts = {
-                term: count_occurrences_case_insensitive(text, term)
-                for term in COLLECTION_DOM_TERMS
-            }
-
-        summaries.append(summary)
-
-    return summaries
+    appended = functions_text.rstrip() + "\n\n" + NEW_ENQUEUE_BLOCK.rstrip() + "\n"
+    return appended, "functions.php enqueue: no existing mobile enqueue found, appended clean front-page-only enqueue block."
 
 
-# -----------------------------
-# Report generation
-# -----------------------------
+def update_functions(root: Path) -> str:
+    functions_path = root / "functions.php"
 
-def generate_markdown_report(findings: Dict[str, Any]) -> str:
-    out: List[str] = []
+    if not functions_path.exists():
+        raise FileNotFoundError(f"Missing functions.php: {functions_path}")
 
-    out.append("# DKG Mobile Homepage Collection Plate Inspection Report\n\n")
-    out.append(f"Generated: `{findings['generated_at']}`\n\n")
-    out.append(f"Repo root: `{findings['repo_root']}`\n\n")
-    out.append("This report is read-only evidence collection. It does not apply fixes.\n\n")
+    old = read_text(functions_path)
 
-    out.append(make_heading("Executive Summary", 2))
+    text, redirect_disabled_count = disable_mobile_redirect_hook(old)
+    text, enqueue_message = update_enqueue_block(text)
 
-    duplicate_markers = {
-        k: v for k, v in findings["duplicate_marker_blocks"].items()
-        if v["appears_more_than_once"]
-    }
-    duplicate_enqueues = findings["enqueue_analysis"]["potential_duplicate_handles"]
-    dkg_js_enqueue_count = findings["enqueue_analysis"]["dkg_mobile_js_enqueue_count"]
+    if text != old:
+        write_text(functions_path, text)
 
-    out.append(f"- Files scanned: **{findings['file_count']}**\n")
-    out.append(f"- Mobile marker matches: **{len(findings['mobile_marker_matches'])}**\n")
-    out.append(f"- Mobile redirect matches: **{len(findings['mobile_redirect_matches'])}**\n")
-    out.append(f"- CSS blocks of interest: **{len(findings['css_findings'])}**\n")
-    out.append(f"- JS blocks of interest: **{len(findings['js_findings'])}**\n")
-    out.append(f"- WooCommerce/product-related template candidates: **{len(findings['woocommerce_template_files'])}**\n")
-    out.append(f"- `dkg-mobile-main-homepage-plates` enqueue count: **{dkg_js_enqueue_count}**\n")
-    if duplicate_markers:
-        out.append(f"- Duplicate mobile marker terms detected: **{len(duplicate_markers)}**\n")
-    else:
-        out.append("- Duplicate mobile marker terms detected: **none based on exact marker search**\n")
-    if duplicate_enqueues:
-        out.append(f"- Potential duplicate enqueue handles: **{', '.join(duplicate_enqueues.keys())}**\n")
-    else:
-        out.append("- Potential duplicate enqueue handles: **none based on handle extraction**\n")
-    out.append("\n")
-
-    out.append(make_heading("Core File Summary", 2))
-    out.append("| File | Exists | Lines | Size | Mobile marker hits | Redirect hits | Collection term hits |\n")
-    out.append("|---|---:|---:|---:|---:|---:|---:|\n")
-    for fs in findings["core_file_summaries"]:
-        marker_hits = sum(fs["marker_counts"].values()) if fs["marker_counts"] else 0
-        redirect_hits = sum(fs["redirect_counts"].values()) if fs["redirect_counts"] else 0
-        collection_hits = sum(fs["collection_term_counts"].values()) if fs["collection_term_counts"] else 0
-        out.append(
-            f"| `{fs['path']}` | {fs['exists']} | {fs['line_count']} | {fs['size_bytes']} | "
-            f"{marker_hits} | {redirect_hits} | {collection_hits} |\n"
-        )
-    out.append("\n")
-
-    out.append(make_heading("Likely High-Risk Areas", 2))
-    risks = []
-
-    bg_risks = findings["collection_bg_container_analysis"]["risk_summary"]
-    risks.extend(bg_risks)
-
-    if findings["duplicate_marker_blocks"]:
-        for marker, info in findings["duplicate_marker_blocks"].items():
-            if info["appears_more_than_once"]:
-                risks.append(f"Marker `{marker}` appears {info['count']} times; previous updater blocks may be duplicated or overlapping.")
-
-    if dkg_js_enqueue_count > 1:
-        risks.append("The mobile homepage JS appears to be enqueued more than once.")
-
-    if findings["mobile_shop_influence"]:
-        risks.append("References to `mobile-shop` still exist; verify these are not loading CSS/JS or body classes that affect the normal homepage.")
-
-    if not risks:
-        risks.append("No obvious duplicate/enqueue/background-container risk was detected by the heuristic checks. Review snippets below for exact structure.")
-
-    for r in risks:
-        out.append(f"- {r}\n")
-    out.append("\n")
-
-    out.append(make_heading("Recommended Next-Step Strategy", 2))
-    out.append(
-        "No updater should be written until the report confirms the real runtime structure. "
-        "Based on the current symptom, the next fix will probably need to separate three responsibilities cleanly:\n\n"
-    )
-    out.append("1. **Background layer**: `.collection-bg` should remain decorative only and should not become a carousel/product container.\n")
-    out.append("2. **Title/tab layer**: `.collection-label` should stay outside any moving/cloned/translated track and should have a stable centering rule.\n")
-    out.append("3. **Product layer**: mobile carousel should operate in its own viewport/track wrapper, with the original product source hidden only at the safest narrow selector level.\n\n")
-    out.append(
-        "After reviewing this report, the fix should target the smallest confirmed selectors instead of broad mobile rules. "
-        "Special attention should go to whether previous Step 7 clone wrappers are being inserted repeatedly and whether hiding the original row is also hiding or moving the plate background/title.\n\n"
+    redirect_message = (
+        f"Disabled {redirect_disabled_count} active mobile redirect hook(s)."
+        if redirect_disabled_count
+        else "Mobile redirect hook: no active add_action line found; likely already disabled."
     )
 
-    out.append(make_heading("Duplicate Marker Analysis", 2))
-    for marker, info in findings["duplicate_marker_blocks"].items():
-        out.append(f"### `{marker}`\n\n")
-        out.append(f"- Count: **{info['count']}**\n")
-        out.append(f"- Appears more than once: **{info['appears_more_than_once']}**\n")
-        if info["occurrences"]:
-            for occ in info["occurrences"]:
-                out.append(f"  - `{occ['file']}` line {occ['line']}\n")
-        out.append("\n")
-
-    out.append(make_heading("Enqueue Analysis", 2))
-    out.append(f"- `dkg-mobile-main-homepage-plates` enqueue count: **{dkg_js_enqueue_count}**\n\n")
-    if findings["enqueue_analysis"]["handle_counts"]:
-        out.append("### Enqueue Handle Counts\n\n")
-        for handle, count in sorted(findings["enqueue_analysis"]["handle_counts"].items()):
-            out.append(f"- `{handle}`: {count}\n")
-        out.append("\n")
-
-    for item in findings["enqueue_analysis"]["enqueues"]:
-        out.append(f"### `{item['file']}` line {item['line']}\n\n")
-        out.append(f"- Type: `{item['type']}`\n")
-        out.append(f"- Call: `{item['call']}`\n\n")
-        out.append(fence(item["snippet"], ""))
-
-    out.append(make_heading("Mobile Redirect and `/mobile-shop/` Analysis", 2))
-    if not findings["mobile_redirect_blocks"]:
-        out.append("No mobile redirect blocks found from the configured search terms.\n\n")
-    else:
-        for block in findings["mobile_redirect_blocks"]:
-            out.append(f"### `{block['file']}` around line {block['line']}\n\n")
-            out.append(f"Terms: {', '.join(block['terms_detected'])}\n\n")
-            out.append(fence(block["block"], ""))
-
-    out.append(make_heading("Old Mobile-Shop Influence", 2))
-    if not findings["mobile_shop_influence"]:
-        out.append("No `mobile-shop` influence matches found beyond configured redirect scan.\n\n")
-    else:
-        for item in findings["mobile_shop_influence"]:
-            out.append(f"### `{item['file']}` line {item['line']} — `{item['term']}`\n\n")
-            out.append(fence(item["snippet"], ""))
-
-    out.append(make_heading("Collection Background Container Risk Check", 2))
-    bg = findings["collection_bg_container_analysis"]
-
-    out.append("### Risk Summary\n\n")
-    if bg["risk_summary"]:
-        for r in bg["risk_summary"]:
-            out.append(f"- {r}\n")
-    else:
-        out.append("- No direct `.collection-bg` container risk detected by heuristics.\n")
-    out.append("\n")
-
-    for section_key, section_title in [
-        ("html_collection_bg_near_products", "HTML/PHP `.collection-bg` Near Products"),
-        ("js_collection_bg_targeting", "JS Targeting `.collection-bg`"),
-        ("css_collection_bg_layout_rules", "CSS Layout Rules Affecting `.collection-bg`"),
-    ]:
-        out.append(f"### {section_title}\n\n")
-        items = bg[section_key]
-        if not items:
-            out.append("No matches.\n\n")
-        else:
-            for item in items:
-                out.append(f"#### `{item['file']}` line {item['line']}\n\n")
-                if "selector" in item:
-                    out.append(f"Selector: `{item['selector']}`\n\n")
-                    out.append(f"Properties: `{', '.join(item.get('properties_detected', []))}`\n\n")
-                    out.append(fence(item["block"], "css"))
-                else:
-                    out.append(fence(item["block"], ""))
-
-    out.append(make_heading("Product Images: `<img>` Tags vs Background Images", 2))
-    imgs = findings["image_vs_background_analysis"]
-
-    out.append("### `<img>` Tags Near Product/Collection Markup\n\n")
-    if not imgs["img_tags_near_product_or_collection"]:
-        out.append("No relevant `<img>` tags found by heuristic scan.\n\n")
-    else:
-        for item in imgs["img_tags_near_product_or_collection"][:80]:
-            out.append(f"#### `{item['file']}` line {item['line']}\n\n")
-            out.append(f"Tag: `{item['tag']}`\n\n")
-            out.append(fence(item["snippet"], ""))
-
-    out.append("### Background Image Rules or Inline Background Styles\n\n")
-    if not imgs["background_image_rules_or_inline_styles"]:
-        out.append("No relevant background image rules/inline styles found by heuristic scan.\n\n")
-    else:
-        for item in imgs["background_image_rules_or_inline_styles"][:120]:
-            out.append(f"#### `{item['file']}` line {item['line']}\n\n")
-            out.append(f"Rule: `{item['rule']}`\n\n")
-            out.append(fence(item["snippet"], ""))
-
-    out.append(make_heading("CSS Blocks of Interest", 2))
-    if not findings["css_findings"]:
-        out.append("No CSS blocks matched the configured selectors/properties.\n\n")
-    else:
-        for css in findings["css_findings"]:
-            out.append(f"### `{css['file']}` line {css['line']}\n\n")
-            out.append(f"Selector:\n\n```css\n{css['selector']}\n```\n\n")
-            out.append(f"Properties detected: `{', '.join(css['properties_detected'])}`\n\n")
-            if css["contains_media"]:
-                out.append("Contains media-related context: **yes**\n\n")
-            if css["contains_background"]:
-                out.append("Contains background rule: **yes**\n\n")
-            out.append(fence(css["block"], "css"))
-
-    out.append(make_heading("JS Blocks of Interest", 2))
-    if not findings["js_findings"]:
-        out.append("No JS blocks matched the configured carousel/product/mobile terms.\n\n")
-    else:
-        for js in findings["js_findings"]:
-            out.append(f"### `{js['file']}` around line {js['line']}\n\n")
-            out.append(f"Terms: `{', '.join(js['terms_detected'])}`\n\n")
-            out.append(fence(js["block"], "js"))
-
-    out.append(make_heading("Full Mobile Marker Matches", 2))
-    if not findings["mobile_marker_matches"]:
-        out.append("No exact mobile overhaul marker matches found.\n\n")
-    else:
-        for m in findings["mobile_marker_matches"]:
-            out.append(f"### `{m['file']}` line {m['line']} — `{m['term']}`\n\n")
-            out.append(fence(m["snippet"], ""))
-
-    out.append(make_heading("Collection / Product DOM Term Matches", 2))
-    if not findings["collection_dom_matches"]:
-        out.append("No collection/product DOM term matches found.\n\n")
-    else:
-        for m in findings["collection_dom_matches"]:
-            out.append(f"### `{m['file']}` line {m['line']} — `{m['term']}`\n\n")
-            out.append(fence(m["snippet"], ""))
-
-    out.append(make_heading("WooCommerce / Product Template Candidate Files", 2))
-    if not findings["woocommerce_template_files"]:
-        out.append("No WooCommerce/product template candidate files found.\n\n")
-    else:
-        for path in findings["woocommerce_template_files"]:
-            out.append(f"- `{path}`\n")
-        out.append("\n")
-
-    out.append(make_heading("Relevant HTML/PHP Snippets", 2))
-    if not findings["html_snippets"]:
-        out.append("No relevant HTML/PHP snippets found.\n\n")
-    else:
-        for snip in findings["html_snippets"]:
-            out.append(f"### `{snip['file']}` around line {snip['line']}\n\n")
-            out.append(f"Terms: `{', '.join(snip['terms_detected'])}`\n\n")
-            out.append(fence(snip["block"], ""))
-
-    out.append(make_heading("Class and ID Inventory: Relevant Subset", 2))
-    classes = findings["class_id_inventory"]["classes"]
-    ids = findings["class_id_inventory"]["ids"]
-
-    relevant_classes = sorted([
-        cls for cls in classes.keys()
-        if any(term.lower() in cls.lower() for term in [
-            "collection", "product", "woocommerce", "mobile", "carousel", "track", "viewport", "label", "image"
-        ])
-    ])
-
-    out.append("### Relevant Classes\n\n")
-    if not relevant_classes:
-        out.append("No relevant classes found.\n\n")
-    else:
-        for cls in relevant_classes:
-            out.append(f"#### `.{cls}`\n\n")
-            for loc in classes[cls][:20]:
-                out.append(f"- `{loc['file']}` line {loc['line']} — class attr: `{loc['raw_class_attribute']}`\n")
-            if len(classes[cls]) > 20:
-                out.append(f"- ...and {len(classes[cls]) - 20} more occurrences\n")
-            out.append("\n")
-
-    relevant_ids = sorted([
-        idv for idv in ids.keys()
-        if any(term.lower() in idv.lower() for term in [
-            "collection", "product", "woocommerce", "mobile", "carousel", "track", "viewport"
-        ])
-    ])
-
-    out.append("### Relevant IDs\n\n")
-    if not relevant_ids:
-        out.append("No relevant IDs found.\n\n")
-    else:
-        for idv in relevant_ids:
-            out.append(f"#### `#{idv}`\n\n")
-            for loc in ids[idv][:20]:
-                out.append(f"- `{loc['file']}` line {loc['line']}\n")
-            if len(ids[idv]) > 20:
-                out.append(f"- ...and {len(ids[idv]) - 20} more occurrences\n")
-            out.append("\n")
-
-    return "".join(out)
+    return redirect_message + " " + enqueue_message
 
 
-def generate_all_snippets_text(findings: Dict[str, Any]) -> str:
-    out: List[str] = []
-    out.append("DKG Mobile Homepage Collection Plate Inspector - All Matched Snippets\n")
-    out.append(f"Generated: {findings['generated_at']}\n")
-    out.append(f"Repo root: {findings['repo_root']}\n")
-    out.append("=" * 100 + "\n\n")
-
-    groups = [
-        ("MOBILE MARKER MATCHES", findings["mobile_marker_matches"]),
-        ("MOBILE REDIRECT MATCHES", findings["mobile_redirect_matches"]),
-        ("COLLECTION DOM MATCHES", findings["collection_dom_matches"]),
+def sanity_check_repo(root: Path) -> None:
+    expected = [
+        root / "functions.php",
+        root / "assets" / "css" / "front-page.css",
     ]
 
-    for title, records in groups:
-        out.append(title + "\n")
-        out.append("-" * len(title) + "\n\n")
-        if not records:
-            out.append("No matches.\n\n")
-            continue
+    missing = [str(path) for path in expected if not path.exists()]
 
-        for r in records:
-            out.append(f"[{r['category']}] {r['file']}:{r['line']} term={r['term']}\n")
-            out.append(r["snippet"])
-            out.append("\n\n" + "-" * 100 + "\n\n")
+    if missing:
+        raise SystemExit(
+            "This does not look like the theme repo root, or required files are missing:\n"
+            + "\n".join("  - " + item for item in missing)
+            + "\n\nRun this from:\n"
+            + r'  C:\Users\John\Desktop\shop dkg\dkg-shop-theme'
+        )
 
-    out.append("CSS FINDINGS\n")
-    out.append("------------\n\n")
-    for css in findings["css_findings"]:
-        out.append(f"{css['file']}:{css['line']} selector={css['selector']}\n")
-        out.append(css["block"])
-        out.append("\n\n" + "-" * 100 + "\n\n")
-
-    out.append("JS FINDINGS\n")
-    out.append("-----------\n\n")
-    for js in findings["js_findings"]:
-        out.append(f"{js['file']}:{js['line']} terms={', '.join(js['terms_detected'])}\n")
-        out.append(js["block"])
-        out.append("\n\n" + "-" * 100 + "\n\n")
-
-    return "".join(out)
-
-
-# -----------------------------
-# Main
-# -----------------------------
 
 def main() -> int:
     root = Path.cwd().resolve()
-
-    # Basic sanity check.
-    if not (root / "functions.php").exists():
-        print("WARNING: functions.php was not found in the current directory.")
-        print("This script is intended to run from the root of the WordPress theme repo.")
-        print(f"Current directory: {root}")
-        print("Continuing anyway...\n")
+    sanity_check_repo(root)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    report_dir = root / f"_dkg_mobile_homepage_inspection_{timestamp}"
-    report_dir.mkdir(parents=True, exist_ok=False)
+    backup_dir = root / f"_dkg_mobile_homepage_cleanup_backup_{timestamp}"
+    backup_dir.mkdir(parents=True, exist_ok=False)
 
-    files = iter_repo_files(root)
+    files_to_backup = [
+        "functions.php",
+        "assets/css/front-page.css",
+        "assets/js/dkg-mobile-main-homepage-plates.js",
+    ]
 
-    print(f"Scanning repo: {root}")
-    print(f"Text files found: {len(files)}")
-    print(f"Report folder: {report_dir}")
+    for rel_path in files_to_backup:
+        make_backup(root, backup_dir, rel_path)
 
-    mobile_marker_matches = find_matches(root, files, MOBILE_MARKERS, "mobile_marker", context=10)
-    mobile_redirect_matches = find_matches(root, files, MOBILE_REDIRECT_TERMS, "mobile_redirect", context=10)
-    collection_dom_matches = find_matches(root, files, COLLECTION_DOM_TERMS, "collection_dom", context=8)
+    messages = []
+    messages.append(update_css(root))
+    messages.append(update_js(root))
+    messages.append(update_functions(root))
 
-    css_findings = analyze_css_files(root, files)
-    js_findings = analyze_js_files(root, files)
-    html_snippets = extract_relevant_html_snippets(root, files)
-    class_id_inventory = extract_classes_and_ids(root, files)
-
-    duplicate_marker_blocks = detect_duplicate_marker_blocks(root, files)
-    enqueue_analysis = detect_enqueues(root, files)
-    mobile_redirect_blocks = detect_mobile_redirects(root, files)
-    mobile_shop_influence = detect_mobile_shop_influence(root, files)
-    image_vs_background_analysis = detect_images_vs_backgrounds(root, files)
-    woocommerce_template_files = find_woocommerce_template_files(root, files)
-    core_file_summaries = summarize_core_files(root)
-
-    collection_bg_container_analysis = detect_collection_bg_as_container(
-        html_snippets=html_snippets,
-        js_findings=js_findings,
-        css_findings=css_findings,
+    summary_path = backup_dir / "cleanup_update_summary.txt"
+    summary = [
+        "DKG mobile homepage cleanup updater summary",
+        f"Timestamp: {timestamp}",
+        f"Repo root: {root}",
+        f"Backup folder: {backup_dir}",
+        "",
+        "Actions:",
+    ]
+    summary.extend(f"- {message}" for message in messages)
+    summary.extend(
+        [
+            "",
+            "Expected result:",
+            "- Mobile users remain on the normal homepage.",
+            "- .collection-bg remains decorative only.",
+            "- .collection-label stays centered and outside the moving product track.",
+            "- Mobile carousel layer is inserted inside .collection-content after .collection-label.",
+            "- Original .carousel-shell is hidden only after JS successfully builds the mobile clone layer.",
+            "- Collections with 1 or 2 products are centered.",
+            "- Collections with 3 products are static.",
+            "- Collections with more than 3 products auto-scroll one product at a time.",
+            "",
+            "Files backed up:",
+        ]
     )
+    summary.extend(f"- {rel_path}" for rel_path in files_to_backup)
+    write_text(summary_path, "\n".join(summary) + "\n")
 
-    findings: Dict[str, Any] = {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "repo_root": str(root),
-        "file_count": len(files),
-        "scanned_files": [relpath(p, root) for p in files],
-        "core_file_summaries": [asdict(x) for x in core_file_summaries],
-        "mobile_marker_matches": [asdict(x) for x in mobile_marker_matches],
-        "mobile_redirect_matches": [asdict(x) for x in mobile_redirect_matches],
-        "collection_dom_matches": [asdict(x) for x in collection_dom_matches],
-        "css_findings": css_findings,
-        "js_findings": js_findings,
-        "html_snippets": html_snippets,
-        "class_id_inventory": class_id_inventory,
-        "duplicate_marker_blocks": duplicate_marker_blocks,
-        "enqueue_analysis": enqueue_analysis,
-        "mobile_redirect_blocks": mobile_redirect_blocks,
-        "mobile_shop_influence": mobile_shop_influence,
-        "collection_bg_container_analysis": collection_bg_container_analysis,
-        "image_vs_background_analysis": image_vs_background_analysis,
-        "woocommerce_template_files": woocommerce_template_files,
-    }
+    print("\nDone.")
+    print(f"Backup folder: {backup_dir}")
+    print("")
+    for message in messages:
+        print(f"- {message}")
 
-    report_md = generate_markdown_report(findings)
-    all_snippets_txt = generate_all_snippets_text(findings)
-    dom_md = infer_dom_structure(html_snippets, css_findings, js_findings)
-
-    write_text(report_dir / "inspection_report.md", report_md)
-    write_text(report_dir / "all_matched_snippets.txt", all_snippets_txt)
-    write_text(report_dir / "likely_dom_structure.md", dom_md)
-
-    with (report_dir / "findings.json").open("w", encoding="utf-8") as f:
-        json.dump(findings, f, indent=2, ensure_ascii=False)
-
-    print("\nDone. Created:")
-    print(f"  {report_dir / 'inspection_report.md'}")
-    print(f"  {report_dir / 'findings.json'}")
-    print(f"  {report_dir / 'all_matched_snippets.txt'}")
-    print(f"  {report_dir / 'likely_dom_structure.md'}")
-
-    print("\nBest next step:")
-    print("  Paste/upload inspection_report.md and likely_dom_structure.md first.")
-    print("  If the report is huge, start with Executive Summary, High-Risk Areas,")
-    print("  Collection Background Container Risk Check, CSS Blocks, and JS Blocks.")
+    print("")
+    print("Next:")
+    print("1. Upload/deploy the changed theme files.")
+    print("2. Clear any site/plugin/browser cache.")
+    print("3. Test the normal homepage on phone width, not /mobile-shop/.")
+    print("4. If anything is off, send a screenshot plus the new CSS/JS snippets or rerun the inspector.")
 
     return 0
 

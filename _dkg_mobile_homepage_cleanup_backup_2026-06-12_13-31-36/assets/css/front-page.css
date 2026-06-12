@@ -827,28 +827,13 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - cleanup layer.
+  DKG mobile homepage collection plates - Step 7 cloned layer.
 
-  Important structure from front-page.php:
-
-  .collection-box
-    .collection-bg
-      img
-    .collection-content
-      .collection-label
-      .carousel-shell
-        .product-viewport
-          .product-track
-            .product-card
-              img.product-image
-
-  Rules:
-  - .collection-bg stays decorative only.
-  - .collection-label stays stable and centered.
-  - JS inserts .dkg-mobile-carousel-viewport inside .collection-content after .collection-label.
-  - JS hides only the original .carousel-shell after clone layer is built.
-  - Nothing here targets /mobile-shop/ specific classes.
-  - Header overhaul is intentionally not handled here.
+  Fix:
+  - Original product layer is hidden on mobile.
+  - Mobile carousel uses cloned product cards only.
+  - Collection background is not used as a carousel track.
+  - Title tab is centered on mobile.
 */
 
 @media screen and (max-width: 767px) {
@@ -858,309 +843,300 @@ body.page-template-page-mobile-shop {
     overflow-x: hidden !important;
   }
 
-  .page-overlay,
-  .collections-section {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop).home,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop).front-page,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop).page-template-front-page {
     width: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box !important;
     overflow-x: hidden !important;
   }
 
-  .collections-section {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
 
-  .collections-stack {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 16px !important;
-    overflow: visible !important;
-  }
-
-  .collection-link {
-    width: 100% !important;
-    max-width: 520px !important;
-    display: block !important;
-    box-sizing: border-box !important;
-    text-decoration: none !important;
-    overflow: visible !important;
-  }
-
-  .collection-box {
-    --dkg-mobile-card-gap: 8px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 
     position: relative !important;
-    width: calc(100vw - 20px) !important;
-    max-width: 520px !important;
-    min-height: 0 !important;
-    height: auto !important;
-
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 14px 12px 14px !important;
-
-    display: block !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    border-radius: 24px !important;
-
-    transform: none !important;
-    background: transparent !important;
-  }
-
-  /*
-    The background is a real child element with an img.
-    Keep it below everything and never use it as a product/carousel container.
-  */
-  .collection-box > .collection-bg {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 0 !important;
-
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-
-    display: block !important;
-    overflow: hidden !important;
-    pointer-events: none !important;
-    border-radius: inherit !important;
-
-    transform: none !important;
-    background: transparent !important;
-  }
-
-  .collection-box > .collection-bg img {
-    position: absolute !important;
-    inset: 0 !important;
-
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-
-    display: block !important;
-    object-fit: fill !important;
-    object-position: center center !important;
-
-    transform: none !important;
-    opacity: 1 !important;
-  }
-
-  .collection-content {
-    position: relative !important;
-    z-index: 2 !important;
-
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
 
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: 10px !important;
+
+    gap: clamp(22px, 5.5vw, 34px) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 
     box-sizing: border-box !important;
     overflow: visible !important;
-    transform: none !important;
   }
 
-  .collection-label {
-    position: relative !important;
-    z-index: 3 !important;
-
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: auto !important;
-    transform: none !important;
-
-    width: calc(100% - 16px) !important;
-    max-width: 440px !important;
-    min-width: 0 !important;
-
-    margin: 0 auto 2px !important;
-    padding: 8px 10px !important;
-    box-sizing: border-box !important;
-
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-link {
+    width: 100% !important;
+    max-width: 100% !important;
     display: block !important;
     overflow: visible !important;
+    box-sizing: border-box !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
 
-    text-align: center !important;
-    white-space: normal !important;
-    line-height: 1.12 !important;
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
+    width: 100% !important;
+    max-width: 100% !important;
 
-    border-radius: 14px !important;
+    min-height: clamp(134px, 38vw, 184px) !important;
+    height: clamp(134px, 38vw, 184px) !important;
+
+    position: relative !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+
+    transform: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 
   /*
-    Hide original homepage product layer only after JS marks it as the source.
-    This avoids hiding the background/title if JS fails or selectors change.
+    Keep the real plate background stable.
+    Do not turn this into a carousel track.
   */
-  .collection-content > .carousel-shell.dkg-mobile-original-product-source {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-bg {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: inherit !important;
+
+    overflow: hidden !important;
+    border-radius: clamp(16px, 5vw, 28px) !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center center !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
+    --dkg-mobile-gap-px: 8px;
+    --dkg-mobile-slot-px: 100px;
+    --dkg-mobile-step-px: 108px;
+    --dkg-mobile-viewport-pad-x: 14px;
+    --dkg-mobile-viewport-pad-y: 26px;
+  }
+
+  /*
+    Hide original product/product-track layer on mobile.
+    The cloned mobile carousel is the only visible product layer.
+
+    Important:
+    - Do not hide .collection-bg itself.
+    - Do not hide .collection-label.
+    - Do not hide .dkg-mobile-carousel-viewport.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-product-source,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-track-source {
     display: none !important;
     visibility: hidden !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
+    opacity: 0 !important;
     pointer-events: none !important;
   }
 
-  .collection-content > .dkg-mobile-carousel-viewport {
-    position: relative !important;
-    z-index: 2 !important;
+  /*
+    Separate cloned carousel layer.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport {
+    position: absolute !important;
+    inset: var(--dkg-mobile-viewport-pad-y) var(--dkg-mobile-viewport-pad-x) var(--dkg-mobile-viewport-pad-y) var(--dkg-mobile-viewport-pad-x) !important;
 
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-
-    margin: 0 auto !important;
-    padding: 0 !important;
+    overflow: hidden !important;
     box-sizing: border-box !important;
 
     display: block !important;
-    overflow: hidden !important;
-
-    background: transparent !important;
-    border: 0 !important;
-    transform: none !important;
-    contain: paint !important;
+    z-index: 4 !important;
+    pointer-events: auto !important;
   }
 
-  .dkg-mobile-product-track {
-    width: 100% !important;
-    min-width: 0 !important;
-
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: var(--dkg-mobile-card-gap) !important;
+
+    gap: var(--dkg-mobile-gap-px) !important;
+
+    width: max-content !important;
+    max-width: none !important;
+    height: 100% !important;
 
     margin: 0 !important;
     padding: 0 !important;
+
+    position: relative !important;
+    left: 0 !important;
+    right: auto !important;
+
     box-sizing: border-box !important;
 
-    list-style: none !important;
+    overflow: visible !important;
+    transform: translate3d(0, 0, 0) !important;
     will-change: transform !important;
-    transform: translate3d(0, 0, 0);
+
+    touch-action: pan-y !important;
+    scrollbar-width: none !important;
   }
 
-  .dkg-mobile-carousel-viewport.dkg-mobile-static .dkg-mobile-product-track {
-    justify-content: center !important;
-    transform: translate3d(0, 0, 0) !important;
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-track.dkg-mobile-track-animate {
+    transition: transform 520ms ease-in-out !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-track.dkg-mobile-track-no-animate {
     transition: none !important;
   }
 
-  .dkg-mobile-product-item {
-    flex: 0 0 calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
-    width: calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
-    min-width: 0 !important;
-    max-width: calc((100% - (var(--dkg-mobile-card-gap) * 2)) / 3) !important;
+  /*
+    Static collections with 1-2 products are centered.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-1 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-2 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 
-    height: clamp(96px, 28vw, 132px) !important;
-    min-height: clamp(96px, 28vw, 132px) !important;
-    max-height: clamp(96px, 28vw, 132px) !important;
+  /*
+    3+ products fill exact 3-slot viewport.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-scrolls-after-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
+    justify-content: flex-start !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item {
+    flex: 0 0 var(--dkg-mobile-slot-px) !important;
+    width: var(--dkg-mobile-slot-px) !important;
+    min-width: var(--dkg-mobile-slot-px) !important;
+    max-width: var(--dkg-mobile-slot-px) !important;
+
+    height: 100% !important;
+    max-height: 100% !important;
 
     margin: 0 !important;
     padding: 0 !important;
-    box-sizing: border-box !important;
+
+    float: none !important;
+    clear: none !important;
 
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 
-    overflow: hidden !important;
-    transform: none !important;
-  }
-
-  .dkg-mobile-product-item .product-card,
-  .dkg-mobile-product-item .dkg-mobile-product-card-inner {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-
-    margin: 0 !important;
-    padding: 5px !important;
     box-sizing: border-box !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
     overflow: hidden !important;
-    border-radius: 14px !important;
-    transform: none !important;
   }
 
-  .dkg-mobile-product-item img,
-  .dkg-mobile-product-item .product-image {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item > *,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item a,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item picture,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item figure,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item .woocommerce-loop-product__link {
     width: 100% !important;
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
 
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item img,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item .product-image {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+
     object-fit: contain !important;
     object-position: center center !important;
 
+    display: block !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    transform: none !important;
+
+    box-sizing: border-box !important;
   }
 
-  .dkg-mobile-product-item .product-card--empty {
+  /*
+    Mobile title/tab correction.
+    The labels were drifting right because older rules still controlled their position.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .collection-label,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-link .collection-label {
+    position: absolute !important;
+
+    left: 50% !important;
+    right: auto !important;
+    top: 0 !important;
+    bottom: auto !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    z-index: 8 !important;
+
+    max-width: calc(100% - 36px) !important;
+    width: auto !important;
+
+    text-align: center !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  /*
+    Hide decorative left-side glide/palm-type image on mobile only.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-hide-left-decor,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-home-left-glide,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .home-left-glide,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .left-glide,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .glide-left,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .palm,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .palm-tree,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .home-palm,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-palm,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .floating-palm,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .side-palm {
+    display: none !important;
     visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
+    width: calc(100vw - 10px) !important;
+    max-width: calc(100vw - 10px) !important;
   }
 
-  @media screen and (max-width: 390px) {
-    .collections-stack {
-      gap: 13px !important;
-    }
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
+    min-height: clamp(124px, 37vw, 158px) !important;
+    height: clamp(124px, 37vw, 158px) !important;
+  }
 
-    .collection-box {
-      --dkg-mobile-card-gap: 7px;
-      width: calc(100vw - 14px) !important;
-      padding: 12px 9px 12px !important;
-      border-radius: 20px !important;
-    }
-
-    .collection-content {
-      gap: 8px !important;
-    }
-
-    .collection-label {
-      width: calc(100% - 10px) !important;
-      padding: 7px 8px !important;
-      font-size: clamp(0.72rem, 3.45vw, 0.92rem) !important;
-    }
-
-    .dkg-mobile-product-item {
-      height: clamp(88px, 27vw, 118px) !important;
-      min-height: clamp(88px, 27vw, 118px) !important;
-      max-height: clamp(88px, 27vw, 118px) !important;
-    }
-
-    .dkg-mobile-product-item .product-card,
-    .dkg-mobile-product-item .dkg-mobile-product-card-inner {
-      padding: 4px !important;
-      border-radius: 12px !important;
-    }
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
+    --dkg-mobile-gap-px: 6px;
+    --dkg-mobile-viewport-pad-x: 10px;
+    --dkg-mobile-viewport-pad-y: 22px;
   }
 }
 
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES END === */
-

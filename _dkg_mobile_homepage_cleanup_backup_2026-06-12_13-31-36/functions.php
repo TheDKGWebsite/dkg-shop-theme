@@ -528,14 +528,6 @@ function dkg_enqueue_mobile_main_homepage_collection_plates() {
         return;
     }
 
-    /*
-     * This script is only for the normal homepage collection plates.
-     * Mobile users should stay on the normal homepage, not /mobile-shop/.
-     */
-    if (!is_front_page()) {
-        return;
-    }
-
     $script_path = get_template_directory() . '/assets/js/dkg-mobile-main-homepage-plates.js';
     $script_uri  = get_template_directory_uri() . '/assets/js/dkg-mobile-main-homepage-plates.js';
 
@@ -552,4 +544,3 @@ function dkg_enqueue_mobile_main_homepage_collection_plates() {
 add_action('wp_enqueue_scripts', 'dkg_enqueue_mobile_main_homepage_collection_plates', 30);
 
 // === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE END ===
-
