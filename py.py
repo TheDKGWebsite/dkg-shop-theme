@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-DKG mobile header rotator relocation updater.
+DKG mobile move header socials below relocated framed image.
 
 Goal:
-- On mobile only, move the existing framed header image rotator OUT of the header.
-- Place it below all homepage collection plates.
-- Do not clone it.
-- Do not edit header.php.
-- Restore it back to its original header position on desktop widths.
-- Avoid position/flex/absolute issues by giving the relocated rotator its own stable zone.
+- On mobile only, move the existing 3 .nav-social buttons out of the header nav.
+- Place them below the relocated framed header rotator image.
+- Do not clone the social anchors.
+- Restore them back into nav.nav on desktop.
+- Keep the existing mobile rotator relocation behavior.
 
 Edits:
 - assets/css/front-page.css
@@ -18,7 +17,7 @@ Edits:
 Backups are created first.
 
 Run from theme repo root:
-    python mobile_move_header_rotator_below_plates.py
+    python mobile_move_socials_below_rotator.py
 """
 
 from __future__ import annotations
@@ -41,16 +40,22 @@ JS_FILENAME = "dkg-mobile-header-rotator-relocate.js"
 NEW_CSS_BLOCK = r'''/* === DKG MOBILE HEADER ROTATOR BELOW PLATES START === */
 
 /*
-  Mobile-only relocation styling for the existing header picture rotator.
+  Mobile-only relocation styling for the existing header picture rotator
+  and the existing header social buttons.
 
-  The actual DOM move is handled by:
+  DOM behavior is handled by:
     assets/js/dkg-mobile-header-rotator-relocate.js
 
+  Mobile layout:
+    collection plates
+    relocated framed image rotator
+    relocated social icon row
+
   Important:
-  - This does not clone the rotator.
-  - It only styles the rotator after JS moves it below the collection plates.
-  - It does not change desktop header behavior.
-  - It avoids using the header's flex sizing/overhang rules after relocation.
+  - Rotator is moved, not cloned.
+  - Social buttons are moved, not cloned.
+  - Desktop restores all elements to original/header positions.
+  - The relocated rotator no longer uses header flex sizing.
 */
 
 @media screen and (max-width: 767px) {
@@ -59,13 +64,15 @@ NEW_CSS_BLOCK = r'''/* === DKG MOBILE HEADER ROTATOR BELOW PLATES START === */
     width: 100% !important;
     max-width: 100% !important;
 
-    margin: 18px auto 26px !important;
+    margin: 18px auto 28px !important;
     padding: 0 10px !important;
     box-sizing: border-box !important;
 
     display: flex !important;
+    flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
+    gap: 12px !important;
 
     position: relative !important;
     z-index: 2 !important;
@@ -80,7 +87,7 @@ NEW_CSS_BLOCK = r'''/* === DKG MOBILE HEADER ROTATOR BELOW PLATES START === */
     position: relative !important;
 
     flex: 0 0 auto !important;
-    align-self: auto !important;
+    align-self: center !important;
 
     width: min(calc(100vw - 24px), 420px) !important;
     max-width: 420px !important;
@@ -160,11 +167,115 @@ NEW_CSS_BLOCK = r'''/* === DKG MOBILE HEADER ROTATOR BELOW PLATES START === */
   }
 
   /*
-    While mobile relocation is active, make sure the header does not reserve
-    any old rotator space if a cached/duplicate style tries to keep it there.
+    Social buttons moved below the framed image.
+    Pointer events are restored here because the parent zone itself is
+    pointer-events:none to prevent the decorative frame from blocking scroll/taps.
   */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .header-inner > .dkg-header-picture-rotator.dkg-mobile-header-rotator-relocated {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials {
+    width: 100% !important;
+    max-width: 420px !important;
+
+    margin: -2px auto 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 14px !important;
+
+    position: relative !important;
+    z-index: 5 !important;
+
+    overflow: visible !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    max-width: 46px !important;
+    max-height: 46px !important;
+
+    margin: 0 !important;
+    padding: 5px !important;
+    box-sizing: border-box !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    border: 1px solid rgba(255,255,255,0.22) !important;
+    background: rgba(0,0,0,0.58) !important;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.42) !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: hidden !important;
+
+    text-decoration: none !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 34px !important;
+    max-height: 34px !important;
+
+    display: block !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    pointer-events: none !important;
+  }
+
+  /*
+    If a slow/cache layer briefly leaves the socials in the header while mobile
+    JS is still moving them, hide the header copies to prevent duplicate-looking icons.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > .nav-social.dkg-mobile-social-relocated {
     display: none !important;
+  }
+
+  @media screen and (max-width: 390px) {
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-rotator-zone {
+      gap: 10px !important;
+      margin-top: 16px !important;
+      margin-bottom: 24px !important;
+      padding-left: 7px !important;
+      padding-right: 7px !important;
+    }
+
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials {
+      gap: 11px !important;
+    }
+
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social {
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      min-height: 42px !important;
+      max-width: 42px !important;
+      max-height: 42px !important;
+      padding: 5px !important;
+    }
+
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social img {
+      max-width: 31px !important;
+      max-height: 31px !important;
+    }
   }
 }
 
@@ -173,13 +284,14 @@ NEW_CSS_BLOCK = r'''/* === DKG MOBILE HEADER ROTATOR BELOW PLATES START === */
 
 
 NEW_JS = r'''/*
-  DKG mobile header rotator relocate.
+  DKG mobile header rotator + socials relocate.
 
   Mobile only:
   - Move the existing .dkg-header-picture-rotator out of the header.
   - Insert it below all homepage collection plates.
-  - Do not clone it.
-  - Restore it back to its original header position on desktop.
+  - Move the existing .nav-social buttons below that framed image.
+  - Do not clone the rotator or social links.
+  - Restore everything back to original/header positions on desktop.
 
   This intentionally avoids editing header.php.
 */
@@ -189,12 +301,18 @@ NEW_JS = r'''/*
 
   var MOBILE_QUERY = "(max-width: 767px)";
   var ZONE_CLASS = "dkg-mobile-relocated-header-rotator-zone";
-  var RELOCATED_CLASS = "dkg-mobile-header-rotator-relocated";
+  var SOCIALS_CLASS = "dkg-mobile-relocated-header-socials";
+  var RELOCATED_ROTATOR_CLASS = "dkg-mobile-header-rotator-relocated";
+  var RELOCATED_SOCIAL_CLASS = "dkg-mobile-social-relocated";
   var RESIZE_DEBOUNCE_MS = 160;
 
-  var originalParent = null;
-  var originalNextSibling = null;
-  var originalWasCaptured = false;
+  var originalRotatorParent = null;
+  var originalRotatorNextSibling = null;
+  var originalRotatorWasCaptured = false;
+
+  var originalSocials = [];
+  var originalSocialsWereCaptured = false;
+
   var resizeTimer = null;
   var lastLayoutWidth = window.innerWidth || document.documentElement.clientWidth || 0;
   var lastMobileMatch = matchesMobile();
@@ -243,14 +361,57 @@ NEW_JS = r'''/*
     return document.querySelector(".dkg-header-picture-rotator");
   }
 
-  function captureOriginalPosition(rotator) {
-    if (originalWasCaptured || !rotator || !rotator.parentNode) {
+  function getNav() {
+    return document.querySelector(".site-header .nav") || document.querySelector("nav.nav") || document.querySelector(".nav");
+  }
+
+  function getSocials() {
+    var nav = getNav();
+
+    if (!nav) {
+      return [];
+    }
+
+    return toArray(nav.querySelectorAll(".nav-social")).concat(
+      toArray(document.querySelectorAll("." + SOCIALS_CLASS + " .nav-social"))
+    ).filter(function (node, index, arr) {
+      return node && arr.indexOf(node) === index;
+    });
+  }
+
+  function captureOriginalRotatorPosition(rotator) {
+    if (originalRotatorWasCaptured || !rotator || !rotator.parentNode) {
       return;
     }
 
-    originalParent = rotator.parentNode;
-    originalNextSibling = rotator.nextSibling;
-    originalWasCaptured = true;
+    originalRotatorParent = rotator.parentNode;
+    originalRotatorNextSibling = rotator.nextSibling;
+    originalRotatorWasCaptured = true;
+  }
+
+  function captureOriginalSocialPositions() {
+    if (originalSocialsWereCaptured) {
+      return;
+    }
+
+    var nav = getNav();
+
+    if (!nav) {
+      return;
+    }
+
+    var socials = toArray(nav.querySelectorAll(".nav-social"));
+
+    originalSocials = socials.map(function (node, index) {
+      return {
+        node: node,
+        parent: node.parentNode,
+        nextSibling: node.nextSibling,
+        index: index
+      };
+    });
+
+    originalSocialsWereCaptured = true;
   }
 
   function getCollectionsSection() {
@@ -273,6 +434,21 @@ NEW_JS = r'''/*
     zone.setAttribute("aria-hidden", "true");
 
     return zone;
+  }
+
+  function getOrCreateSocialZone(parentZone) {
+    var existing = parentZone.querySelector("." + SOCIALS_CLASS);
+
+    if (existing) {
+      return existing;
+    }
+
+    var socialZone = document.createElement("div");
+    socialZone.className = SOCIALS_CLASS;
+    socialZone.setAttribute("aria-label", "Social links");
+
+    parentZone.appendChild(socialZone);
+    return socialZone;
   }
 
   function insertZoneBelowCollections(zone) {
@@ -304,50 +480,117 @@ NEW_JS = r'''/*
     return true;
   }
 
-  function moveRotatorBelowPlates() {
+  function moveRotatorBelowPlates(zone) {
     var rotator = getRotator();
 
     if (!rotator) {
       return;
     }
 
-    captureOriginalPosition(rotator);
-
-    var zone = getOrCreateZone();
-
-    if (!insertZoneBelowCollections(zone)) {
-      return;
-    }
+    captureOriginalRotatorPosition(rotator);
 
     if (rotator.parentNode !== zone) {
-      zone.appendChild(rotator);
+      /*
+        Put the framed image first in the relocated zone.
+      */
+      zone.insertBefore(rotator, zone.firstChild);
     }
 
-    rotator.classList.add(RELOCATED_CLASS);
+    rotator.classList.add(RELOCATED_ROTATOR_CLASS);
     rotator.setAttribute("data-dkg-mobile-relocated", "true");
     rotator.setAttribute("aria-hidden", "true");
+  }
+
+  function moveSocialsBelowRotator(zone) {
+    captureOriginalSocialPositions();
+
+    var socialZone = getOrCreateSocialZone(zone);
+    var socials = getSocials();
+
+    socials.forEach(function (social) {
+      if (!social) {
+        return;
+      }
+
+      social.classList.add(RELOCATED_SOCIAL_CLASS);
+      social.setAttribute("data-dkg-mobile-social-relocated", "true");
+
+      if (social.parentNode !== socialZone) {
+        socialZone.appendChild(social);
+      }
+    });
+
+    /*
+      Ensure social row is after the rotator, not before it.
+    */
+    if (socialZone.parentNode === zone) {
+      zone.appendChild(socialZone);
+    }
   }
 
   function restoreRotatorToHeader() {
     var rotator = getRotator();
 
-    if (!rotator || !originalParent) {
-      removeEmptyZone();
+    if (!rotator || !originalRotatorParent) {
       return;
     }
 
-    rotator.classList.remove(RELOCATED_CLASS);
+    rotator.classList.remove(RELOCATED_ROTATOR_CLASS);
     rotator.removeAttribute("data-dkg-mobile-relocated");
 
-    if (rotator.parentNode !== originalParent) {
-      if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
-        originalParent.insertBefore(rotator, originalNextSibling);
+    if (rotator.parentNode !== originalRotatorParent) {
+      if (originalRotatorNextSibling && originalRotatorNextSibling.parentNode === originalRotatorParent) {
+        originalRotatorParent.insertBefore(rotator, originalRotatorNextSibling);
       } else {
-        originalParent.appendChild(rotator);
+        originalRotatorParent.appendChild(rotator);
       }
     }
+  }
 
-    removeEmptyZone();
+  function restoreSocialsToHeader() {
+    var nav = getNav();
+
+    if (!nav) {
+      return;
+    }
+
+    if (originalSocials.length) {
+      originalSocials
+        .slice()
+        .sort(function (a, b) {
+          return a.index - b.index;
+        })
+        .forEach(function (record) {
+          var social = record.node;
+
+          if (!social) {
+            return;
+          }
+
+          social.classList.remove(RELOCATED_SOCIAL_CLASS);
+          social.removeAttribute("data-dkg-mobile-social-relocated");
+
+          /*
+            The socials originally sit at the end of nav after Contact.
+            Appending in original order is safer than trying to insert before
+            siblings that may have also moved.
+          */
+          if (social.parentNode !== nav) {
+            nav.appendChild(social);
+          }
+        });
+
+      return;
+    }
+
+    /*
+      Fallback if the page loaded in a strange state.
+    */
+    toArray(document.querySelectorAll("." + SOCIALS_CLASS + " .nav-social")).forEach(function (social) {
+      social.classList.remove(RELOCATED_SOCIAL_CLASS);
+      social.removeAttribute("data-dkg-mobile-social-relocated");
+      nav.appendChild(social);
+    });
   }
 
   function removeEmptyZone() {
@@ -357,24 +600,50 @@ NEW_JS = r'''/*
       return;
     }
 
+    var socialZone = zone.querySelector("." + SOCIALS_CLASS);
+
+    if (socialZone && !socialZone.children.length && socialZone.parentNode) {
+      socialZone.parentNode.removeChild(socialZone);
+    }
+
     if (!zone.children.length && zone.parentNode) {
       zone.parentNode.removeChild(zone);
     }
   }
 
-  function applyLayout() {
+  function applyMobileLayout() {
     var rotator = getRotator();
 
-    if (!rotator) {
+    captureOriginalSocialPositions();
+
+    if (rotator) {
+      captureOriginalRotatorPosition(rotator);
+    }
+
+    var zone = getOrCreateZone();
+
+    if (!insertZoneBelowCollections(zone)) {
       return;
     }
 
-    captureOriginalPosition(rotator);
+    if (rotator) {
+      moveRotatorBelowPlates(zone);
+    }
 
+    moveSocialsBelowRotator(zone);
+  }
+
+  function applyDesktopLayout() {
+    restoreSocialsToHeader();
+    restoreRotatorToHeader();
+    removeEmptyZone();
+  }
+
+  function applyLayout() {
     if (matchesMobile()) {
-      moveRotatorBelowPlates();
+      applyMobileLayout();
     } else {
-      restoreRotatorToHeader();
+      applyDesktopLayout();
     }
   }
 
@@ -416,8 +685,7 @@ NEW_JS = r'''/*
   }
 
   /*
-    If the collection plates are built late by another script/cache layer,
-    give the relocation one extra pass after load.
+    Give the layout one extra pass after late-loaded/cached elements settle.
   */
   window.addEventListener("load", function () {
     window.setTimeout(applyLayout, 80);
@@ -435,7 +703,7 @@ function dkg_enqueue_mobile_header_rotator_relocate() {
 
     /*
      * This is for the normal homepage only.
-     * It moves the existing framed header rotator below the homepage collection plates on mobile.
+     * It moves the existing framed header rotator and social links below the homepage collection plates on mobile.
      */
     if (!is_front_page()) {
         return;
@@ -502,7 +770,7 @@ def append_or_replace_css(root: Path) -> str:
     if new_css != old_css:
         write_text(css_path, new_css)
 
-    return f"CSS updated: removed old relocation blocks={removed_count}, appended clean relocation CSS."
+    return f"CSS updated: removed old rotator/social relocation blocks={removed_count}, appended clean CSS."
 
 
 def write_js(root: Path) -> str:
@@ -515,7 +783,7 @@ def write_js(root: Path) -> str:
     if old_js != NEW_JS:
         write_text(js_path, NEW_JS)
 
-    return f"JS updated: wrote assets/js/{JS_FILENAME}."
+    return f"JS updated: wrote assets/js/{JS_FILENAME} with rotator + socials relocation."
 
 
 def update_functions_enqueue(root: Path) -> str:
@@ -529,7 +797,6 @@ def update_functions_enqueue(root: Path) -> str:
     cleaned, removed_count = remove_marker_block(old, ENQUEUE_START, ENQUEUE_END)
 
     if "dkg_enqueue_mobile_header_rotator_relocate" in cleaned or "dkg-mobile-header-rotator-relocate" in cleaned:
-        # Avoid duplicating if some unexpected old version exists without markers.
         new_text = cleaned
         message = (
             "functions.php: found existing mobile header rotator relocate enqueue outside expected markers; "
@@ -566,7 +833,7 @@ def main() -> int:
     sanity_check(root)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backup_dir = root / f"_dkg_mobile_header_rotator_below_plates_backup_{timestamp}"
+    backup_dir = root / f"_dkg_mobile_socials_below_rotator_backup_{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=False)
 
     files_to_backup = [
@@ -584,9 +851,9 @@ def main() -> int:
         update_functions_enqueue(root),
     ]
 
-    summary_path = backup_dir / "mobile_header_rotator_below_plates_summary.txt"
+    summary_path = backup_dir / "mobile_socials_below_rotator_summary.txt"
     summary = [
-        "DKG mobile header rotator below plates updater",
+        "DKG mobile socials below rotator updater",
         f"Timestamp: {timestamp}",
         f"Repo root: {root}",
         f"Backup folder: {backup_dir}",
@@ -598,12 +865,11 @@ def main() -> int:
         [
             "",
             "Expected mobile behavior:",
-            "- The existing framed header image rotator is moved out of the header.",
-            "- It appears below all homepage collection plates.",
-            "- The move happens only at max-width 767px.",
-            "- Desktop restores the rotator to its original position inside .header-inner.",
-            "- The rotator is not cloned; existing image/frame/data attributes are preserved.",
-            "- The relocated frame gets stable relative sizing so it does not use header flex/overhang positioning.",
+            "- The existing framed header image rotator is moved below all homepage collection plates.",
+            "- The existing .nav-social buttons are moved below the framed image.",
+            "- Social buttons are not cloned; original anchors/icons/links are preserved.",
+            "- Desktop restores social buttons to nav.nav and rotator to .header-inner.",
+            "- The change only runs on the normal homepage.",
             "",
             "Files backed up:",
         ]
@@ -623,7 +889,7 @@ def main() -> int:
     print("1. Upload/deploy functions.php, assets/css/front-page.css, and assets/js/dkg-mobile-header-rotator-relocate.js.")
     print("2. Clear site/plugin/browser cache.")
     print("3. Test normal homepage on mobile width.")
-    print("4. Confirm the framed rotator appears after the last collection plate and not inside the sticky header.")
+    print("4. Confirm the order is: collection plates, framed image, social buttons.")
 
     return 0
 

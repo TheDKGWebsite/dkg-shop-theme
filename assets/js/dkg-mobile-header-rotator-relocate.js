@@ -1,11 +1,12 @@
 /*
-  DKG mobile header rotator relocate.
+  DKG mobile header rotator + socials relocate.
 
   Mobile only:
   - Move the existing .dkg-header-picture-rotator out of the header.
   - Insert it below all homepage collection plates.
-  - Do not clone it.
-  - Restore it back to its original header position on desktop.
+  - Move the existing .nav-social buttons below that framed image.
+  - Do not clone the rotator or social links.
+  - Restore everything back to original/header positions on desktop.
 
   This intentionally avoids editing header.php.
 */
@@ -15,12 +16,18 @@
 
   var MOBILE_QUERY = "(max-width: 767px)";
   var ZONE_CLASS = "dkg-mobile-relocated-header-rotator-zone";
-  var RELOCATED_CLASS = "dkg-mobile-header-rotator-relocated";
+  var SOCIALS_CLASS = "dkg-mobile-relocated-header-socials";
+  var RELOCATED_ROTATOR_CLASS = "dkg-mobile-header-rotator-relocated";
+  var RELOCATED_SOCIAL_CLASS = "dkg-mobile-social-relocated";
   var RESIZE_DEBOUNCE_MS = 160;
 
-  var originalParent = null;
-  var originalNextSibling = null;
-  var originalWasCaptured = false;
+  var originalRotatorParent = null;
+  var originalRotatorNextSibling = null;
+  var originalRotatorWasCaptured = false;
+
+  var originalSocials = [];
+  var originalSocialsWereCaptured = false;
+
   var resizeTimer = null;
   var lastLayoutWidth = window.innerWidth || document.documentElement.clientWidth || 0;
   var lastMobileMatch = matchesMobile();
@@ -69,14 +76,57 @@
     return document.querySelector(".dkg-header-picture-rotator");
   }
 
-  function captureOriginalPosition(rotator) {
-    if (originalWasCaptured || !rotator || !rotator.parentNode) {
+  function getNav() {
+    return document.querySelector(".site-header .nav") || document.querySelector("nav.nav") || document.querySelector(".nav");
+  }
+
+  function getSocials() {
+    var nav = getNav();
+
+    if (!nav) {
+      return [];
+    }
+
+    return toArray(nav.querySelectorAll(".nav-social")).concat(
+      toArray(document.querySelectorAll("." + SOCIALS_CLASS + " .nav-social"))
+    ).filter(function (node, index, arr) {
+      return node && arr.indexOf(node) === index;
+    });
+  }
+
+  function captureOriginalRotatorPosition(rotator) {
+    if (originalRotatorWasCaptured || !rotator || !rotator.parentNode) {
       return;
     }
 
-    originalParent = rotator.parentNode;
-    originalNextSibling = rotator.nextSibling;
-    originalWasCaptured = true;
+    originalRotatorParent = rotator.parentNode;
+    originalRotatorNextSibling = rotator.nextSibling;
+    originalRotatorWasCaptured = true;
+  }
+
+  function captureOriginalSocialPositions() {
+    if (originalSocialsWereCaptured) {
+      return;
+    }
+
+    var nav = getNav();
+
+    if (!nav) {
+      return;
+    }
+
+    var socials = toArray(nav.querySelectorAll(".nav-social"));
+
+    originalSocials = socials.map(function (node, index) {
+      return {
+        node: node,
+        parent: node.parentNode,
+        nextSibling: node.nextSibling,
+        index: index
+      };
+    });
+
+    originalSocialsWereCaptured = true;
   }
 
   function getCollectionsSection() {
@@ -99,6 +149,21 @@
     zone.setAttribute("aria-hidden", "true");
 
     return zone;
+  }
+
+  function getOrCreateSocialZone(parentZone) {
+    var existing = parentZone.querySelector("." + SOCIALS_CLASS);
+
+    if (existing) {
+      return existing;
+    }
+
+    var socialZone = document.createElement("div");
+    socialZone.className = SOCIALS_CLASS;
+    socialZone.setAttribute("aria-label", "Social links");
+
+    parentZone.appendChild(socialZone);
+    return socialZone;
   }
 
   function insertZoneBelowCollections(zone) {
@@ -130,50 +195,117 @@
     return true;
   }
 
-  function moveRotatorBelowPlates() {
+  function moveRotatorBelowPlates(zone) {
     var rotator = getRotator();
 
     if (!rotator) {
       return;
     }
 
-    captureOriginalPosition(rotator);
-
-    var zone = getOrCreateZone();
-
-    if (!insertZoneBelowCollections(zone)) {
-      return;
-    }
+    captureOriginalRotatorPosition(rotator);
 
     if (rotator.parentNode !== zone) {
-      zone.appendChild(rotator);
+      /*
+        Put the framed image first in the relocated zone.
+      */
+      zone.insertBefore(rotator, zone.firstChild);
     }
 
-    rotator.classList.add(RELOCATED_CLASS);
+    rotator.classList.add(RELOCATED_ROTATOR_CLASS);
     rotator.setAttribute("data-dkg-mobile-relocated", "true");
     rotator.setAttribute("aria-hidden", "true");
+  }
+
+  function moveSocialsBelowRotator(zone) {
+    captureOriginalSocialPositions();
+
+    var socialZone = getOrCreateSocialZone(zone);
+    var socials = getSocials();
+
+    socials.forEach(function (social) {
+      if (!social) {
+        return;
+      }
+
+      social.classList.add(RELOCATED_SOCIAL_CLASS);
+      social.setAttribute("data-dkg-mobile-social-relocated", "true");
+
+      if (social.parentNode !== socialZone) {
+        socialZone.appendChild(social);
+      }
+    });
+
+    /*
+      Ensure social row is after the rotator, not before it.
+    */
+    if (socialZone.parentNode === zone) {
+      zone.appendChild(socialZone);
+    }
   }
 
   function restoreRotatorToHeader() {
     var rotator = getRotator();
 
-    if (!rotator || !originalParent) {
-      removeEmptyZone();
+    if (!rotator || !originalRotatorParent) {
       return;
     }
 
-    rotator.classList.remove(RELOCATED_CLASS);
+    rotator.classList.remove(RELOCATED_ROTATOR_CLASS);
     rotator.removeAttribute("data-dkg-mobile-relocated");
 
-    if (rotator.parentNode !== originalParent) {
-      if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
-        originalParent.insertBefore(rotator, originalNextSibling);
+    if (rotator.parentNode !== originalRotatorParent) {
+      if (originalRotatorNextSibling && originalRotatorNextSibling.parentNode === originalRotatorParent) {
+        originalRotatorParent.insertBefore(rotator, originalRotatorNextSibling);
       } else {
-        originalParent.appendChild(rotator);
+        originalRotatorParent.appendChild(rotator);
       }
     }
+  }
 
-    removeEmptyZone();
+  function restoreSocialsToHeader() {
+    var nav = getNav();
+
+    if (!nav) {
+      return;
+    }
+
+    if (originalSocials.length) {
+      originalSocials
+        .slice()
+        .sort(function (a, b) {
+          return a.index - b.index;
+        })
+        .forEach(function (record) {
+          var social = record.node;
+
+          if (!social) {
+            return;
+          }
+
+          social.classList.remove(RELOCATED_SOCIAL_CLASS);
+          social.removeAttribute("data-dkg-mobile-social-relocated");
+
+          /*
+            The socials originally sit at the end of nav after Contact.
+            Appending in original order is safer than trying to insert before
+            siblings that may have also moved.
+          */
+          if (social.parentNode !== nav) {
+            nav.appendChild(social);
+          }
+        });
+
+      return;
+    }
+
+    /*
+      Fallback if the page loaded in a strange state.
+    */
+    toArray(document.querySelectorAll("." + SOCIALS_CLASS + " .nav-social")).forEach(function (social) {
+      social.classList.remove(RELOCATED_SOCIAL_CLASS);
+      social.removeAttribute("data-dkg-mobile-social-relocated");
+      nav.appendChild(social);
+    });
   }
 
   function removeEmptyZone() {
@@ -183,24 +315,50 @@
       return;
     }
 
+    var socialZone = zone.querySelector("." + SOCIALS_CLASS);
+
+    if (socialZone && !socialZone.children.length && socialZone.parentNode) {
+      socialZone.parentNode.removeChild(socialZone);
+    }
+
     if (!zone.children.length && zone.parentNode) {
       zone.parentNode.removeChild(zone);
     }
   }
 
-  function applyLayout() {
+  function applyMobileLayout() {
     var rotator = getRotator();
 
-    if (!rotator) {
+    captureOriginalSocialPositions();
+
+    if (rotator) {
+      captureOriginalRotatorPosition(rotator);
+    }
+
+    var zone = getOrCreateZone();
+
+    if (!insertZoneBelowCollections(zone)) {
       return;
     }
 
-    captureOriginalPosition(rotator);
+    if (rotator) {
+      moveRotatorBelowPlates(zone);
+    }
 
+    moveSocialsBelowRotator(zone);
+  }
+
+  function applyDesktopLayout() {
+    restoreSocialsToHeader();
+    restoreRotatorToHeader();
+    removeEmptyZone();
+  }
+
+  function applyLayout() {
     if (matchesMobile()) {
-      moveRotatorBelowPlates();
+      applyMobileLayout();
     } else {
-      restoreRotatorToHeader();
+      applyDesktopLayout();
     }
   }
 
@@ -242,8 +400,7 @@
   }
 
   /*
-    If the collection plates are built late by another script/cache layer,
-    give the relocation one extra pass after load.
+    Give the layout one extra pass after late-loaded/cached elements settle.
   */
   window.addEventListener("load", function () {
     window.setTimeout(applyLayout, 80);

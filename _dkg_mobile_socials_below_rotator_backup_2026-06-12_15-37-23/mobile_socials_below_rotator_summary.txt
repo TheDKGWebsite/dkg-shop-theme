@@ -1,0 +1,21 @@
+DKG mobile socials below rotator updater
+Timestamp: 2026-06-12_15-37-23
+Repo root: C:\Users\John\Desktop\shop dkg\dkg-shop-theme
+Backup folder: C:\Users\John\Desktop\shop dkg\dkg-shop-theme\_dkg_mobile_socials_below_rotator_backup_2026-06-12_15-37-23
+
+Actions:
+- CSS updated: removed old rotator/social relocation blocks=1, appended clean CSS.
+- JS updated: wrote assets/js/dkg-mobile-header-rotator-relocate.js with rotator + socials relocation.
+- functions.php updated: removed old enqueue blocks=1, appended clean enqueue.
+
+Expected mobile behavior:
+- The existing framed header image rotator is moved below all homepage collection plates.
+- The existing .nav-social buttons are moved below the framed image.
+- Social buttons are not cloned; original anchors/icons/links are preserved.
+- Desktop restores social buttons to nav.nav and rotator to .header-inner.
+- The change only runs on the normal homepage.
+
+Files backed up:
+- functions.php
+- assets/css/front-page.css
+- assets/js/dkg-mobile-header-rotator-relocate.js

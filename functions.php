@@ -561,7 +561,7 @@ function dkg_enqueue_mobile_header_rotator_relocate() {
 
     /*
      * This is for the normal homepage only.
-     * It moves the existing framed header rotator below the homepage collection plates on mobile.
+     * It moves the existing framed header rotator and social links below the homepage collection plates on mobile.
      */
     if (!is_front_page()) {
         return;
