@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 """
-DKG mobile homepage product size / border tune.
-
-Purpose:
-- Keep the good fixes from the previous cleanup updater.
-- Make the 3 visible mobile product spots actually fill their equal slots.
-- Stop cloned product cards from inheriting narrow desktop pill sizing.
-- Make product card borders match the collection plate accent color.
-- Enlarge product images inside the cloned mobile carousel cards.
+DKG mobile homepage tweak:
+- Hide/remove the left slide-in overlay image on mobile.
+- Speed up the mobile collection product auto-scroller.
 
 Edits:
-- assets/css/front-page.css only
-
-Backs up:
 - assets/css/front-page.css
+- assets/js/dkg-mobile-main-homepage-plates.js
+
+Backups are created before edits.
 
 Run from theme repo root:
-    python mobile_product_size_border_tune.py
+    python mobile_hide_left_overlay_speed_carousel.py
 """
 
 from __future__ import annotations
@@ -27,204 +22,70 @@ from datetime import datetime
 from pathlib import Path
 
 
-TUNE_START = "/* === DKG MOBILE PRODUCT SIZE BORDER TUNE START === */"
-TUNE_END = "/* === DKG MOBILE PRODUCT SIZE BORDER TUNE END === */"
+NEW_AUTOSCROLL_MS = 1900
 
-MAIN_MOBILE_END = "/* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES END === */"
+CSS_START = "/* === DKG MOBILE HIDE LEFT OVERLAY START === */"
+CSS_END = "/* === DKG MOBILE HIDE LEFT OVERLAY END === */"
+
+JS_START = "  // === DKG MOBILE REMOVE LEFT OVERLAY START ==="
+JS_END = "  // === DKG MOBILE REMOVE LEFT OVERLAY END ==="
 
 
-NEW_TUNE_BLOCK = r'''/* === DKG MOBILE PRODUCT SIZE BORDER TUNE START === */
+CSS_BLOCK = r'''/* === DKG MOBILE HIDE LEFT OVERLAY START === */
 
 /*
-  Mobile product card size / border tuning.
-
-  This block intentionally comes AFTER the main mobile homepage collection
-  plate block. It does not change the JS or the DOM structure.
-
-  It fixes the visible issue where cloned product cards inherit older desktop
-  .product-card sizing/borders and become skinny black capsules with tiny images.
-
-  Tuning knobs:
-  - --dkg-mobile-product-image-scale controls how much the product image canvas is enlarged.
-  - --dkg-mobile-product-card-border controls inner product frame thickness.
+  Hide the desktop left slide-in overlay image on the normal homepage for mobile.
+  This is intentionally narrow: it targets .dkg-left-overlay only.
+  It does not hide the header picture rotator or product images.
 */
 
 @media screen and (max-width: 767px) {
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
-    --dkg-mobile-product-image-scale: 1.62;
-    --dkg-mobile-product-card-border: 5px;
-    --dkg-mobile-product-card-radius: 19px;
-    --dkg-mobile-plate-accent: currentColor;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.red {
-    --dkg-mobile-plate-accent: #ff4f59;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.blue {
-    --dkg-mobile-plate-accent: #4da3ff;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.green {
-    --dkg-mobile-plate-accent: #45d985;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.yellow {
-    --dkg-mobile-plate-accent: #ffd84d;
-  }
-
-  /*
-    Give the product row enough vertical space to feel like part of the plate,
-    while still keeping exactly 3 visible slots across.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-content > .dkg-mobile-carousel-viewport {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: clamp(142px, 38vw, 178px) !important;
-    height: clamp(142px, 38vw, 178px) !important;
-
-    margin: 0 auto !important;
-    padding: 0 !important;
-
-    display: block !important;
-    overflow: hidden !important;
-
-    background: transparent !important;
-    border: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-product-track {
-    height: 100% !important;
-    align-items: stretch !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-product-item {
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-
-    display: flex !important;
-    align-items: stretch !important;
-    justify-content: center !important;
-
-    overflow: visible !important;
-    box-sizing: border-box !important;
-  }
-
-  /*
-    Critical override:
-    The cloned .product-card was still behaving like the old desktop carousel card.
-    Force it to fill the mobile slot instead of becoming a narrow vertical capsule.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .product-card,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .product-card.dkg-mobile-product-card-inner,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .dkg-mobile-product-card-inner {
-    flex: 0 0 100% !important;
-
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-
-    aspect-ratio: auto !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
 
     margin: 0 !important;
-    padding: 5px !important;
-    box-sizing: border-box !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    padding: 0 !important;
+    border: 0 !important;
 
     overflow: hidden !important;
-
-    border-style: solid !important;
-    border-width: var(--dkg-mobile-product-card-border) !important;
-    border-color: var(--dkg-mobile-plate-accent) !important;
-    border-radius: var(--dkg-mobile-product-card-radius) !important;
-
-    background: rgba(0, 0, 0, 0.68) !important;
-    box-shadow:
-      0 0 0 1px rgba(0,0,0,0.55),
-      0 5px 12px rgba(0,0,0,0.42) !important;
-
-    transform: none !important;
     pointer-events: none !important;
-  }
-
-  /*
-    Product images are often on a square product-photo canvas with whitespace.
-    Scale the image element so the actual product appears larger.
-    This still uses object-fit: contain so it does not behave like a crop-fill image.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item img,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item img.product-image,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item .product-image {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-
-    display: block !important;
-
-    object-fit: contain !important;
-    object-position: center center !important;
-
-    margin: 0 auto !important;
-    padding: 0 !important;
-
-    background: transparent !important;
-
-    transform: scale(var(--dkg-mobile-product-image-scale)) !important;
-    transform-origin: center center !important;
-
-    image-rendering: auto !important;
-  }
-
-  /*
-    Make 1-product and 2-product collections feel centered and intentional.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport.dkg-mobile-static .dkg-mobile-product-track {
-    justify-content: center !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport.dkg-mobile-static .dkg-mobile-product-item {
-    flex-grow: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  /*
-    Slightly taller cards on normal phones; tighter on tiny phones.
-  */
-  @media screen and (max-width: 390px) {
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box {
-      --dkg-mobile-product-image-scale: 1.58;
-      --dkg-mobile-product-card-border: 4px;
-      --dkg-mobile-product-card-radius: 16px;
-    }
-
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-content > .dkg-mobile-carousel-viewport {
-      min-height: clamp(126px, 36vw, 158px) !important;
-      height: clamp(126px, 36vw, 158px) !important;
-    }
-
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .product-card,
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .product-card.dkg-mobile-product-card-inner,
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .dkg-mobile-carousel-viewport .dkg-mobile-product-item > .dkg-mobile-product-card-inner {
-      padding: 4px !important;
-    }
+    transform: none !important;
   }
 }
 
-/* === DKG MOBILE PRODUCT SIZE BORDER TUNE END === */
+/* === DKG MOBILE HIDE LEFT OVERLAY END === */
+'''
+
+
+JS_REMOVE_OVERLAY_FUNCTION = r'''  // === DKG MOBILE REMOVE LEFT OVERLAY START ===
+  function removeMobileLeftOverlay() {
+    if (!matchesMobile()) {
+      return;
+    }
+
+    /*
+      The desktop left slide-in overlay is not useful on mobile and can visually
+      interfere with the normal homepage collection plates. Remove it from the
+      mobile DOM instead of only hiding it with CSS.
+    */
+    toArray(document.querySelectorAll(".dkg-left-overlay")).forEach(function (node) {
+      if (node && node.parentNode) {
+        node.setAttribute("aria-hidden", "true");
+        node.parentNode.removeChild(node);
+      }
+    });
+  }
+  // === DKG MOBILE REMOVE LEFT OVERLAY END ===
 '''
 
 
@@ -236,9 +97,9 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", errors="replace")
 
 
-def remove_existing_tune_blocks(text: str) -> tuple[str, int]:
+def remove_marker_block(text: str, start: str, end: str) -> tuple[str, int]:
     pattern = re.compile(
-        re.escape(TUNE_START) + r".*?" + re.escape(TUNE_END),
+        re.escape(start) + r".*?" + re.escape(end),
         flags=re.DOTALL,
     )
     new_text, count = pattern.subn("", text)
@@ -246,78 +107,137 @@ def remove_existing_tune_blocks(text: str) -> tuple[str, int]:
     return new_text.rstrip() + "\n", count
 
 
-def insert_tune_block(text: str) -> str:
-    if MAIN_MOBILE_END in text:
-        index = text.rfind(MAIN_MOBILE_END) + len(MAIN_MOBILE_END)
-        return (
-            text[:index].rstrip()
-            + "\n\n"
-            + NEW_TUNE_BLOCK.rstrip()
-            + "\n\n"
-            + text[index:].lstrip()
-        )
+def append_css_block(css: str) -> str:
+    cleaned, _ = remove_marker_block(css, CSS_START, CSS_END)
+    return cleaned.rstrip() + "\n\n" + CSS_BLOCK.rstrip() + "\n"
 
-    return text.rstrip() + "\n\n" + NEW_TUNE_BLOCK.rstrip() + "\n"
+
+def update_autoscroll_interval(js: str) -> tuple[str, int]:
+    """
+    Replaces:
+      var AUTOSCROLL_MS = 2600;
+    or any similar numeric value.
+    """
+    pattern = re.compile(
+        r"(var\s+AUTOSCROLL_MS\s*=\s*)\d+(\s*;)",
+        flags=re.IGNORECASE,
+    )
+    new_js, count = pattern.subn(
+        rf"\g<1>{NEW_AUTOSCROLL_MS}\g<2>",
+        js,
+        count=1,
+    )
+    return new_js, count
+
+
+def inject_mobile_overlay_removal(js: str) -> tuple[str, bool]:
+    """
+    Adds removeMobileLeftOverlay() and calls it at the start of setupAll().
+    Designed for the current dkg-mobile-main-homepage-plates.js structure.
+    """
+
+    # Remove old copy of this injected block if rerun.
+    js, _ = remove_marker_block(js, JS_START, JS_END)
+
+    # Remove prior call if rerun.
+    js = re.sub(
+        r"\n\s*removeMobileLeftOverlay\(\);\s*\n",
+        "\n",
+        js,
+        flags=re.IGNORECASE,
+    )
+
+    setup_match = re.search(r"\n\s*function\s+setupAll\s*\(\)\s*\{", js)
+
+    if not setup_match:
+        return js, False
+
+    insert_at = setup_match.start()
+    js = js[:insert_at].rstrip() + "\n\n" + JS_REMOVE_OVERLAY_FUNCTION.rstrip() + "\n" + js[insert_at:]
+
+    # Add call immediately inside setupAll().
+    js = re.sub(
+        r"(\n\s*function\s+setupAll\s*\(\)\s*\{\s*)",
+        r"\1\n    removeMobileLeftOverlay();\n",
+        js,
+        count=1,
+    )
+
+    return js, True
 
 
 def main() -> int:
     root = Path.cwd().resolve()
-    css_path = root / "assets" / "css" / "front-page.css"
 
-    if not css_path.exists():
+    css_path = root / "assets" / "css" / "front-page.css"
+    js_path = root / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
+
+    if not css_path.exists() or not js_path.exists():
         raise SystemExit(
-            "Missing assets/css/front-page.css.\n\n"
-            "Run this from the theme repo root:\n"
+            "Missing required files. Run this from the theme repo root:\n"
             r'  C:\Users\John\Desktop\shop dkg\dkg-shop-theme'
         )
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backup_dir = root / f"_dkg_mobile_product_size_border_tune_backup_{timestamp}"
+    backup_dir = root / f"_dkg_mobile_hide_left_overlay_speed_backup_{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=False)
 
     backup_css = backup_dir / "assets" / "css" / "front-page.css"
+    backup_js = backup_dir / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
+
     backup_css.parent.mkdir(parents=True, exist_ok=True)
+    backup_js.parent.mkdir(parents=True, exist_ok=True)
+
     shutil.copy2(css_path, backup_css)
+    shutil.copy2(js_path, backup_js)
 
     old_css = read_text(css_path)
-    cleaned_css, removed_count = remove_existing_tune_blocks(old_css)
-    new_css = insert_tune_block(cleaned_css)
-
+    new_css = append_css_block(old_css)
     write_text(css_path, new_css)
 
+    old_js = read_text(js_path)
+    new_js, interval_replacements = update_autoscroll_interval(old_js)
+    new_js, overlay_injected = inject_mobile_overlay_removal(new_js)
+    write_text(js_path, new_js)
+
+    summary_path = backup_dir / "hide_left_overlay_speed_summary.txt"
     summary = [
-        "DKG mobile product size / border tune",
+        "DKG mobile hide left overlay + speed carousel updater",
         f"Timestamp: {timestamp}",
         f"Repo root: {root}",
-        f"Backed up CSS to: {backup_css}",
         "",
-        f"Removed existing tune blocks: {removed_count}",
-        "Inserted new product size / border tune block.",
+        "Backups:",
+        f"- {backup_css}",
+        f"- {backup_js}",
         "",
-        "What changed:",
-        "- Product cards inside the mobile clone layer are forced to fill their 1/3-width slots.",
-        "- Product card borders now use collection accent colors instead of inherited black-only desktop borders.",
-        "- Product images are scaled larger inside the frame while keeping object-fit: contain.",
-        "- The carousel viewport is taller so products use more of the collection plate space.",
+        "Changes:",
+        "- Added mobile CSS to hide .dkg-left-overlay on phone widths.",
+        "- Added JS to remove .dkg-left-overlay from the mobile DOM.",
+        f"- Set AUTOSCROLL_MS to {NEW_AUTOSCROLL_MS}.",
         "",
-        "Notes:",
-        "- This only edits assets/css/front-page.css.",
-        "- It does not change the JS, redirect behavior, header, or page-mobile-shop.php.",
+        f"Interval replacements made: {interval_replacements}",
+        f"Overlay removal injected: {overlay_injected}",
+        "",
+        "If carousel still feels slow, lower NEW_AUTOSCROLL_MS to 1700.",
+        "If carousel feels too fast, raise NEW_AUTOSCROLL_MS to 2100.",
     ]
 
-    summary_path = backup_dir / "product_size_border_tune_summary.txt"
     write_text(summary_path, "\n".join(summary) + "\n")
 
     print("Done.")
     print(f"Backup folder: {backup_dir}")
-    print(f"Removed existing tune blocks: {removed_count}")
-    print("Inserted mobile product size / border tune block into assets/css/front-page.css.")
+    print(f"Carousel interval set to: {NEW_AUTOSCROLL_MS}ms")
+    print(f"Interval replacements made: {interval_replacements}")
+    print(f"Overlay removal injected: {overlay_injected}")
     print("")
     print("Next:")
-    print("1. Upload/deploy assets/css/front-page.css.")
+    print("1. Upload/deploy assets/css/front-page.css and assets/js/dkg-mobile-main-homepage-plates.js.")
     print("2. Clear cache.")
-    print("3. Test the normal homepage on phone width.")
-    print("4. If product images are still too small, increase --dkg-mobile-product-image-scale from 1.62 to about 1.75.")
+    print("3. Test the normal homepage on mobile.")
+    print("")
+    print("To tune speed later:")
+    print("- Faster: set NEW_AUTOSCROLL_MS to 1700.")
+    print("- Slower: set NEW_AUTOSCROLL_MS to 2100.")
 
     return 0
 

@@ -1357,36 +1357,3 @@ body.page-template-page-mobile-shop {
 
 /* === DKG MOBILE PRODUCT SIZE BORDER TUNE END === */
 
-/* === DKG MOBILE HIDE LEFT OVERLAY START === */
-
-/*
-  Hide the desktop left slide-in overlay image on the normal homepage for mobile.
-  This is intentionally narrow: it targets .dkg-left-overlay only.
-  It does not hide the header picture rotator or product images.
-*/
-
-@media screen and (max-width: 767px) {
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay * {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-
-    width: 0 !important;
-    height: 0 !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    max-width: 0 !important;
-    max-height: 0 !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-
-    overflow: hidden !important;
-    pointer-events: none !important;
-    transform: none !important;
-  }
-}
-
-/* === DKG MOBILE HIDE LEFT OVERLAY END === */
