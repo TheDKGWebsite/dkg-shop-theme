@@ -827,13 +827,17 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - Step 7 cloned layer.
+  DKG mobile homepage collection plates - Step 6 safe viewport.
 
-  Fix:
-  - Original product layer is hidden on mobile.
-  - Mobile carousel uses cloned product cards only.
-  - Collection background is not used as a carousel track.
-  - Title tab is centered on mobile.
+  Fixes:
+  - Do not move titles/labels.
+  - Do not treat collection background as the product track.
+  - Do not stretch 1-2 item collections weirdly.
+  - Create a dedicated .dkg-mobile-carousel-viewport inside each plate.
+  - Product track moves only inside that viewport.
+  - 4+ products auto-scroll one at a time.
+  - 1-2 products are centered and static.
+  - 3 products are static and equal.
 */
 
 @media screen and (max-width: 767px) {
@@ -851,6 +855,9 @@ body.page-template-page-mobile-shop {
     overflow-x: hidden !important;
   }
 
+  /*
+    Center the collection stack, but do not alter the header.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
@@ -867,7 +874,7 @@ body.page-template-page-mobile-shop {
     flex-direction: column !important;
     align-items: stretch !important;
 
-    gap: clamp(22px, 5.5vw, 34px) !important;
+    gap: clamp(20px, 5vw, 32px) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 
@@ -902,22 +909,17 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    Keep the real plate background stable.
-    Do not turn this into a carousel track.
+    Keep collection backgrounds stable.
+    These are visual layers, not carousel tracks.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-bg {
     width: 100% !important;
     height: 100% !important;
     min-height: inherit !important;
-
     overflow: hidden !important;
     border-radius: clamp(16px, 5vw, 28px) !important;
     box-sizing: border-box !important;
     position: relative !important;
-
-    background-repeat: no-repeat !important;
-    background-size: cover !important;
-    background-position: center center !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
@@ -925,28 +927,12 @@ body.page-template-page-mobile-shop {
     --dkg-mobile-slot-px: 100px;
     --dkg-mobile-step-px: 108px;
     --dkg-mobile-viewport-pad-x: 14px;
-    --dkg-mobile-viewport-pad-y: 26px;
+    --dkg-mobile-viewport-pad-y: 24px;
   }
 
   /*
-    Hide original product/product-track layer on mobile.
-    The cloned mobile carousel is the only visible product layer.
-
-    Important:
-    - Do not hide .collection-bg itself.
-    - Do not hide .collection-label.
-    - Do not hide .dkg-mobile-carousel-viewport.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-product-source,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-track-source {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  /*
-    Separate cloned carousel layer.
+    This is the new safe clipping area.
+    It is separate from collection-bg and avoids messing up the background.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport {
     position: absolute !important;
@@ -956,10 +942,14 @@ body.page-template-page-mobile-shop {
     box-sizing: border-box !important;
 
     display: block !important;
-    z-index: 4 !important;
+    z-index: 2 !important;
     pointer-events: auto !important;
   }
 
+  /*
+    Moving product track.
+    Only this track moves.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
     display: flex !important;
     flex-direction: row !important;
@@ -998,7 +988,7 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    Static collections with 1-2 products are centered.
+    Static collections with fewer than 3 products should be centered.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-1 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-2 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
@@ -1007,13 +997,16 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    3+ products fill exact 3-slot viewport.
+    Collections with 3+ products should fill the 3-slot viewport exactly.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-scrolls-after-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
     justify-content: flex-start !important;
   }
 
+  /*
+    Product slots.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item {
     flex: 0 0 var(--dkg-mobile-slot-px) !important;
     width: var(--dkg-mobile-slot-px) !important;
@@ -1058,6 +1051,10 @@ body.page-template-page-mobile-shop {
     overflow: hidden !important;
   }
 
+  /*
+    Product image fit:
+    Contain and center. No cropping.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item img,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item .product-image {
     width: 100% !important;
@@ -1076,29 +1073,10 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    Mobile title/tab correction.
-    The labels were drifting right because older rules still controlled their position.
+    IMPORTANT:
+    Do not reposition .collection-label here.
+    Titles were shifting in Step 5, so this block intentionally leaves labels alone.
   */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .collection-label,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-link .collection-label {
-    position: absolute !important;
-
-    left: 50% !important;
-    right: auto !important;
-    top: 0 !important;
-    bottom: auto !important;
-
-    transform: translate(-50%, -50%) !important;
-
-    z-index: 8 !important;
-
-    max-width: calc(100% - 36px) !important;
-    width: auto !important;
-
-    text-align: center !important;
-    white-space: nowrap !important;
-    box-sizing: border-box !important;
-  }
 
   /*
     Hide decorative left-side glide/palm-type image on mobile only.

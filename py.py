@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
 """
-mobile_main_homepage_overhaul_step6_safe_viewport.py
+mobile_main_homepage_overhaul_step7_clone_layer.py
 
 Purpose:
-Fix Step 5 layout damage.
+Fix Step 6 background/title issues.
 
-Mobile behavior:
-- Keep mobile users on the normal homepage.
-- Keep collection plates vertically stacked.
-- Do NOT reposition collection labels/titles in this step.
-- Do NOT let carousel rules affect collection backgrounds.
-- Create a dedicated inner viewport for products only.
-- Show exactly 3 equal product slots when a collection has 3+ products.
-- If a collection has 4+ products, auto-scroll one product at a time and loop.
-- If a collection has 1 or 2 products, center them cleanly and do not autoscroll.
-- Keep product images contained/centered, not cropped.
-- Hide left decorative glide/palm image on mobile only.
+Problem seen:
+- Old product/background layer is still visible under the mobile carousel.
+- Backgrounds look repeated/random, especially on the left.
+- Collection title tabs are shifted too far right.
+
+New safer model:
+- Do NOT move original product DOM nodes.
+- Hide original product/product-track layer on mobile only.
+- Build a separate cloned mobile carousel layer.
+- Keep real collection background stable.
+- Center the collection title tab on mobile.
+- 1-2 products: centered/static.
+- 3 products: exactly 3 equal static slots.
+- 4+ products: automated one-by-one looped carousel.
 - Header remains untouched.
 
 Run from dkg-shop-theme root:
 
-    python mobile_main_homepage_overhaul_step6_safe_viewport.py
+    python mobile_main_homepage_overhaul_step7_clone_layer.py
 """
 
 from __future__ import annotations
@@ -41,17 +44,13 @@ CSS_BLOCK = """
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - Step 6 safe viewport.
+  DKG mobile homepage collection plates - Step 7 cloned layer.
 
-  Fixes:
-  - Do not move titles/labels.
-  - Do not treat collection background as the product track.
-  - Do not stretch 1-2 item collections weirdly.
-  - Create a dedicated .dkg-mobile-carousel-viewport inside each plate.
-  - Product track moves only inside that viewport.
-  - 4+ products auto-scroll one at a time.
-  - 1-2 products are centered and static.
-  - 3 products are static and equal.
+  Fix:
+  - Original product layer is hidden on mobile.
+  - Mobile carousel uses cloned product cards only.
+  - Collection background is not used as a carousel track.
+  - Title tab is centered on mobile.
 */
 
 @media screen and (max-width: 767px) {
@@ -69,9 +68,6 @@ CSS_BLOCK = """
     overflow-x: hidden !important;
   }
 
-  /*
-    Center the collection stack, but do not alter the header.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
@@ -88,7 +84,7 @@ CSS_BLOCK = """
     flex-direction: column !important;
     align-items: stretch !important;
 
-    gap: clamp(20px, 5vw, 32px) !important;
+    gap: clamp(22px, 5.5vw, 34px) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 
@@ -123,17 +119,22 @@ CSS_BLOCK = """
   }
 
   /*
-    Keep collection backgrounds stable.
-    These are visual layers, not carousel tracks.
+    Keep the real plate background stable.
+    Do not turn this into a carousel track.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-bg {
     width: 100% !important;
     height: 100% !important;
     min-height: inherit !important;
+
     overflow: hidden !important;
     border-radius: clamp(16px, 5vw, 28px) !important;
     box-sizing: border-box !important;
     position: relative !important;
+
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center center !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared {
@@ -141,12 +142,28 @@ CSS_BLOCK = """
     --dkg-mobile-slot-px: 100px;
     --dkg-mobile-step-px: 108px;
     --dkg-mobile-viewport-pad-x: 14px;
-    --dkg-mobile-viewport-pad-y: 24px;
+    --dkg-mobile-viewport-pad-y: 26px;
   }
 
   /*
-    This is the new safe clipping area.
-    It is separate from collection-bg and avoids messing up the background.
+    Hide original product/product-track layer on mobile.
+    The cloned mobile carousel is the only visible product layer.
+
+    Important:
+    - Do not hide .collection-bg itself.
+    - Do not hide .collection-label.
+    - Do not hide .dkg-mobile-carousel-viewport.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-product-source,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-original-track-source {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /*
+    Separate cloned carousel layer.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport {
     position: absolute !important;
@@ -156,14 +173,10 @@ CSS_BLOCK = """
     box-sizing: border-box !important;
 
     display: block !important;
-    z-index: 2 !important;
+    z-index: 4 !important;
     pointer-events: auto !important;
   }
 
-  /*
-    Moving product track.
-    Only this track moves.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
     display: flex !important;
     flex-direction: row !important;
@@ -202,7 +215,7 @@ CSS_BLOCK = """
   }
 
   /*
-    Static collections with fewer than 3 products should be centered.
+    Static collections with 1-2 products are centered.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-1 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-2 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
@@ -211,16 +224,13 @@ CSS_BLOCK = """
   }
 
   /*
-    Collections with 3+ products should fill the 3-slot viewport exactly.
+    3+ products fill exact 3-slot viewport.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-count-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-scrolls-after-3 .dkg-mobile-carousel-viewport .dkg-mobile-product-track {
     justify-content: flex-start !important;
   }
 
-  /*
-    Product slots.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item {
     flex: 0 0 var(--dkg-mobile-slot-px) !important;
     width: var(--dkg-mobile-slot-px) !important;
@@ -265,10 +275,6 @@ CSS_BLOCK = """
     overflow: hidden !important;
   }
 
-  /*
-    Product image fit:
-    Contain and center. No cropping.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item img,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-carousel-viewport .dkg-mobile-product-item .product-image {
     width: 100% !important;
@@ -287,10 +293,29 @@ CSS_BLOCK = """
   }
 
   /*
-    IMPORTANT:
-    Do not reposition .collection-label here.
-    Titles were shifting in Step 5, so this block intentionally leaves labels alone.
+    Mobile title/tab correction.
+    The labels were drifting right because older rules still controlled their position.
   */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box .collection-label,
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-link .collection-label {
+    position: absolute !important;
+
+    left: 50% !important;
+    right: auto !important;
+    top: 0 !important;
+    bottom: auto !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    z-index: 8 !important;
+
+    max-width: calc(100% - 36px) !important;
+    width: auto !important;
+
+    text-align: center !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
 
   /*
     Hide decorative left-side glide/palm-type image on mobile only.
@@ -340,16 +365,13 @@ JS_BLOCK = r"""
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 6 safe viewport.
+    DKG mobile main homepage collection plate controller - Step 7 cloned layer.
 
-    Safer model:
-    - Find product items inside each collection box.
-    - Move the product track into a dedicated viewport.
-    - Do NOT move collection-bg or labels.
-    - Do NOT position labels.
-    - 1-2 products: centered, static.
-    - 3 products: exact three slots, static.
-    - 4+ products: exact three visible slots, automated one-by-one loop.
+    Safer strategy:
+    - Do not move original product DOM.
+    - Mark original products/tracks hidden on mobile.
+    - Clone product cards into a separate mobile carousel viewport.
+    - Background and labels stay in their original DOM positions.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -460,40 +482,19 @@ JS_BLOCK = r"""
     }
   }
 
-  function removeClones(plate) {
-    var clones = plate.querySelectorAll('.dkg-mobile-product-clone');
+  function removeMobileCarousel(plate) {
+    var viewports = plate.querySelectorAll(':scope > .dkg-mobile-carousel-viewport');
 
-    Array.prototype.forEach.call(clones, function (clone) {
-      if (clone && clone.parentNode) {
-        clone.parentNode.removeChild(clone);
-      }
+    Array.prototype.forEach.call(viewports, function (viewport) {
+      viewport.remove();
     });
-  }
-
-  function unwrapMobileViewport(plate) {
-    var viewport = plate.querySelector(':scope > .dkg-mobile-carousel-viewport');
-
-    if (!viewport) {
-      return;
-    }
-
-    var track = viewport.querySelector('.dkg-mobile-product-track');
-
-    if (track) {
-      while (track.firstChild) {
-        plate.appendChild(track.firstChild);
-      }
-    }
-
-    viewport.remove();
   }
 
   function clearPlate(plate) {
     var marked;
 
     stopPlateTimer(plate);
-    removeClones(plate);
-    unwrapMobileViewport(plate);
+    removeMobileCarousel(plate);
 
     plate.classList.remove('dkg-mobile-main-plate-prepared');
     plate.classList.remove('dkg-mobile-main-scrolls-after-3');
@@ -503,33 +504,15 @@ JS_BLOCK = r"""
     plate.classList.remove('dkg-mobile-main-count-3');
 
     marked = plate.querySelectorAll(
-      '.dkg-mobile-product-track, .dkg-mobile-product-item, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
+      '.dkg-mobile-original-product-source, .dkg-mobile-original-track-source, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
     );
 
     Array.prototype.forEach.call(marked, function (el) {
-      el.classList.remove('dkg-mobile-product-track');
-      el.classList.remove('dkg-mobile-product-item');
+      el.classList.remove('dkg-mobile-original-product-source');
+      el.classList.remove('dkg-mobile-original-track-source');
       el.classList.remove('dkg-mobile-main-visible-product');
       el.classList.remove('dkg-mobile-main-extra-product');
-      el.classList.remove('dkg-mobile-track-animate');
-      el.classList.remove('dkg-mobile-track-no-animate');
-
       el.removeAttribute('aria-hidden');
-
-      el.style.removeProperty('flex');
-      el.style.removeProperty('width');
-      el.style.removeProperty('min-width');
-      el.style.removeProperty('max-width');
-      el.style.removeProperty('height');
-      el.style.removeProperty('max-height');
-      el.style.removeProperty('transform');
-      el.style.removeProperty('transition');
-      el.style.removeProperty('left');
-      el.style.removeProperty('right');
-      el.style.removeProperty('margin-left');
-      el.style.removeProperty('margin-right');
-      el.style.removeProperty('padding-left');
-      el.style.removeProperty('padding-right');
     });
   }
 
@@ -550,7 +533,7 @@ JS_BLOCK = r"""
         return false;
       }
 
-      if (product.classList.contains('dkg-mobile-product-clone')) {
+      if (product.closest('.dkg-mobile-carousel-viewport')) {
         return false;
       }
 
@@ -566,37 +549,25 @@ JS_BLOCK = r"""
         return false;
       }
 
-      if (product.closest('.dkg-mobile-carousel-viewport')) {
-        return true;
-      }
-
-      /*
-        Avoid selecting purely decorative/background elements.
-      */
-      if (product.closest('.collection-bg') && !product.matches('a[href*="/product/"]')) {
-        /*
-          A real product/card can still live inside collection-bg,
-          but this guards against catching the background wrapper itself.
-        */
-        return hasProductClass(product);
-      }
-
       return true;
     });
   }
 
-  function findExistingTrack(plate, products) {
-    var existing = plate.querySelector(TRACK_SELECTOR);
+  function markOriginalSources(plate, products) {
+    products.forEach(function (product, index) {
+      product.classList.add('dkg-mobile-original-product-source');
 
-    if (existing) {
-      return existing;
-    }
+      if (index < 3) {
+        product.classList.add('dkg-mobile-main-visible-product');
+      } else {
+        product.classList.add('dkg-mobile-main-extra-product');
+      }
 
-    if (products.length && products[0].parentElement && products[0].parentElement !== plate) {
-      return products[0].parentElement;
-    }
-
-    return null;
+      var track = product.closest(TRACK_SELECTOR);
+      if (track && track !== plate && !track.classList.contains('collection-bg')) {
+        track.classList.add('dkg-mobile-original-track-source');
+      }
+    });
   }
 
   function createViewportAndTrack(plate, products) {
@@ -606,17 +577,41 @@ JS_BLOCK = r"""
     viewport.className = 'dkg-mobile-carousel-viewport';
     track.className = 'dkg-mobile-product-track dkg-mobile-track-no-animate';
 
-    plate.appendChild(viewport);
-    viewport.appendChild(track);
-
     products.forEach(function (product) {
-      track.appendChild(product);
+      var clone = product.cloneNode(true);
+
+      clone.classList.remove('dkg-mobile-original-product-source');
+      clone.classList.remove('dkg-mobile-original-track-source');
+      clone.classList.add('dkg-mobile-product-item');
+      clone.setAttribute('data-dkg-mobile-display-clone', '1');
+
+      track.appendChild(clone);
     });
+
+    viewport.appendChild(track);
+    plate.appendChild(viewport);
 
     return {
       viewport: viewport,
-      track: track
+      track: track,
+      displayItems: Array.prototype.slice.call(track.children)
     };
+  }
+
+  function makeLoopClones(track, displayItems) {
+    var clones = [];
+
+    displayItems.slice(0, 3).forEach(function (item) {
+      var clone = item.cloneNode(true);
+
+      clone.classList.add('dkg-mobile-product-clone');
+      clone.setAttribute('data-dkg-mobile-loop-clone', '1');
+
+      track.appendChild(clone);
+      clones.push(clone);
+    });
+
+    return clones;
   }
 
   function setTrackPosition(track, index, stepPx, animate) {
@@ -645,23 +640,6 @@ JS_BLOCK = r"""
 
       product.removeAttribute('aria-hidden');
     });
-  }
-
-  function makeLoopClones(track, products) {
-    var clones = [];
-
-    products.slice(0, 3).forEach(function (product) {
-      var clone = product.cloneNode(true);
-
-      clone.classList.add('dkg-mobile-product-clone');
-      clone.classList.add('dkg-mobile-product-item');
-      clone.setAttribute('data-dkg-mobile-clone', '1');
-
-      track.appendChild(clone);
-      clones.push(clone);
-    });
-
-    return clones;
   }
 
   function startAutoScroll(plate, track, originalCount, stepPx) {
@@ -697,26 +675,17 @@ JS_BLOCK = r"""
     var setup;
     var viewport;
     var track;
+    var displayItems;
+    var loopClones = [];
+    var allDisplayItems;
     var viewportWidth;
     var gap;
     var slotWidth;
     var stepPx;
-    var clones = [];
-    var allItems;
 
     if (!products.length) {
       return;
     }
-
-    /*
-      Confirm there is some product structure before moving it.
-      This avoids using a background wrapper as the track.
-    */
-    findExistingTrack(plate, products);
-
-    setup = createViewportAndTrack(plate, products);
-    viewport = setup.viewport;
-    track = setup.track;
 
     plate.classList.add('dkg-mobile-main-plate-prepared');
 
@@ -730,18 +699,18 @@ JS_BLOCK = r"""
       plate.classList.add('dkg-mobile-main-scrolls-after-3');
     }
 
+    markOriginalSources(plate, products);
+
+    setup = createViewportAndTrack(plate, products);
+    viewport = setup.viewport;
+    track = setup.track;
+    displayItems = setup.displayItems;
+
     gap = window.innerWidth <= 390 ? 6 : 8;
 
-    /*
-      Force layout after creating viewport.
-    */
     viewport.getBoundingClientRect();
     viewportWidth = viewport.getBoundingClientRect().width;
 
-    /*
-      If 1 or 2 products, size them like normal cards but centered.
-      If 3+ products, use exact three-slot math.
-    */
     if (products.length < 3) {
       slotWidth = Math.min(
         170,
@@ -758,16 +727,16 @@ JS_BLOCK = r"""
     stepPx = slotWidth + gap;
 
     if (products.length > 3) {
-      clones = makeLoopClones(track, products);
+      loopClones = makeLoopClones(track, displayItems);
     }
 
-    allItems = products.concat(clones);
+    allDisplayItems = displayItems.concat(loopClones);
 
     plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
     plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
 
-    styleProductItems(allItems, slotWidth);
+    styleProductItems(allDisplayItems, slotWidth);
     setTrackPosition(track, 0, stepPx, false);
 
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
@@ -1017,7 +986,7 @@ def main() -> int:
     js_path = root / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
 
     print("")
-    print("DKG mobile main homepage overhaul - step 6 safe viewport")
+    print("DKG mobile main homepage overhaul - step 7 cloned layer")
     print("Repo root:", root)
     print("")
 
@@ -1032,7 +1001,7 @@ def main() -> int:
         changed.append("Mobile redirect hook already disabled or exact hook not found")
 
     if write_js_file(js_path):
-        changed.append("Updated assets/js/dkg-mobile-main-homepage-plates.js with safe viewport carousel")
+        changed.append("Updated assets/js/dkg-mobile-main-homepage-plates.js with cloned mobile carousel layer")
     else:
         changed.append("JS file already current")
 
@@ -1053,9 +1022,9 @@ def main() -> int:
     print("")
     print("Next checks:")
     print(" 1. Clear cache / hard refresh.")
-    print(" 2. Confirm collection backgrounds look normal again.")
-    print(" 3. Confirm labels/titles are no longer shifted by this mobile block.")
-    print(" 4. Confirm 1-2 item collections are centered and static.")
+    print(" 2. Confirm the random/repeated left-side background artifacts are gone.")
+    print(" 3. Confirm collection title tabs are centered.")
+    print(" 4. Confirm 1-2 item collections are centered/static.")
     print(" 5. Confirm 3 item collections show 3 equal static slots.")
     print(" 6. Confirm 4+ item collections auto-scroll one product at a time.")
     print(" 7. Confirm product images are centered and uncropped.")

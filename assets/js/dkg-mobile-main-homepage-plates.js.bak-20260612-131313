@@ -2,13 +2,16 @@
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 7 cloned layer.
+    DKG mobile main homepage collection plate controller - Step 6 safe viewport.
 
-    Safer strategy:
-    - Do not move original product DOM.
-    - Mark original products/tracks hidden on mobile.
-    - Clone product cards into a separate mobile carousel viewport.
-    - Background and labels stay in their original DOM positions.
+    Safer model:
+    - Find product items inside each collection box.
+    - Move the product track into a dedicated viewport.
+    - Do NOT move collection-bg or labels.
+    - Do NOT position labels.
+    - 1-2 products: centered, static.
+    - 3 products: exact three slots, static.
+    - 4+ products: exact three visible slots, automated one-by-one loop.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -119,19 +122,40 @@
     }
   }
 
-  function removeMobileCarousel(plate) {
-    var viewports = plate.querySelectorAll(':scope > .dkg-mobile-carousel-viewport');
+  function removeClones(plate) {
+    var clones = plate.querySelectorAll('.dkg-mobile-product-clone');
 
-    Array.prototype.forEach.call(viewports, function (viewport) {
-      viewport.remove();
+    Array.prototype.forEach.call(clones, function (clone) {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
     });
+  }
+
+  function unwrapMobileViewport(plate) {
+    var viewport = plate.querySelector(':scope > .dkg-mobile-carousel-viewport');
+
+    if (!viewport) {
+      return;
+    }
+
+    var track = viewport.querySelector('.dkg-mobile-product-track');
+
+    if (track) {
+      while (track.firstChild) {
+        plate.appendChild(track.firstChild);
+      }
+    }
+
+    viewport.remove();
   }
 
   function clearPlate(plate) {
     var marked;
 
     stopPlateTimer(plate);
-    removeMobileCarousel(plate);
+    removeClones(plate);
+    unwrapMobileViewport(plate);
 
     plate.classList.remove('dkg-mobile-main-plate-prepared');
     plate.classList.remove('dkg-mobile-main-scrolls-after-3');
@@ -141,15 +165,33 @@
     plate.classList.remove('dkg-mobile-main-count-3');
 
     marked = plate.querySelectorAll(
-      '.dkg-mobile-original-product-source, .dkg-mobile-original-track-source, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
+      '.dkg-mobile-product-track, .dkg-mobile-product-item, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
     );
 
     Array.prototype.forEach.call(marked, function (el) {
-      el.classList.remove('dkg-mobile-original-product-source');
-      el.classList.remove('dkg-mobile-original-track-source');
+      el.classList.remove('dkg-mobile-product-track');
+      el.classList.remove('dkg-mobile-product-item');
       el.classList.remove('dkg-mobile-main-visible-product');
       el.classList.remove('dkg-mobile-main-extra-product');
+      el.classList.remove('dkg-mobile-track-animate');
+      el.classList.remove('dkg-mobile-track-no-animate');
+
       el.removeAttribute('aria-hidden');
+
+      el.style.removeProperty('flex');
+      el.style.removeProperty('width');
+      el.style.removeProperty('min-width');
+      el.style.removeProperty('max-width');
+      el.style.removeProperty('height');
+      el.style.removeProperty('max-height');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('transition');
+      el.style.removeProperty('left');
+      el.style.removeProperty('right');
+      el.style.removeProperty('margin-left');
+      el.style.removeProperty('margin-right');
+      el.style.removeProperty('padding-left');
+      el.style.removeProperty('padding-right');
     });
   }
 
@@ -170,7 +212,7 @@
         return false;
       }
 
-      if (product.closest('.dkg-mobile-carousel-viewport')) {
+      if (product.classList.contains('dkg-mobile-product-clone')) {
         return false;
       }
 
@@ -186,25 +228,37 @@
         return false;
       }
 
+      if (product.closest('.dkg-mobile-carousel-viewport')) {
+        return true;
+      }
+
+      /*
+        Avoid selecting purely decorative/background elements.
+      */
+      if (product.closest('.collection-bg') && !product.matches('a[href*="/product/"]')) {
+        /*
+          A real product/card can still live inside collection-bg,
+          but this guards against catching the background wrapper itself.
+        */
+        return hasProductClass(product);
+      }
+
       return true;
     });
   }
 
-  function markOriginalSources(plate, products) {
-    products.forEach(function (product, index) {
-      product.classList.add('dkg-mobile-original-product-source');
+  function findExistingTrack(plate, products) {
+    var existing = plate.querySelector(TRACK_SELECTOR);
 
-      if (index < 3) {
-        product.classList.add('dkg-mobile-main-visible-product');
-      } else {
-        product.classList.add('dkg-mobile-main-extra-product');
-      }
+    if (existing) {
+      return existing;
+    }
 
-      var track = product.closest(TRACK_SELECTOR);
-      if (track && track !== plate && !track.classList.contains('collection-bg')) {
-        track.classList.add('dkg-mobile-original-track-source');
-      }
-    });
+    if (products.length && products[0].parentElement && products[0].parentElement !== plate) {
+      return products[0].parentElement;
+    }
+
+    return null;
   }
 
   function createViewportAndTrack(plate, products) {
@@ -214,41 +268,17 @@
     viewport.className = 'dkg-mobile-carousel-viewport';
     track.className = 'dkg-mobile-product-track dkg-mobile-track-no-animate';
 
-    products.forEach(function (product) {
-      var clone = product.cloneNode(true);
-
-      clone.classList.remove('dkg-mobile-original-product-source');
-      clone.classList.remove('dkg-mobile-original-track-source');
-      clone.classList.add('dkg-mobile-product-item');
-      clone.setAttribute('data-dkg-mobile-display-clone', '1');
-
-      track.appendChild(clone);
-    });
-
-    viewport.appendChild(track);
     plate.appendChild(viewport);
+    viewport.appendChild(track);
+
+    products.forEach(function (product) {
+      track.appendChild(product);
+    });
 
     return {
       viewport: viewport,
-      track: track,
-      displayItems: Array.prototype.slice.call(track.children)
+      track: track
     };
-  }
-
-  function makeLoopClones(track, displayItems) {
-    var clones = [];
-
-    displayItems.slice(0, 3).forEach(function (item) {
-      var clone = item.cloneNode(true);
-
-      clone.classList.add('dkg-mobile-product-clone');
-      clone.setAttribute('data-dkg-mobile-loop-clone', '1');
-
-      track.appendChild(clone);
-      clones.push(clone);
-    });
-
-    return clones;
   }
 
   function setTrackPosition(track, index, stepPx, animate) {
@@ -277,6 +307,23 @@
 
       product.removeAttribute('aria-hidden');
     });
+  }
+
+  function makeLoopClones(track, products) {
+    var clones = [];
+
+    products.slice(0, 3).forEach(function (product) {
+      var clone = product.cloneNode(true);
+
+      clone.classList.add('dkg-mobile-product-clone');
+      clone.classList.add('dkg-mobile-product-item');
+      clone.setAttribute('data-dkg-mobile-clone', '1');
+
+      track.appendChild(clone);
+      clones.push(clone);
+    });
+
+    return clones;
   }
 
   function startAutoScroll(plate, track, originalCount, stepPx) {
@@ -312,17 +359,26 @@
     var setup;
     var viewport;
     var track;
-    var displayItems;
-    var loopClones = [];
-    var allDisplayItems;
     var viewportWidth;
     var gap;
     var slotWidth;
     var stepPx;
+    var clones = [];
+    var allItems;
 
     if (!products.length) {
       return;
     }
+
+    /*
+      Confirm there is some product structure before moving it.
+      This avoids using a background wrapper as the track.
+    */
+    findExistingTrack(plate, products);
+
+    setup = createViewportAndTrack(plate, products);
+    viewport = setup.viewport;
+    track = setup.track;
 
     plate.classList.add('dkg-mobile-main-plate-prepared');
 
@@ -336,18 +392,18 @@
       plate.classList.add('dkg-mobile-main-scrolls-after-3');
     }
 
-    markOriginalSources(plate, products);
-
-    setup = createViewportAndTrack(plate, products);
-    viewport = setup.viewport;
-    track = setup.track;
-    displayItems = setup.displayItems;
-
     gap = window.innerWidth <= 390 ? 6 : 8;
 
+    /*
+      Force layout after creating viewport.
+    */
     viewport.getBoundingClientRect();
     viewportWidth = viewport.getBoundingClientRect().width;
 
+    /*
+      If 1 or 2 products, size them like normal cards but centered.
+      If 3+ products, use exact three-slot math.
+    */
     if (products.length < 3) {
       slotWidth = Math.min(
         170,
@@ -364,16 +420,16 @@
     stepPx = slotWidth + gap;
 
     if (products.length > 3) {
-      loopClones = makeLoopClones(track, displayItems);
+      clones = makeLoopClones(track, products);
     }
 
-    allDisplayItems = displayItems.concat(loopClones);
+    allItems = products.concat(clones);
 
     plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
     plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
 
-    styleProductItems(allDisplayItems, slotWidth);
+    styleProductItems(allItems, slotWidth);
     setTrackPosition(track, 0, stepPx, false);
 
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
