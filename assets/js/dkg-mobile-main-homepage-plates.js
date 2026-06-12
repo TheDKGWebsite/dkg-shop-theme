@@ -2,13 +2,15 @@
   'use strict';
 
   /*
-    DKG mobile main homepage collection-plate controller - Step 2.
+    DKG mobile main homepage collection plate controller - Step 3.
 
-    Changes:
-    - Do not hide products 4+.
-    - Instead, make the product row scroll horizontally when there are more than 3.
-    - Force every product slot to be 1/3 of the visible plate interior.
-    - Add helper classes so CSS can reliably control the layout.
+    This version uses measured math:
+      visibleWidth = track.clientWidth - leftPadding - rightPadding
+      slotWidth = floor((visibleWidth - (gap * 2)) / 3)
+
+    Therefore:
+      3 slots + 2 gaps = exactly the visible interior width.
+    Product 4 starts after that and is reached by scrolling.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
@@ -23,19 +25,19 @@
 
   var PRODUCT_SELECTOR = [
     'li.product',
-    '.wc-block-grid__product',
     '.product-card',
     '.collection-product',
     '.dkg-product-card',
+    '.wc-block-grid__product',
     'a[href*="/product/"]'
   ].join(',');
 
   var TRACK_SELECTOR = [
     'ul.products',
     '.products',
-    '.wc-block-grid__products',
     '.product-row',
-    '.collection-products'
+    '.collection-products',
+    '.wc-block-grid__products'
   ].join(',');
 
   function isOldMobileShopPage() {
@@ -47,7 +49,7 @@
     return document.body.classList.contains('home') ||
       document.body.classList.contains('front-page') ||
       document.body.classList.contains('page-template-front-page') ||
-      document.querySelector('.collections-stack');
+      !!document.querySelector('.collections-stack');
   }
 
   function isMobile() {
@@ -74,16 +76,18 @@
     return !!(
       el &&
       el.matches &&
-      el.matches('li.product, .wc-block-grid__product, .product-card, .collection-product, .dkg-product-card')
+      el.matches('li.product, .product-card, .collection-product, .dkg-product-card, .wc-block-grid__product')
     );
   }
 
   function closestProductElement(node, plate) {
+    var current;
+
     if (!node || !plate) {
       return null;
     }
 
-    var current = node;
+    current = node;
 
     while (current && current !== plate && current.nodeType === 1) {
       if (hasProductClass(current)) {
@@ -117,6 +121,10 @@
     });
 
     return uniqueElements(mapped).filter(function (product) {
+      if (!product || !product.classList) {
+        return false;
+      }
+
       if (product.classList.contains('collection-link')) {
         return false;
       }
@@ -125,14 +133,7 @@
         return false;
       }
 
-      /*
-        Avoid counting the whole collection plate link as a product.
-      */
-      if (
-        product.matches &&
-        product.matches('a[href*="/product/"]') &&
-        product.closest('.collection-link') === product
-      ) {
+      if (product.closest('.site-header')) {
         return false;
       }
 
@@ -147,18 +148,14 @@
       return existing;
     }
 
-    if (products.length) {
-      var parent = products[0].parentElement;
-
-      if (parent && parent !== plate) {
-        return parent;
-      }
+    if (products.length && products[0].parentElement && products[0].parentElement !== plate) {
+      return products[0].parentElement;
     }
 
     return null;
   }
 
-  function clearClasses(plate) {
+  function clearPlateClasses(plate) {
     plate.classList.remove('dkg-mobile-main-plate-prepared');
     plate.classList.remove('dkg-mobile-main-scrolls-after-3');
     plate.classList.remove('dkg-mobile-main-no-scroll');
@@ -173,18 +170,38 @@
       el.classList.remove('dkg-mobile-main-visible-product');
       el.classList.remove('dkg-mobile-main-extra-product');
       el.removeAttribute('aria-hidden');
+
+      el.style.removeProperty('flex');
+      el.style.removeProperty('width');
+      el.style.removeProperty('min-width');
+      el.style.removeProperty('max-width');
+      el.style.removeProperty('height');
+      el.style.removeProperty('max-height');
     });
   }
 
-  function preparePlate(plate) {
-    var products = findProductsInPlate(plate);
+  function getNumberFromCssValue(value, fallback) {
+    var parsed = parseFloat(String(value || '').replace('px', ''));
 
-    if (!products.length) {
-      return;
+    if (Number.isFinite(parsed)) {
+      return parsed;
     }
 
-    var track = findTrack(plate, products);
+    return fallback;
+  }
 
+  function calculateAndApplyExactSlotMath(plate, track, products) {
+    var computed;
+    var trackWidth;
+    var padLeft;
+    var padRight;
+    var gap;
+    var visibleInterior;
+    var slotWidth;
+
+    /*
+      First apply classes so CSS gives the track its mobile dimensions.
+    */
     plate.classList.add('dkg-mobile-main-plate-prepared');
 
     if (products.length > 3) {
@@ -193,17 +210,11 @@
       plate.classList.add('dkg-mobile-main-no-scroll');
     }
 
-    if (track) {
-      track.classList.add('dkg-mobile-product-track');
-    }
+    track.classList.add('dkg-mobile-product-track');
 
     products.forEach(function (product, index) {
       product.classList.add('dkg-mobile-product-item');
 
-      /*
-        These classes are now descriptive only.
-        Product 4+ is NOT hidden. It becomes reachable by horizontal scroll.
-      */
       if (index < 3) {
         product.classList.add('dkg-mobile-main-visible-product');
       } else {
@@ -212,26 +223,163 @@
 
       product.removeAttribute('aria-hidden');
     });
+
+    /*
+      Force layout once before measuring.
+    */
+    track.getBoundingClientRect();
+
+    computed = window.getComputedStyle(track);
+
+    trackWidth = Math.floor(track.clientWidth);
+    padLeft = getNumberFromCssValue(computed.paddingLeft, 8);
+    padRight = getNumberFromCssValue(computed.paddingRight, 8);
+    gap = getNumberFromCssValue(computed.columnGap || computed.gap, 6);
+
+    /*
+      Exact math:
+      Three slots and two gaps must fit inside the visible interior.
+    */
+    visibleInterior = Math.max(0, trackWidth - padLeft - padRight);
+    slotWidth = Math.floor((visibleInterior - (gap * 2)) / 3);
+
+    /*
+      Safety fallback for extremely narrow widths.
+    */
+    if (!Number.isFinite(slotWidth) || slotWidth < 40) {
+      slotWidth = Math.floor((Math.max(240, trackWidth) - 16 - 12) / 3);
+    }
+
+    plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
+    plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
+    plate.style.setProperty('--dkg-mobile-pad-x-px', Math.round(padLeft) + 'px');
+
+    products.forEach(function (product) {
+      product.style.setProperty('flex', '0 0 ' + slotWidth + 'px', 'important');
+      product.style.setProperty('width', slotWidth + 'px', 'important');
+      product.style.setProperty('min-width', slotWidth + 'px', 'important');
+      product.style.setProperty('max-width', slotWidth + 'px', 'important');
+      product.style.setProperty('height', '100%', 'important');
+      product.style.setProperty('max-height', '100%', 'important');
+    });
+
+    /*
+      Reset scroll position so the first 3 are exactly visible after refresh/orientation.
+    */
+    track.scrollLeft = 0;
+
+    /*
+      Give a useful diagnostic in DevTools without affecting visitors.
+    */
+    plate.setAttribute('data-dkg-mobile-products', String(products.length));
+    plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
+    plate.setAttribute('data-dkg-mobile-track-width', String(trackWidth));
+  }
+
+  function preparePlate(plate) {
+    var products = findProductsInPlate(plate);
+    var track;
+
+    if (!products.length) {
+      return;
+    }
+
+    track = findTrack(plate, products);
+
+    if (!track) {
+      return;
+    }
+
+    calculateAndApplyExactSlotMath(plate, track, products);
+  }
+
+  function hideMobileLeftDecorImages() {
+    var header = document.querySelector('.site-header');
+    var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+    var imgs = document.querySelectorAll('img');
+
+    Array.prototype.forEach.call(imgs, function (img) {
+      var rect;
+      var srcAltClass;
+
+      if (!img || img.closest('.site-header') || img.closest('.collection-box') || img.closest('.collections-stack')) {
+        return;
+      }
+
+      rect = img.getBoundingClientRect();
+
+      srcAltClass = [
+        img.getAttribute('src') || '',
+        img.getAttribute('alt') || '',
+        img.className || '',
+        img.parentElement ? img.parentElement.className || '' : ''
+      ].join(' ').toLowerCase();
+
+      /*
+        Hide obvious mobile decorative left-side image, not product/header imagery.
+      */
+      if (
+        srcAltClass.indexOf('palm') !== -1 ||
+        srcAltClass.indexOf('glide') !== -1 ||
+        srcAltClass.indexOf('left') !== -1 ||
+        (
+          rect.width >= 70 &&
+          rect.height >= 120 &&
+          rect.left < 45 &&
+          rect.top > headerBottom - 10
+        )
+      ) {
+        img.classList.add('dkg-mobile-hide-left-decor');
+      }
+    });
+  }
+
+  function centerCollectionStack() {
+    var stack = document.querySelector('.collections-stack');
+
+    if (!stack) {
+      return;
+    }
+
+    stack.style.setProperty('left', '50%', 'important');
+    stack.style.setProperty('right', 'auto', 'important');
+    stack.style.setProperty('transform', 'translateX(-50%)', 'important');
+    stack.style.setProperty('margin-left', '0', 'important');
+    stack.style.setProperty('margin-right', '0', 'important');
   }
 
   function applyMobilePlateLayout() {
+    var plates;
+
     if (isOldMobileShopPage() || !isProbablyHomepage()) {
       return;
     }
 
-    var plates = document.querySelectorAll(PLATE_SELECTOR);
+    plates = document.querySelectorAll(PLATE_SELECTOR);
 
     Array.prototype.forEach.call(plates, function (plate) {
-      clearClasses(plate);
+      clearPlateClasses(plate);
 
       if (isMobile()) {
         preparePlate(plate);
       }
     });
+
+    if (isMobile()) {
+      centerCollectionStack();
+      hideMobileLeftDecorImages();
+    }
   }
 
   function scheduleApply() {
-    window.requestAnimationFrame(applyMobilePlateLayout);
+    window.requestAnimationFrame(function () {
+      applyMobilePlateLayout();
+
+      /*
+        Second pass after images/fonts settle, because image loading can change dimensions.
+      */
+      window.setTimeout(applyMobilePlateLayout, 120);
+    });
   }
 
   if (document.readyState === 'loading') {
