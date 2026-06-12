@@ -5,6 +5,7 @@ require get_template_directory() . '/inc/enqueue.php';
 require get_template_directory() . '/inc/woocommerce.php';
 
 
+
 if (!function_exists('dkg_shop_enqueue_front_page_assets')) {
     function dkg_shop_enqueue_front_page_assets() {
         if (is_front_page()) {
@@ -552,34 +553,3 @@ add_action('wp_enqueue_scripts', 'dkg_enqueue_mobile_main_homepage_collection_pl
 
 // === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES ENQUEUE END ===
 
-// === DKG MOBILE HEADER ROTATOR RELOCATE ENQUEUE START ===
-
-function dkg_enqueue_mobile_header_rotator_relocate() {
-    if (is_admin()) {
-        return;
-    }
-
-    /*
-     * This is for the normal homepage only.
-     * It moves the existing framed header rotator below the homepage collection plates on mobile.
-     */
-    if (!is_front_page()) {
-        return;
-    }
-
-    $script_path = get_template_directory() . '/assets/js/dkg-mobile-header-rotator-relocate.js';
-    $script_uri  = get_template_directory_uri() . '/assets/js/dkg-mobile-header-rotator-relocate.js';
-
-    if (file_exists($script_path)) {
-        wp_enqueue_script(
-            'dkg-mobile-header-rotator-relocate',
-            $script_uri,
-            array(),
-            filemtime($script_path),
-            true
-        );
-    }
-}
-add_action('wp_enqueue_scripts', 'dkg_enqueue_mobile_header_rotator_relocate', 40);
-
-// === DKG MOBILE HEADER ROTATOR RELOCATE ENQUEUE END ===
