@@ -827,15 +827,19 @@ body.page-template-page-mobile-shop {
 /* === DKG MOBILE MAIN HOMEPAGE COLLECTION PLATES START === */
 
 /*
-  DKG mobile homepage collection plates - Step 4.
+  DKG mobile homepage collection plates - Step 3.
 
-  Main behavior:
-  - Exactly 3 equal product spots are visible on mobile.
-  - Collections with 4+ products auto-scroll one product at a time.
-  - Auto-scroll loops forever.
-  - Product 4+ should not peek into the initial 3-product view.
-  - Product images fit with object-fit: contain.
-  - Header is intentionally untouched.
+  Main correction:
+  - JS measures the actual visible track width.
+  - JS calculates exact pixel product-slot width:
+      slot = floor((trackWidth - totalGap) / 3)
+  - That prevents the left edge of product 4 from showing before scrolling.
+
+  Also:
+  - Plates are centered.
+  - Product images use contain, not cover.
+  - Mobile-only decorative left glide/palm images are hidden.
+  - Header layout remains untouched.
 */
 
 @media screen and (max-width: 767px) {
@@ -853,12 +857,16 @@ body.page-template-page-mobile-shop {
     overflow-x: hidden !important;
   }
 
+  /*
+    Center the whole collection stack.
+    This intentionally does not alter the header.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collections-stack {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
 
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 
     position: relative !important;
     left: 50% !important;
@@ -918,13 +926,11 @@ body.page-template-page-mobile-shop {
     --dkg-mobile-pad-x-px: 8px;
     --dkg-mobile-pad-y-px: 10px;
     --dkg-mobile-slot-px: 100px;
-    --dkg-mobile-step-px: 106px;
   }
 
   /*
-    Product track.
-    This is transformed by JS for automated carousel motion.
-    Manual scrolling is not the intended behavior here.
+    The actual scroll area.
+    JS sets exact padding, gap, and item width.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track {
     display: flex !important;
@@ -935,8 +941,8 @@ body.page-template-page-mobile-shop {
 
     gap: var(--dkg-mobile-gap-px) !important;
 
-    width: max-content !important;
-    max-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 100% !important;
 
     margin: 0 !important;
@@ -944,20 +950,15 @@ body.page-template-page-mobile-shop {
 
     box-sizing: border-box !important;
 
-    overflow: visible !important;
-    transform: translate3d(0, 0, 0) !important;
-    will-change: transform !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
 
-    touch-action: pan-y !important;
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-left: var(--dkg-mobile-pad-x-px) !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+
     scrollbar-width: none !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track.dkg-mobile-track-animate {
-    transition: transform 520ms ease-in-out !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track.dkg-mobile-track-no-animate {
-    transition: none !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-track::-webkit-scrollbar {
@@ -989,18 +990,14 @@ body.page-template-page-mobile-shop {
 
     box-sizing: border-box !important;
     overflow: hidden !important;
+
+    scroll-snap-align: start !important;
   }
 
   /*
-    Clones are used only to make the loop seamless.
-  */
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-clone {
-    pointer-events: auto !important;
-  }
-
-  /*
-    Product image fit:
-    Mobile should contain the product artwork inside the frame, not crop it.
+    Override older image crop behavior.
+    The report showed the old homepage quality fix used object-fit: cover.
+    On mobile we want product art to fit the frame, not crop.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item img,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-plate-prepared .dkg-mobile-product-item .product-image,
@@ -1034,6 +1031,14 @@ body.page-template-page-mobile-shop {
   }
 
   /*
+    The fourth item should exist, but should start after the exact 3-slot viewport.
+    No hiding here. It should be available by horizontal scroll.
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-box.dkg-mobile-main-scrolls-after-3 .dkg-mobile-product-track {
+    cursor: grab !important;
+  }
+
+  /*
     Label sizing only.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .collection-label {
@@ -1052,7 +1057,7 @@ body.page-template-page-mobile-shop {
 
   /*
     Hide decorative left-side glide/palm-type image on mobile only.
-    Scoped away from product cards and header by JS too.
+    These selectors are intentionally scoped away from product cards and header.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-hide-left-decor,
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-home-left-glide,

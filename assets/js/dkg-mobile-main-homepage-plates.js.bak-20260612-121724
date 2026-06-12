@@ -2,30 +2,19 @@
   'use strict';
 
   /*
-    DKG mobile main homepage collection plate controller - Step 4.
+    DKG mobile main homepage collection plate controller - Step 3.
 
-    This version uses automated carousel behavior.
+    This version uses measured math:
+      visibleWidth = track.clientWidth - leftPadding - rightPadding
+      slotWidth = floor((visibleWidth - (gap * 2)) / 3)
 
-    Math:
-      visibleInterior = plateWidth - leftPadding - rightPadding
-      slotWidth = floor((visibleInterior - (gap * 2)) / 3)
-
-    Exactly:
-      3 slots + 2 gaps = visible area
-
-    Auto-scroll:
-      - Only if product count > 3
-      - Advances one product at a time
-      - Loops forever
-      - Uses clones of the first 3 products for seamless looping
+    Therefore:
+      3 slots + 2 gaps = exactly the visible interior width.
+    Product 4 starts after that and is reached by scrolling.
   */
 
   var MOBILE_QUERY = '(max-width: 767px)';
-  var AUTOSCROLL_MS = 2600;
-  var TRANSITION_MS = 520;
-
   var mq = window.matchMedia ? window.matchMedia(MOBILE_QUERY) : null;
-  var plateTimers = new WeakMap();
 
   var PLATE_SELECTOR = [
     '.collections-stack .collection-box',
@@ -119,23 +108,9 @@
     return null;
   }
 
-  function removeExistingClones(plate) {
-    var clones = plate.querySelectorAll('.dkg-mobile-product-clone');
-
-    Array.prototype.forEach.call(clones, function (clone) {
-      if (clone && clone.parentNode) {
-        clone.parentNode.removeChild(clone);
-      }
-    });
-  }
-
   function findProductsInPlate(plate) {
-    var raw;
+    var raw = plate.querySelectorAll(PRODUCT_SELECTOR);
     var mapped = [];
-
-    removeExistingClones(plate);
-
-    raw = plate.querySelectorAll(PRODUCT_SELECTOR);
 
     Array.prototype.forEach.call(raw, function (node) {
       var product = closestProductElement(node, plate);
@@ -147,10 +122,6 @@
 
     return uniqueElements(mapped).filter(function (product) {
       if (!product || !product.classList) {
-        return false;
-      }
-
-      if (product.classList.contains('dkg-mobile-product-clone')) {
         return false;
       }
 
@@ -184,26 +155,12 @@
     return null;
   }
 
-  function stopPlateTimer(plate) {
-    var timer = plateTimers.get(plate);
-
-    if (timer) {
-      window.clearInterval(timer);
-      plateTimers.delete(plate);
-    }
-  }
-
-  function clearPlateClassesAndStyles(plate) {
-    var marked;
-
-    stopPlateTimer(plate);
-    removeExistingClones(plate);
-
+  function clearPlateClasses(plate) {
     plate.classList.remove('dkg-mobile-main-plate-prepared');
     plate.classList.remove('dkg-mobile-main-scrolls-after-3');
     plate.classList.remove('dkg-mobile-main-no-scroll');
 
-    marked = plate.querySelectorAll(
+    var marked = plate.querySelectorAll(
       '.dkg-mobile-product-track, .dkg-mobile-product-item, .dkg-mobile-main-visible-product, .dkg-mobile-main-extra-product'
     );
 
@@ -212,9 +169,6 @@
       el.classList.remove('dkg-mobile-product-item');
       el.classList.remove('dkg-mobile-main-visible-product');
       el.classList.remove('dkg-mobile-main-extra-product');
-      el.classList.remove('dkg-mobile-track-animate');
-      el.classList.remove('dkg-mobile-track-no-animate');
-
       el.removeAttribute('aria-hidden');
 
       el.style.removeProperty('flex');
@@ -223,8 +177,6 @@
       el.style.removeProperty('max-width');
       el.style.removeProperty('height');
       el.style.removeProperty('max-height');
-      el.style.removeProperty('transform');
-      el.style.removeProperty('transition');
     });
   }
 
@@ -238,110 +190,18 @@
     return fallback;
   }
 
-  function setTrackPosition(track, index, stepPx, animate) {
-    var x = -(index * stepPx);
-
-    track.classList.toggle('dkg-mobile-track-animate', !!animate);
-    track.classList.toggle('dkg-mobile-track-no-animate', !animate);
-
-    track.style.setProperty(
-      'transform',
-      'translate3d(' + x + 'px, 0, 0)',
-      'important'
-    );
-  }
-
-  function styleProductItems(items, slotWidth) {
-    items.forEach(function (product) {
-      product.classList.add('dkg-mobile-product-item');
-
-      product.style.setProperty('flex', '0 0 ' + slotWidth + 'px', 'important');
-      product.style.setProperty('width', slotWidth + 'px', 'important');
-      product.style.setProperty('min-width', slotWidth + 'px', 'important');
-      product.style.setProperty('max-width', slotWidth + 'px', 'important');
-      product.style.setProperty('height', '100%', 'important');
-      product.style.setProperty('max-height', '100%', 'important');
-
-      product.removeAttribute('aria-hidden');
-    });
-  }
-
-  function makeLoopClones(track, products) {
-    var clones = [];
-
-    products.slice(0, 3).forEach(function (product) {
-      var clone = product.cloneNode(true);
-
-      clone.classList.add('dkg-mobile-product-clone');
-      clone.classList.add('dkg-mobile-product-item');
-      clone.setAttribute('data-dkg-mobile-clone', '1');
-
-      track.appendChild(clone);
-      clones.push(clone);
-    });
-
-    return clones;
-  }
-
-  function startAutoScroll(plate, track, originalCount, stepPx) {
-    var index = 0;
-    var timer;
-
-    stopPlateTimer(plate);
-
-    if (originalCount <= 3) {
-      setTrackPosition(track, 0, stepPx, false);
-      return;
-    }
-
-    setTrackPosition(track, 0, stepPx, false);
-
-    timer = window.setInterval(function () {
-      index += 1;
-
-      setTrackPosition(track, index, stepPx, true);
-
-      /*
-        When we move from the last real product into the cloned first products,
-        let the transition finish, then instantly jump back to the true beginning.
-      */
-      if (index >= originalCount) {
-        window.setTimeout(function () {
-          index = 0;
-          setTrackPosition(track, 0, stepPx, false);
-        }, TRANSITION_MS + 40);
-      }
-    }, AUTOSCROLL_MS);
-
-    plateTimers.set(plate, timer);
-
-    /*
-      Briefly pause if the user touches the plate, then resume.
-      This prevents fighting with a tap.
-    */
-    plate.addEventListener('touchstart', function () {
-      stopPlateTimer(plate);
-    }, { passive: true });
-
-    plate.addEventListener('touchend', function () {
-      window.setTimeout(function () {
-        startAutoScroll(plate, track, originalCount, stepPx);
-      }, 1800);
-    }, { passive: true });
-  }
-
   function calculateAndApplyExactSlotMath(plate, track, products) {
     var computed;
-    var plateWidth;
+    var trackWidth;
     var padLeft;
     var padRight;
     var gap;
     var visibleInterior;
     var slotWidth;
-    var stepPx;
-    var clones = [];
-    var allItems;
 
+    /*
+      First apply classes so CSS gives the track its mobile dimensions.
+    */
     plate.classList.add('dkg-mobile-main-plate-prepared');
 
     if (products.length > 3) {
@@ -353,63 +213,67 @@
     track.classList.add('dkg-mobile-product-track');
 
     products.forEach(function (product, index) {
+      product.classList.add('dkg-mobile-product-item');
+
       if (index < 3) {
         product.classList.add('dkg-mobile-main-visible-product');
       } else {
         product.classList.add('dkg-mobile-main-extra-product');
       }
+
+      product.removeAttribute('aria-hidden');
     });
 
     /*
-      Force layout before measuring.
+      Force layout once before measuring.
     */
     track.getBoundingClientRect();
 
     computed = window.getComputedStyle(track);
 
-    /*
-      Use the plate width, not track scroll width, because the track becomes wider
-      than the visible viewport when there are 4+ products.
-    */
-    plateWidth = Math.floor(plate.clientWidth);
+    trackWidth = Math.floor(track.clientWidth);
     padLeft = getNumberFromCssValue(computed.paddingLeft, 8);
     padRight = getNumberFromCssValue(computed.paddingRight, 8);
     gap = getNumberFromCssValue(computed.columnGap || computed.gap, 6);
 
-    visibleInterior = Math.max(0, plateWidth - padLeft - padRight);
+    /*
+      Exact math:
+      Three slots and two gaps must fit inside the visible interior.
+    */
+    visibleInterior = Math.max(0, trackWidth - padLeft - padRight);
     slotWidth = Math.floor((visibleInterior - (gap * 2)) / 3);
 
-    if (!Number.isFinite(slotWidth) || slotWidth < 40) {
-      slotWidth = Math.floor((Math.max(240, plateWidth) - 16 - 12) / 3);
-    }
-
-    stepPx = slotWidth + gap;
-
     /*
-      Create clones only after slot math is known and only when looping is needed.
+      Safety fallback for extremely narrow widths.
     */
-    if (products.length > 3) {
-      clones = makeLoopClones(track, products);
+    if (!Number.isFinite(slotWidth) || slotWidth < 40) {
+      slotWidth = Math.floor((Math.max(240, trackWidth) - 16 - 12) / 3);
     }
-
-    allItems = products.concat(clones);
 
     plate.style.setProperty('--dkg-mobile-slot-px', slotWidth + 'px');
     plate.style.setProperty('--dkg-mobile-gap-px', gap + 'px');
     plate.style.setProperty('--dkg-mobile-pad-x-px', Math.round(padLeft) + 'px');
-    plate.style.setProperty('--dkg-mobile-step-px', stepPx + 'px');
 
-    styleProductItems(allItems, slotWidth);
+    products.forEach(function (product) {
+      product.style.setProperty('flex', '0 0 ' + slotWidth + 'px', 'important');
+      product.style.setProperty('width', slotWidth + 'px', 'important');
+      product.style.setProperty('min-width', slotWidth + 'px', 'important');
+      product.style.setProperty('max-width', slotWidth + 'px', 'important');
+      product.style.setProperty('height', '100%', 'important');
+      product.style.setProperty('max-height', '100%', 'important');
+    });
 
-    setTrackPosition(track, 0, stepPx, false);
+    /*
+      Reset scroll position so the first 3 are exactly visible after refresh/orientation.
+    */
+    track.scrollLeft = 0;
 
+    /*
+      Give a useful diagnostic in DevTools without affecting visitors.
+    */
     plate.setAttribute('data-dkg-mobile-products', String(products.length));
     plate.setAttribute('data-dkg-mobile-slot-width', String(slotWidth));
-    plate.setAttribute('data-dkg-mobile-step-width', String(stepPx));
-    plate.setAttribute('data-dkg-mobile-plate-width', String(plateWidth));
-    plate.setAttribute('data-dkg-mobile-autoscroll', products.length > 3 ? 'yes' : 'no');
-
-    startAutoScroll(plate, track, products.length, stepPx);
+    plate.setAttribute('data-dkg-mobile-track-width', String(trackWidth));
   }
 
   function preparePlate(plate) {
@@ -438,12 +302,7 @@
       var rect;
       var srcAltClass;
 
-      if (
-        !img ||
-        img.closest('.site-header') ||
-        img.closest('.collection-box') ||
-        img.closest('.collections-stack')
-      ) {
+      if (!img || img.closest('.site-header') || img.closest('.collection-box') || img.closest('.collections-stack')) {
         return;
       }
 
@@ -456,6 +315,9 @@
         img.parentElement ? img.parentElement.className || '' : ''
       ].join(' ').toLowerCase();
 
+      /*
+        Hide obvious mobile decorative left-side image, not product/header imagery.
+      */
       if (
         srcAltClass.indexOf('palm') !== -1 ||
         srcAltClass.indexOf('glide') !== -1 ||
@@ -496,7 +358,7 @@
     plates = document.querySelectorAll(PLATE_SELECTOR);
 
     Array.prototype.forEach.call(plates, function (plate) {
-      clearPlateClassesAndStyles(plate);
+      clearPlateClasses(plate);
 
       if (isMobile()) {
         preparePlate(plate);
@@ -516,7 +378,7 @@
       /*
         Second pass after images/fonts settle, because image loading can change dimensions.
       */
-      window.setTimeout(applyMobilePlateLayout, 160);
+      window.setTimeout(applyMobilePlateLayout, 120);
     });
   }
 
