@@ -16,7 +16,7 @@
 
   var MOBILE_QUERY = "(max-width: 767px)";
   var VISIBLE_SLOTS = 3;
-  var AUTOSCROLL_MS = 2600;
+  var AUTOSCROLL_MS = 1900;
   var TRANSITION_MS = 420;
   var RESIZE_DEBOUNCE_MS = 180;
 
@@ -346,8 +346,31 @@
     }
   }
 
+  // === DKG MOBILE REMOVE LEFT OVERLAY START ===
+  function removeMobileLeftOverlay() {
+    if (!matchesMobile()) {
+      return;
+    }
+
+    /*
+      The desktop left slide-in overlay is not useful on mobile and can visually
+      interfere with the normal homepage collection plates. Remove it from the
+      mobile DOM instead of only hiding it with CSS.
+    */
+    toArray(document.querySelectorAll(".dkg-left-overlay")).forEach(function (node) {
+      if (node && node.parentNode) {
+        node.setAttribute("aria-hidden", "true");
+        node.parentNode.removeChild(node);
+      }
+    });
+  }
+  // === DKG MOBILE REMOVE LEFT OVERLAY END ===
+
+
   function setupAll() {
-    var boxes = toArray(document.querySelectorAll(".collections-stack .collection-box"));
+    
+    removeMobileLeftOverlay();
+var boxes = toArray(document.querySelectorAll(".collections-stack .collection-box"));
 
     if (!matchesMobile()) {
       boxes.forEach(removeMobileLayer);

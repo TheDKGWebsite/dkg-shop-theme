@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 """
 DKG mobile homepage tweak:
-- Hide/remove the left slide-in overlay image on mobile.
-- Speed up the mobile collection product auto-scroller.
+Stop vertical scrolling from resetting mobile product autoscroll loops.
+
+Cause:
+- Mobile Safari/Chrome often fire window resize events while scrolling vertically
+  because the browser address bar expands/collapses.
+- The carousel script was rebuilding all mobile carousels on every resize.
+- Rebuilding resets the autoscroll index/timer.
+
+Fix:
+- Ignore height-only resize events.
+- Only rebuild when viewport width changes meaningfully, orientation changes,
+  or the mobile breakpoint state changes.
 
 Edits:
-- assets/css/front-page.css
 - assets/js/dkg-mobile-main-homepage-plates.js
 
 Backups are created before edits.
 
 Run from theme repo root:
-    python mobile_hide_left_overlay_speed_carousel.py
+    python mobile_stop_scroll_reset_autoscroll.py
 """
 
 from __future__ import annotations
@@ -22,70 +31,66 @@ from datetime import datetime
 from pathlib import Path
 
 
-NEW_AUTOSCROLL_MS = 1900
-
-CSS_START = "/* === DKG MOBILE HIDE LEFT OVERLAY START === */"
-CSS_END = "/* === DKG MOBILE HIDE LEFT OVERLAY END === */"
-
-JS_START = "  // === DKG MOBILE REMOVE LEFT OVERLAY START ==="
-JS_END = "  // === DKG MOBILE REMOVE LEFT OVERLAY END ==="
+STABILITY_START = "  // === DKG MOBILE WIDTH-STABLE RESIZE START ==="
+STABILITY_END = "  // === DKG MOBILE WIDTH-STABLE RESIZE END ==="
 
 
-CSS_BLOCK = r'''/* === DKG MOBILE HIDE LEFT OVERLAY START === */
+STABILITY_BLOCK = r'''  // === DKG MOBILE WIDTH-STABLE RESIZE START ===
+  /*
+    Mobile browsers can fire resize events during normal vertical scrolling when
+    the address bar expands/collapses. That should NOT rebuild the carousel,
+    because rebuilding resets the autoscroll loop.
 
-/*
-  Hide the desktop left slide-in overlay image on the normal homepage for mobile.
-  This is intentionally narrow: it targets .dkg-left-overlay only.
-  It does not hide the header picture rotator or product images.
-*/
+    We only rebuild when:
+    - the viewport width changes meaningfully,
+    - the mobile/non-mobile breakpoint changes,
+    - or orientationchange explicitly fires.
+  */
+  var dkgLastLayoutWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  var dkgLastMobileMatch = matchesMobile();
 
-@media screen and (max-width: 767px) {
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay,
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-left-overlay * {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-
-    width: 0 !important;
-    height: 0 !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    max-width: 0 !important;
-    max-height: 0 !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-
-    overflow: hidden !important;
-    pointer-events: none !important;
-    transform: none !important;
+  function dkgGetLayoutWidth() {
+    return window.innerWidth || document.documentElement.clientWidth || 0;
   }
-}
 
-/* === DKG MOBILE HIDE LEFT OVERLAY END === */
+  function dkgShouldRebuildForViewportChange(event) {
+    var force = !!(event && event.type === "orientationchange");
+    var currentWidth = dkgGetLayoutWidth();
+    var currentMobileMatch = matchesMobile();
+
+    var widthDelta = Math.abs(currentWidth - dkgLastLayoutWidth);
+    var mobileStateChanged = currentMobileMatch !== dkgLastMobileMatch;
+
+    /*
+      A few pixels can change from scrollbars/device rounding.
+      On phones, height-only address-bar changes usually keep width the same.
+    */
+    var meaningfulWidthChange = widthDelta >= 24;
+
+    if (!force && !mobileStateChanged && !meaningfulWidthChange) {
+      return false;
+    }
+
+    dkgLastLayoutWidth = currentWidth;
+    dkgLastMobileMatch = currentMobileMatch;
+
+    return true;
+  }
+  // === DKG MOBILE WIDTH-STABLE RESIZE END ===
 '''
 
 
-JS_REMOVE_OVERLAY_FUNCTION = r'''  // === DKG MOBILE REMOVE LEFT OVERLAY START ===
-  function removeMobileLeftOverlay() {
-    if (!matchesMobile()) {
+NEW_SCHEDULE_FUNCTION = r'''  function scheduleSetup(event) {
+    if (!dkgShouldRebuildForViewportChange(event)) {
       return;
     }
 
-    /*
-      The desktop left slide-in overlay is not useful on mobile and can visually
-      interfere with the normal homepage collection plates. Remove it from the
-      mobile DOM instead of only hiding it with CSS.
-    */
-    toArray(document.querySelectorAll(".dkg-left-overlay")).forEach(function (node) {
-      if (node && node.parentNode) {
-        node.setAttribute("aria-hidden", "true");
-        node.parentNode.removeChild(node);
-      }
-    });
+    if (resizeTimer) {
+      window.clearTimeout(resizeTimer);
+    }
+
+    resizeTimer = window.setTimeout(setupAll, RESIZE_DEBOUNCE_MS);
   }
-  // === DKG MOBILE REMOVE LEFT OVERLAY END ===
 '''
 
 
@@ -107,137 +112,111 @@ def remove_marker_block(text: str, start: str, end: str) -> tuple[str, int]:
     return new_text.rstrip() + "\n", count
 
 
-def append_css_block(css: str) -> str:
-    cleaned, _ = remove_marker_block(css, CSS_START, CSS_END)
-    return cleaned.rstrip() + "\n\n" + CSS_BLOCK.rstrip() + "\n"
+def insert_stability_block(js: str) -> tuple[str, bool]:
+    js, _ = remove_marker_block(js, STABILITY_START, STABILITY_END)
 
+    anchor = "  var resizeTimer = null;"
 
-def update_autoscroll_interval(js: str) -> tuple[str, int]:
-    """
-    Replaces:
-      var AUTOSCROLL_MS = 2600;
-    or any similar numeric value.
-    """
-    pattern = re.compile(
-        r"(var\s+AUTOSCROLL_MS\s*=\s*)\d+(\s*;)",
-        flags=re.IGNORECASE,
-    )
-    new_js, count = pattern.subn(
-        rf"\g<1>{NEW_AUTOSCROLL_MS}\g<2>",
-        js,
-        count=1,
-    )
-    return new_js, count
-
-
-def inject_mobile_overlay_removal(js: str) -> tuple[str, bool]:
-    """
-    Adds removeMobileLeftOverlay() and calls it at the start of setupAll().
-    Designed for the current dkg-mobile-main-homepage-plates.js structure.
-    """
-
-    # Remove old copy of this injected block if rerun.
-    js, _ = remove_marker_block(js, JS_START, JS_END)
-
-    # Remove prior call if rerun.
-    js = re.sub(
-        r"\n\s*removeMobileLeftOverlay\(\);\s*\n",
-        "\n",
-        js,
-        flags=re.IGNORECASE,
-    )
-
-    setup_match = re.search(r"\n\s*function\s+setupAll\s*\(\)\s*\{", js)
-
-    if not setup_match:
+    if anchor not in js:
         return js, False
 
-    insert_at = setup_match.start()
-    js = js[:insert_at].rstrip() + "\n\n" + JS_REMOVE_OVERLAY_FUNCTION.rstrip() + "\n" + js[insert_at:]
+    insert_at = js.find(anchor) + len(anchor)
 
-    # Add call immediately inside setupAll().
-    js = re.sub(
-        r"(\n\s*function\s+setupAll\s*\(\)\s*\{\s*)",
-        r"\1\n    removeMobileLeftOverlay();\n",
-        js,
-        count=1,
+    js = (
+        js[:insert_at].rstrip()
+        + "\n\n"
+        + STABILITY_BLOCK.rstrip()
+        + "\n"
+        + js[insert_at:].lstrip()
     )
 
     return js, True
 
 
+def replace_schedule_setup(js: str) -> tuple[str, bool]:
+    pattern = re.compile(
+        r"\n\s*function\s+scheduleSetup\s*\([^)]*\)\s*\{"
+        r"(?:[^{}]|\{[^{}]*\})*?"
+        r"\n\s*\}",
+        flags=re.DOTALL,
+    )
+
+    new_js, count = pattern.subn("\n" + NEW_SCHEDULE_FUNCTION.rstrip(), js, count=1)
+    return new_js, count == 1
+
+
 def main() -> int:
     root = Path.cwd().resolve()
-
-    css_path = root / "assets" / "css" / "front-page.css"
     js_path = root / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
 
-    if not css_path.exists() or not js_path.exists():
+    if not js_path.exists():
         raise SystemExit(
-            "Missing required files. Run this from the theme repo root:\n"
+            "Missing assets/js/dkg-mobile-main-homepage-plates.js.\n\n"
+            "Run this from the theme repo root:\n"
             r'  C:\Users\John\Desktop\shop dkg\dkg-shop-theme'
         )
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backup_dir = root / f"_dkg_mobile_hide_left_overlay_speed_backup_{timestamp}"
+    backup_dir = root / f"_dkg_mobile_stop_scroll_reset_backup_{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=False)
 
-    backup_css = backup_dir / "assets" / "css" / "front-page.css"
     backup_js = backup_dir / "assets" / "js" / "dkg-mobile-main-homepage-plates.js"
-
-    backup_css.parent.mkdir(parents=True, exist_ok=True)
     backup_js.parent.mkdir(parents=True, exist_ok=True)
-
-    shutil.copy2(css_path, backup_css)
     shutil.copy2(js_path, backup_js)
 
-    old_css = read_text(css_path)
-    new_css = append_css_block(old_css)
-    write_text(css_path, new_css)
-
     old_js = read_text(js_path)
-    new_js, interval_replacements = update_autoscroll_interval(old_js)
-    new_js, overlay_injected = inject_mobile_overlay_removal(new_js)
+
+    new_js, inserted_stability = insert_stability_block(old_js)
+    new_js, replaced_schedule = replace_schedule_setup(new_js)
+
+    if not inserted_stability:
+        raise SystemExit(
+            "Could not find expected JS anchor:\n"
+            "  var resizeTimer = null;\n\n"
+            f"Backup was still created at:\n  {backup_js}\n\n"
+            "No changes were written."
+        )
+
+    if not replaced_schedule:
+        raise SystemExit(
+            "Could not safely replace function scheduleSetup().\n\n"
+            f"Backup was still created at:\n  {backup_js}\n\n"
+            "No changes were written."
+        )
+
     write_text(js_path, new_js)
 
-    summary_path = backup_dir / "hide_left_overlay_speed_summary.txt"
+    summary_path = backup_dir / "stop_scroll_reset_summary.txt"
     summary = [
-        "DKG mobile hide left overlay + speed carousel updater",
+        "DKG mobile stop scroll reset updater",
         f"Timestamp: {timestamp}",
         f"Repo root: {root}",
         "",
-        "Backups:",
-        f"- {backup_css}",
+        "Backup:",
         f"- {backup_js}",
         "",
         "Changes:",
-        "- Added mobile CSS to hide .dkg-left-overlay on phone widths.",
-        "- Added JS to remove .dkg-left-overlay from the mobile DOM.",
-        f"- Set AUTOSCROLL_MS to {NEW_AUTOSCROLL_MS}.",
+        "- Added width-stable resize detection.",
+        "- Replaced scheduleSetup(event) so height-only resize events are ignored.",
+        "- Vertical scrolling should no longer rebuild/reset the autoscroll loops.",
+        "- Orientation changes and real width changes still rebuild correctly.",
         "",
-        f"Interval replacements made: {interval_replacements}",
-        f"Overlay removal injected: {overlay_injected}",
-        "",
-        "If carousel still feels slow, lower NEW_AUTOSCROLL_MS to 1700.",
-        "If carousel feels too fast, raise NEW_AUTOSCROLL_MS to 2100.",
+        f"Inserted stability block: {inserted_stability}",
+        f"Replaced scheduleSetup: {replaced_schedule}",
     ]
 
     write_text(summary_path, "\n".join(summary) + "\n")
 
     print("Done.")
     print(f"Backup folder: {backup_dir}")
-    print(f"Carousel interval set to: {NEW_AUTOSCROLL_MS}ms")
-    print(f"Interval replacements made: {interval_replacements}")
-    print(f"Overlay removal injected: {overlay_injected}")
+    print("Added width-stable resize handling.")
+    print("Vertical scroll/address-bar resize should no longer reset the product autoscroll loops.")
     print("")
     print("Next:")
-    print("1. Upload/deploy assets/css/front-page.css and assets/js/dkg-mobile-main-homepage-plates.js.")
+    print("1. Upload/deploy assets/js/dkg-mobile-main-homepage-plates.js.")
     print("2. Clear cache.")
-    print("3. Test the normal homepage on mobile.")
-    print("")
-    print("To tune speed later:")
-    print("- Faster: set NEW_AUTOSCROLL_MS to 1700.")
-    print("- Slower: set NEW_AUTOSCROLL_MS to 2100.")
+    print("3. Test by waiting for the carousel to advance, then slowly scrolling up/down.")
+    print("4. The carousel should continue from where it was instead of jumping back to the first product.")
 
     return 0
 

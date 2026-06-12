@@ -1,0 +1,15 @@
+DKG mobile stop scroll reset updater
+Timestamp: 2026-06-12_14-24-01
+Repo root: C:\Users\John\Desktop\shop dkg\dkg-shop-theme
+
+Backup:
+- C:\Users\John\Desktop\shop dkg\dkg-shop-theme\_dkg_mobile_stop_scroll_reset_backup_2026-06-12_14-24-01\assets\js\dkg-mobile-main-homepage-plates.js
+
+Changes:
+- Added width-stable resize detection.
+- Replaced scheduleSetup(event) so height-only resize events are ignored.
+- Vertical scrolling should no longer rebuild/reset the autoscroll loops.
+- Orientation changes and real width changes still rebuild correctly.
+
+Inserted stability block: True
+Replaced scheduleSetup: True

@@ -23,7 +23,49 @@
   var stateByBox = new WeakMap();
   var resizeTimer = null;
 
-  function matchesMobile() {
+  // === DKG MOBILE WIDTH-STABLE RESIZE START ===
+  /*
+    Mobile browsers can fire resize events during normal vertical scrolling when
+    the address bar expands/collapses. That should NOT rebuild the carousel,
+    because rebuilding resets the autoscroll loop.
+
+    We only rebuild when:
+    - the viewport width changes meaningfully,
+    - the mobile/non-mobile breakpoint changes,
+    - or orientationchange explicitly fires.
+  */
+  var dkgLastLayoutWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+  var dkgLastMobileMatch = matchesMobile();
+
+  function dkgGetLayoutWidth() {
+    return window.innerWidth || document.documentElement.clientWidth || 0;
+  }
+
+  function dkgShouldRebuildForViewportChange(event) {
+    var force = !!(event && event.type === "orientationchange");
+    var currentWidth = dkgGetLayoutWidth();
+    var currentMobileMatch = matchesMobile();
+
+    var widthDelta = Math.abs(currentWidth - dkgLastLayoutWidth);
+    var mobileStateChanged = currentMobileMatch !== dkgLastMobileMatch;
+
+    /*
+      A few pixels can change from scrollbars/device rounding.
+      On phones, height-only address-bar changes usually keep width the same.
+    */
+    var meaningfulWidthChange = widthDelta >= 24;
+
+    if (!force && !mobileStateChanged && !meaningfulWidthChange) {
+      return false;
+    }
+
+    dkgLastLayoutWidth = currentWidth;
+    dkgLastMobileMatch = currentMobileMatch;
+
+    return true;
+  }
+  // === DKG MOBILE WIDTH-STABLE RESIZE END ===
+function matchesMobile() {
     if (!window.matchMedia) {
       return window.innerWidth <= 767;
     }
@@ -379,8 +421,11 @@ var boxes = toArray(document.querySelectorAll(".collections-stack .collection-bo
 
     boxes.forEach(setupBox);
   }
+  function scheduleSetup(event) {
+    if (!dkgShouldRebuildForViewportChange(event)) {
+      return;
+    }
 
-  function scheduleSetup() {
     if (resizeTimer) {
       window.clearTimeout(resizeTimer);
     }
