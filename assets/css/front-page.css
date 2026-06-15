@@ -1635,31 +1635,38 @@ body.page-template-page-mobile-shop {
 
 /* === DKG MOBILE HEADER ROTATOR BELOW PLATES END === */
 
-/* === DKG MOBILE CENTER LOGO BIGGER SOCIALS START === */
+/* === DKG MOBILE HEADER SPLIT NAV BIG SOCIALS START === */
 
 /*
-  Mobile header/social tune.
+  Mobile header layout V2.
 
-  Goals:
-  - Center the logo image in the mobile header.
-  - Keep text nav compact and centered below the logo.
-  - Make relocated social icons below the framed image larger, using clamp()
-    so they scale naturally across phone sizes.
-  - Do not affect /mobile-shop/.
+  Goal:
+    Home   Shop   [ centered logo ]   Cart   Contact
+
+  Based on current header.php DOM:
+    .site-header
+      .header-inner
+        .logo
+        .dkg-header-picture-rotator  <-- moved below plates by JS on mobile
+        nav.nav
+          a Home
+          a Shop
+          a Cart
+          a Contact
+          a.nav-social ...           <-- moved below framed image by JS on mobile
+
+  This is CSS-only.
+  It does not edit header.php or JS.
 */
 
 @media screen and (max-width: 767px) {
 
-  /*
-    Centered mobile header layout.
-    The rotator/socials are handled separately and moved below the plates.
-  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header {
     height: auto !important;
-    min-height: 76px !important;
+    min-height: clamp(70px, 20vw, 92px) !important;
     max-height: none !important;
 
-    padding: 6px 8px 7px !important;
+    padding: clamp(4px, 1.4vw, 7px) clamp(5px, 1.8vw, 9px) clamp(5px, 1.5vw, 8px) !important;
     box-sizing: border-box !important;
 
     display: flex !important;
@@ -1670,36 +1677,47 @@ body.page-template-page-mobile-shop {
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .header-inner {
+    position: relative !important;
+
     width: 100% !important;
     max-width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
+    height: clamp(62px, 18vw, 82px) !important;
+    min-height: clamp(62px, 18vw, 82px) !important;
+    max-height: clamp(62px, 18vw, 82px) !important;
 
     margin: 0 auto !important;
     padding: 0 !important;
     box-sizing: border-box !important;
 
     display: grid !important;
-    grid-template-columns: 1fr !important;
-    grid-template-areas:
-      "dkg-logo"
-      "dkg-nav" !important;
+    grid-template-columns:
+      minmax(44px, 1fr)
+      minmax(44px, 1fr)
+      minmax(clamp(104px, 33vw, 158px), clamp(104px, 33vw, 158px))
+      minmax(44px, 1fr)
+      minmax(54px, 1.12fr) !important;
+    grid-template-rows: 1fr !important;
+    grid-template-areas: "home shop logo cart contact" !important;
 
     align-items: center !important;
-    justify-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
+    justify-items: stretch !important;
+    gap: clamp(3px, 1vw, 7px) !important;
 
     overflow: visible !important;
     transform: none !important;
   }
 
+  /*
+    Center logo in the real middle grid column.
+  */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .logo {
-    grid-area: dkg-logo !important;
+    grid-area: logo !important;
+    position: relative !important;
+    z-index: 3 !important;
 
     width: 100% !important;
     max-width: 100% !important;
+    height: 100% !important;
 
     margin: 0 auto !important;
     padding: 0 !important;
@@ -1714,14 +1732,17 @@ body.page-template-page-mobile-shop {
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .site-logo {
-    display: inline-flex !important;
+    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
 
     margin: 0 auto !important;
     padding: 0 !important;
 
-    text-align: center !important;
     transform: none !important;
   }
 
@@ -1732,8 +1753,8 @@ body.page-template-page-mobile-shop {
     width: auto !important;
     height: auto !important;
 
-    max-width: min(58vw, 190px) !important;
-    max-height: clamp(48px, 15vw, 68px) !important;
+    max-width: clamp(104px, 31vw, 158px) !important;
+    max-height: clamp(54px, 16vw, 78px) !important;
 
     margin: 0 auto !important;
     display: block !important;
@@ -1745,65 +1766,120 @@ body.page-template-page-mobile-shop {
   }
 
   /*
-    Keep normal text nav in the header, centered under the logo.
-    Social buttons are moved below the framed image by the relocation script.
+    Make the nav container become a layout layer over the same 5-column grid.
+    This lets Home/Shop sit left of the logo and Cart/Contact sit right.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav {
-    grid-area: dkg-nav !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
 
     width: 100% !important;
     max-width: 100% !important;
-    min-width: 0 !important;
+    height: 100% !important;
 
-    margin: 0 auto !important;
+    margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
 
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: clamp(9px, 3.2vw, 18px) !important;
+    display: grid !important;
+    grid-template-columns:
+      minmax(44px, 1fr)
+      minmax(44px, 1fr)
+      minmax(clamp(104px, 33vw, 158px), clamp(104px, 33vw, 158px))
+      minmax(44px, 1fr)
+      minmax(54px, 1.12fr) !important;
+    grid-template-rows: 1fr !important;
+    grid-template-areas: "home shop logo cart contact" !important;
 
-    overflow: hidden !important;
+    align-items: start !important;
+    justify-items: stretch !important;
+    gap: clamp(3px, 1vw, 7px) !important;
+
+    overflow: visible !important;
     transform: none !important;
-  }
-
-  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav a:not(.nav-social) {
-    font-size: clamp(0.68rem, 2.8vw, 0.82rem) !important;
-    line-height: 1 !important;
-
-    padding: 2px 1px !important;
-    margin: 0 !important;
-
-    white-space: nowrap !important;
-    text-align: center !important;
-
-    opacity: 0.92 !important;
+    pointer-events: none !important;
   }
 
   /*
-    The relocated social buttons below the framed image.
-    This overrides the previous fixed 46px sizing with responsive sizing.
+    The first four non-social links are:
+      1 Home
+      2 Shop
+      3 Cart
+      4 Contact
+  */
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social) {
+    height: clamp(28px, 8.4vw, 38px) !important;
+    min-height: clamp(28px, 8.4vw, 38px) !important;
+
+    margin: clamp(1px, 0.5vw, 4px) 0 0 !important;
+    padding: 0 clamp(3px, 1.2vw, 7px) !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 999px !important;
+    border: 1px solid rgba(255,255,255,0.28) !important;
+    background: rgba(0,0,0,0.52) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.24) !important;
+
+    color: #fff !important;
+    text-decoration: none !important;
+    text-align: center !important;
+
+    font-size: clamp(0.68rem, 2.9vw, 0.9rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.015em !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+
+    opacity: 0.96 !important;
+    visibility: visible !important;
+
+    transform: none !important;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social):nth-of-type(1) {
+    grid-area: home !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social):nth-of-type(2) {
+    grid-area: shop !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social):nth-of-type(3) {
+    grid-area: cart !important;
+  }
+
+  body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social):nth-of-type(4) {
+    grid-area: contact !important;
+  }
+
+  /*
+    Social buttons are moved below the framed image by JS.
+    Make them larger and still responsive.
   */
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials {
-    gap: clamp(16px, 4.8vw, 26px) !important;
-    margin-top: 2px !important;
-    max-width: min(100%, 430px) !important;
+    gap: clamp(18px, 5.4vw, 32px) !important;
+    margin-top: 4px !important;
+    max-width: min(100%, 440px) !important;
   }
 
   body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social {
-    width: clamp(54px, 14.5vw, 70px) !important;
-    height: clamp(54px, 14.5vw, 70px) !important;
+    width: clamp(64px, 17vw, 88px) !important;
+    height: clamp(64px, 17vw, 88px) !important;
 
-    min-width: clamp(54px, 14.5vw, 70px) !important;
-    min-height: clamp(54px, 14.5vw, 70px) !important;
+    min-width: clamp(64px, 17vw, 88px) !important;
+    min-height: clamp(64px, 17vw, 88px) !important;
 
-    max-width: 70px !important;
-    max-height: 70px !important;
+    max-width: 88px !important;
+    max-height: 88px !important;
 
-    padding: clamp(6px, 1.8vw, 9px) !important;
+    padding: clamp(7px, 2vw, 11px) !important;
 
     border-radius: 999px !important;
     border-width: 1px !important;
@@ -1820,8 +1896,8 @@ body.page-template-page-mobile-shop {
     width: 100% !important;
     height: 100% !important;
 
-    max-width: clamp(39px, 10.4vw, 52px) !important;
-    max-height: clamp(39px, 10.4vw, 52px) !important;
+    max-width: clamp(48px, 12.8vw, 66px) !important;
+    max-height: clamp(48px, 12.8vw, 66px) !important;
 
     object-fit: contain !important;
     object-position: center center !important;
@@ -1833,39 +1909,64 @@ body.page-template-page-mobile-shop {
 
   @media screen and (max-width: 390px) {
     body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header {
-      min-height: 70px !important;
-      padding-top: 5px !important;
-      padding-bottom: 6px !important;
+      min-height: clamp(66px, 19vw, 82px) !important;
+      padding-left: 4px !important;
+      padding-right: 4px !important;
     }
 
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .header-inner {
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .header-inner,
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav {
+      height: clamp(58px, 17.5vw, 74px) !important;
+      min-height: clamp(58px, 17.5vw, 74px) !important;
+      max-height: clamp(58px, 17.5vw, 74px) !important;
+
+      grid-template-columns:
+        minmax(39px, 1fr)
+        minmax(39px, 1fr)
+        minmax(clamp(94px, 31vw, 132px), clamp(94px, 31vw, 132px))
+        minmax(39px, 1fr)
+        minmax(49px, 1.15fr) !important;
       gap: 3px !important;
     }
 
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav {
-      gap: clamp(7px, 2.7vw, 13px) !important;
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .logo img,
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .site-logo-img,
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .custom-logo,
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .custom-logo-link img {
+      max-width: clamp(94px, 30vw, 132px) !important;
+      max-height: clamp(48px, 14.5vw, 66px) !important;
     }
 
-    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav a:not(.nav-social) {
-      font-size: clamp(0.63rem, 2.65vw, 0.75rem) !important;
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .site-header .nav > a:not(.nav-social) {
+      height: clamp(25px, 7.8vw, 33px) !important;
+      min-height: clamp(25px, 7.8vw, 33px) !important;
+      padding-left: 2px !important;
+      padding-right: 2px !important;
+
+      font-size: clamp(0.58rem, 2.65vw, 0.75rem) !important;
+      letter-spacing: 0 !important;
+    }
+
+    body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials {
+      gap: clamp(14px, 4.8vw, 24px) !important;
     }
 
     body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social {
-      width: clamp(50px, 13.8vw, 62px) !important;
-      height: clamp(50px, 13.8vw, 62px) !important;
+      width: clamp(58px, 16vw, 74px) !important;
+      height: clamp(58px, 16vw, 74px) !important;
 
-      min-width: clamp(50px, 13.8vw, 62px) !important;
-      min-height: clamp(50px, 13.8vw, 62px) !important;
+      min-width: clamp(58px, 16vw, 74px) !important;
+      min-height: clamp(58px, 16vw, 74px) !important;
 
-      max-width: 62px !important;
-      max-height: 62px !important;
+      max-width: 74px !important;
+      max-height: 74px !important;
     }
 
     body:not(.page-mobile-shop):not(.page-template-page-mobile-shop) .dkg-mobile-relocated-header-socials .nav-social img {
-      max-width: clamp(36px, 9.8vw, 46px) !important;
-      max-height: clamp(36px, 9.8vw, 46px) !important;
+      max-width: clamp(43px, 11.8vw, 56px) !important;
+      max-height: clamp(43px, 11.8vw, 56px) !important;
     }
   }
 }
 
-/* === DKG MOBILE CENTER LOGO BIGGER SOCIALS END === */
+/* === DKG MOBILE HEADER SPLIT NAV BIG SOCIALS END === */
