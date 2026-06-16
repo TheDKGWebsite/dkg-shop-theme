@@ -81,6 +81,7 @@ $dkg_header_rotator = array(
   'group_1'  => dkg_clean_url_list(array(
     'https://i.imgur.com/WZBNYWa.png',
     'https://i.imgur.com/XXBVERU.png',
+	'https://i.imgur.com/3rUmSWd.png'
   )),
   'group_2'  => dkg_clean_url_list(array(
     'https://i.imgur.com/BP6yOQZ.jpeg',
