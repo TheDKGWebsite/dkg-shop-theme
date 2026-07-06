@@ -162,6 +162,7 @@ $dkg_header_rotator['first_image']  = dkg_pick_random_url($dkg_header_rotator['g
 $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
 ?>
 
+<?php
 // === DKG CURRENT STORE HEADER INDICATOR START ===
 // Finds the current DKG "store" name while keeping WordPress/WooCommerce
 // collection/category logic intact behind the scenes.
@@ -188,6 +189,7 @@ if (!$dkg_current_store_name && function_exists('is_product_category') && is_pro
     }
 }
 // === DKG CURRENT STORE HEADER INDICATOR END ===
+?>
 <header class="site-header">
   <style id="dkg-header-picture-rotator-size-fix">
     /*

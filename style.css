@@ -472,11 +472,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
 
 /* === DKG HEADER ROTATOR CLEAN CROSSFADE PATCH END === */
 
-/* === DKG CURRENT STORE HEADER INDICATOR CSS START ===
-   Shows a small "you are viewing: Store Name" line under the logo on
-   individual DKG collection/store pages.
-*/
-
+/* === DKG CURRENT STORE HEADER INDICATOR CSS START === */
 .site-header .logo .dkg-current-store-indicator,
 .site-header .site-logo .dkg-current-store-indicator {
   display: block !important;
@@ -517,10 +513,6 @@ body.dkg-user-scrolling .dkg-left-overlay {
   overflow-wrap: anywhere !important;
 }
 
-/*
-  Modern browsers: only stack the logo link when the indicator exists.
-  This avoids changing ordinary non-store header/logo layout.
-*/
 .site-header .logo:has(.dkg-current-store-indicator),
 .site-header .site-logo:has(.dkg-current-store-indicator) {
   display: inline-flex !important;
@@ -530,10 +522,6 @@ body.dkg-user-scrolling .dkg-left-overlay {
   gap: 0 !important;
 }
 
-/*
-  Fallback if :has() is not supported. The indicator is already inserted
-  after the logo image, so display:block still usually places it underneath.
-*/
 .site-header .dkg-current-store-indicator {
   clear: both !important;
 }
@@ -558,5 +546,4 @@ body.dkg-user-scrolling .dkg-left-overlay {
     letter-spacing: 0.02em !important;
   }
 }
-
 /* === DKG CURRENT STORE HEADER INDICATOR CSS END === */
