@@ -2122,32 +2122,3 @@ body.page-template-page-mobile-shop {
 }
 
 /* === DKG MOBILE HEADER FRAME IMAGE FIT FADE END === */
-
-/* === DKG MOBILE NON-HOME HEADER CLEANUP START ===
-   Goal:
-   - Mobile only.
-   - Homepage keeps the relocated framed image + social buttons.
-   - Non-home pages hide the framed image/rotator + social buttons completely.
-   - Desktop/tablet wider than 767px is untouched.
-*/
-
-@media screen and (max-width: 767px) {
-
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-header-picture-rotator,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-header-picture-frame,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-header-picture-img,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-header-picture-img-layer,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-mobile-relocated-header-rotator-zone,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-mobile-relocated-header-rotator-zone *,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-mobile-relocated-header-socials,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .dkg-mobile-relocated-header-socials *,
-  body:not(.home):not(.front-page):not(.page-template-front-page) .site-header .nav-social {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-}
-
-/* === DKG MOBILE NON-HOME HEADER CLEANUP END === */
