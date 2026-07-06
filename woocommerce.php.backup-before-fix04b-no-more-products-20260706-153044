@@ -130,11 +130,23 @@ if (is_shop() && $featured_collection) {
         echo do_shortcode('[products category="' . esc_attr($term->slug) . '" columns="4" limit="-1"]');
         echo '</section>';
 
-        /* === DKG FEATURED COLLECTION MORE PRODUCTS REMOVED START ===
-           Fix 04B removed the extra "More Products" output on featured_collection/store pages.
-           Mode: removed $featured_ids query plus dkg-more-products section.
-           The main .dkg-featured-collection section above remains unchanged.
-        === DKG FEATURED COLLECTION MORE PRODUCTS REMOVED END === */
+        $featured_ids = wc_get_products(array(
+            'status'   => 'publish',
+            'limit'    => -1,
+            'category' => array($term->slug),
+            'return'   => 'ids',
+        ));
+
+        echo '<section class="dkg-shop-plate dkg-more-products">';
+        echo '<h2>More Products</h2>';
+
+        if (!empty($featured_ids)) {
+            echo do_shortcode('[products columns="4" limit="-1" exclude="' . esc_attr(implode(',', $featured_ids)) . '"]');
+        } else {
+            echo do_shortcode('[products columns="4" limit="-1"]');
+        }
+
+        echo '</section>';
     } else {
         echo '<section class="dkg-shop-plate">';
         woocommerce_content();
