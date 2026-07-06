@@ -162,6 +162,32 @@ $dkg_header_rotator['first_image']  = dkg_pick_random_url($dkg_header_rotator['g
 $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
 ?>
 
+// === DKG CURRENT STORE HEADER INDICATOR START ===
+// Finds the current DKG "store" name while keeping WordPress/WooCommerce
+// collection/category logic intact behind the scenes.
+$dkg_current_store_name = '';
+
+if (function_exists('is_shop') && is_shop() && isset($_GET['featured_collection'])) {
+    $dkg_featured_collection_slug = sanitize_title(wp_unslash($_GET['featured_collection']));
+    $dkg_featured_collection_term = get_term_by('slug', $dkg_featured_collection_slug, 'product_cat');
+
+    if ($dkg_featured_collection_term && !is_wp_error($dkg_featured_collection_term)) {
+        $dkg_current_store_name = $dkg_featured_collection_term->name;
+    }
+}
+
+if (!$dkg_current_store_name && function_exists('is_product_category') && is_product_category()) {
+    $dkg_queried_store_term = get_queried_object();
+
+    if (
+        $dkg_queried_store_term instanceof WP_Term &&
+        isset($dkg_queried_store_term->taxonomy) &&
+        $dkg_queried_store_term->taxonomy === 'product_cat'
+    ) {
+        $dkg_current_store_name = $dkg_queried_store_term->name;
+    }
+}
+// === DKG CURRENT STORE HEADER INDICATOR END ===
 <header class="site-header">
   <style id="dkg-header-picture-rotator-size-fix">
     /*
@@ -231,7 +257,15 @@ $dkg_header_rotator['should_show']  = $dkg_header_rotator['first_image'] !== '';
     <div class="logo">
       <a class="site-logo" href="<?php echo esc_url(home_url('/')); ?>" aria-label="DKG Zone home">
         <img class="site-logo-img" src="<?php echo esc_url(dkg_theme_asset_url('/assets/images/dkg-logo-main.png')); ?>" alt="DKG Zone">
-      </a>
+<!-- === DKG CURRENT STORE HEADER INDICATOR MARKUP START === -->
+<?php if (!empty($dkg_current_store_name)) : ?>
+  <span class="dkg-current-store-indicator" aria-label="<?php echo esc_attr('You are viewing: ' . $dkg_current_store_name); ?>">
+    <span class="dkg-current-store-kicker">you are viewing:</span>
+    <span class="dkg-current-store-name"><?php echo esc_html($dkg_current_store_name); ?></span>
+  </span>
+<?php endif; ?>
+<!-- === DKG CURRENT STORE HEADER INDICATOR MARKUP END === -->
+</a>
     </div>
 
     <?php if ($dkg_header_rotator['should_show']) : ?>

@@ -472,3 +472,91 @@ body.dkg-user-scrolling .dkg-left-overlay {
 
 /* === DKG HEADER ROTATOR CLEAN CROSSFADE PATCH END === */
 
+/* === DKG CURRENT STORE HEADER INDICATOR CSS START ===
+   Shows a small "you are viewing: Store Name" line under the logo on
+   individual DKG collection/store pages.
+*/
+
+.site-header .logo .dkg-current-store-indicator,
+.site-header .site-logo .dkg-current-store-indicator {
+  display: block !important;
+  width: 100% !important;
+  max-width: 260px !important;
+  margin: 2px auto 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  line-height: 1.05 !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.75) !important;
+  pointer-events: none !important;
+}
+
+.site-header .logo .dkg-current-store-kicker,
+.site-header .site-logo .dkg-current-store-kicker {
+  display: block !important;
+  font-size: 0.58rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  opacity: 0.76 !important;
+  font-weight: 700 !important;
+}
+
+.site-header .logo .dkg-current-store-name,
+.site-header .site-logo .dkg-current-store-name {
+  display: block !important;
+  margin-top: 1px !important;
+  font-size: 0.82rem !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.035em !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  overflow-wrap: anywhere !important;
+}
+
+/*
+  Modern browsers: only stack the logo link when the indicator exists.
+  This avoids changing ordinary non-store header/logo layout.
+*/
+.site-header .logo:has(.dkg-current-store-indicator),
+.site-header .site-logo:has(.dkg-current-store-indicator) {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+/*
+  Fallback if :has() is not supported. The indicator is already inserted
+  after the logo image, so display:block still usually places it underneath.
+*/
+.site-header .dkg-current-store-indicator {
+  clear: both !important;
+}
+
+@media screen and (max-width: 767px) {
+  .site-header .logo .dkg-current-store-indicator,
+  .site-header .site-logo .dkg-current-store-indicator {
+    max-width: 150px !important;
+    margin-top: 0 !important;
+  }
+
+  .site-header .logo .dkg-current-store-kicker,
+  .site-header .site-logo .dkg-current-store-kicker {
+    font-size: 0.45rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .site-header .logo .dkg-current-store-name,
+  .site-header .site-logo .dkg-current-store-name {
+    font-size: 0.61rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0.02em !important;
+  }
+}
+
+/* === DKG CURRENT STORE HEADER INDICATOR CSS END === */
