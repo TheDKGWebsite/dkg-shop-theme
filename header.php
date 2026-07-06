@@ -261,7 +261,7 @@ if (!$dkg_current_store_name && function_exists('is_product_category') && is_pro
         <img class="site-logo-img" src="<?php echo esc_url(dkg_theme_asset_url('/assets/images/dkg-logo-main.png')); ?>" alt="DKG Zone">
 <!-- === DKG CURRENT STORE HEADER INDICATOR MARKUP START === -->
 <?php if (!empty($dkg_current_store_name)) : ?>
-  <span class="dkg-current-store-indicator" aria-label="<?php echo esc_attr('You are viewing: ' . $dkg_current_store_name); ?>">
+  <span class="dkg-current-store-indicator dkg-current-store-indicator--mobile-logo" aria-label="<?php echo esc_attr('You are viewing: ' . $dkg_current_store_name); ?>">
     <span class="dkg-current-store-kicker">you are viewing:</span>
     <span class="dkg-current-store-name"><?php echo esc_html($dkg_current_store_name); ?></span>
   </span>
@@ -289,7 +289,16 @@ if (!$dkg_current_store_name && function_exists('is_product_category') && is_pro
       </div>
     <?php endif; ?>
 
-    <nav class="nav" aria-label="Main navigation">
+<!-- === DKG CURRENT STORE HEADER DESKTOP SLOT START === -->
+<?php if (!empty($dkg_current_store_name)) : ?>
+  <div class="dkg-current-store-indicator dkg-current-store-indicator--desktop-slot" aria-label="<?php echo esc_attr('You are viewing: ' . $dkg_current_store_name); ?>">
+    <span class="dkg-current-store-kicker">you are viewing:</span>
+    <span class="dkg-current-store-name"><?php echo esc_html($dkg_current_store_name); ?></span>
+  </div>
+<?php endif; ?>
+<!-- === DKG CURRENT STORE HEADER DESKTOP SLOT END === -->
+
+<nav class="nav" aria-label="Main navigation">
       <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
       <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Shop</a>
       <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Cart</a>

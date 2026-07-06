@@ -472,13 +472,17 @@ body.dkg-user-scrolling .dkg-left-overlay {
 
 /* === DKG HEADER ROTATOR CLEAN CROSSFADE PATCH END === */
 
-/* === DKG CURRENT STORE HEADER INDICATOR CSS START === */
-.site-header .logo .dkg-current-store-indicator,
-.site-header .site-logo .dkg-current-store-indicator {
-  display: block !important;
+/* === DKG CURRENT STORE HEADER INDICATOR CSS START ===
+   Mobile:
+     - Store indicator stays under the logo.
+   Desktop / non-mobile:
+     - Logo indicator is hidden.
+     - Separate desktop slot appears between picture frame/rotator and Home/nav.
+*/
+
+.site-header .dkg-current-store-indicator {
   width: 100% !important;
   max-width: 260px !important;
-  margin: 2px auto 0 !important;
   padding: 0 !important;
   text-align: center !important;
   line-height: 1.05 !important;
@@ -490,8 +494,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
   pointer-events: none !important;
 }
 
-.site-header .logo .dkg-current-store-kicker,
-.site-header .site-logo .dkg-current-store-kicker {
+.site-header .dkg-current-store-kicker {
   display: block !important;
   font-size: 0.58rem !important;
   line-height: 1 !important;
@@ -501,8 +504,7 @@ body.dkg-user-scrolling .dkg-left-overlay {
   font-weight: 700 !important;
 }
 
-.site-header .logo .dkg-current-store-name,
-.site-header .site-logo .dkg-current-store-name {
+.site-header .dkg-current-store-name {
   display: block !important;
   margin-top: 1px !important;
   font-size: 0.82rem !important;
@@ -513,8 +515,20 @@ body.dkg-user-scrolling .dkg-left-overlay {
   overflow-wrap: anywhere !important;
 }
 
-.site-header .logo:has(.dkg-current-store-indicator),
-.site-header .site-logo:has(.dkg-current-store-indicator) {
+/* Default: keep desktop slot hidden unless desktop media query enables it. */
+.site-header .dkg-current-store-indicator--desktop-slot {
+  display: none !important;
+}
+
+/* Mobile stays like the previous version: indicator under logo. */
+.site-header .logo .dkg-current-store-indicator--mobile-logo,
+.site-header .site-logo .dkg-current-store-indicator--mobile-logo {
+  display: block !important;
+  margin: 2px auto 0 !important;
+}
+
+.site-header .logo:has(.dkg-current-store-indicator--mobile-logo),
+.site-header .site-logo:has(.dkg-current-store-indicator--mobile-logo) {
   display: inline-flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -522,28 +536,80 @@ body.dkg-user-scrolling .dkg-left-overlay {
   gap: 0 !important;
 }
 
-.site-header .dkg-current-store-indicator {
-  clear: both !important;
+@media screen and (min-width: 768px) {
+  /*
+    Desktop / non-mobile:
+    Hide the logo-under indicator and show the separate slot inserted
+    before the nav, which places it between the picture frame and Home.
+  */
+  .site-header .logo .dkg-current-store-indicator--mobile-logo,
+  .site-header .site-logo .dkg-current-store-indicator--mobile-logo {
+    display: none !important;
+  }
+
+  .site-header .dkg-current-store-indicator--desktop-slot {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: 190px !important;
+    min-width: 120px !important;
+    margin: 0 14px 0 10px !important;
+    padding: 0 2px !important;
+    align-self: center !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transform: translateY(1px) !important;
+    z-index: 4 !important;
+    white-space: normal !important;
+  }
+
+  .site-header .dkg-current-store-indicator--desktop-slot .dkg-current-store-kicker {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.11em !important;
+    opacity: 0.78 !important;
+  }
+
+  .site-header .dkg-current-store-indicator--desktop-slot .dkg-current-store-name {
+    font-size: 0.74rem !important;
+    line-height: 1.02 !important;
+    letter-spacing: 0.035em !important;
+  }
+
+  /*
+    Undo the column-layout adjustment for the logo link on desktop because
+    the visible desktop indicator no longer lives under the logo.
+  */
+  .site-header .logo .site-logo,
+  .site-header .site-logo {
+    gap: 0 !important;
+  }
 }
 
 @media screen and (max-width: 767px) {
-  .site-header .logo .dkg-current-store-indicator,
-  .site-header .site-logo .dkg-current-store-indicator {
+  .site-header .dkg-current-store-indicator--desktop-slot {
+    display: none !important;
+  }
+
+  .site-header .logo .dkg-current-store-indicator--mobile-logo,
+  .site-header .site-logo .dkg-current-store-indicator--mobile-logo {
+    display: block !important;
     max-width: 150px !important;
     margin-top: 0 !important;
   }
 
-  .site-header .logo .dkg-current-store-kicker,
-  .site-header .site-logo .dkg-current-store-kicker {
+  .site-header .logo .dkg-current-store-indicator--mobile-logo .dkg-current-store-kicker,
+  .site-header .site-logo .dkg-current-store-indicator--mobile-logo .dkg-current-store-kicker {
     font-size: 0.45rem !important;
     letter-spacing: 0.08em !important;
   }
 
-  .site-header .logo .dkg-current-store-name,
-  .site-header .site-logo .dkg-current-store-name {
+  .site-header .logo .dkg-current-store-indicator--mobile-logo .dkg-current-store-name,
+  .site-header .site-logo .dkg-current-store-indicator--mobile-logo .dkg-current-store-name {
     font-size: 0.61rem !important;
     line-height: 1 !important;
     letter-spacing: 0.02em !important;
   }
 }
+
 /* === DKG CURRENT STORE HEADER INDICATOR CSS END === */
