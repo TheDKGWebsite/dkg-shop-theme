@@ -583,22 +583,3 @@ function dkg_enqueue_mobile_header_rotator_relocate() {
 add_action('wp_enqueue_scripts', 'dkg_enqueue_mobile_header_rotator_relocate', 40);
 
 // === DKG MOBILE HEADER ROTATOR RELOCATE ENQUEUE END ===
-
-// === DKG MOBILE HOMEPAGE PRODUCT IMAGE FILL LOCK ENQUEUE START ===
-add_action('wp_enqueue_scripts', function () {
-    if (!is_front_page()) {
-        return;
-    }
-
-    $dkg_mobile_fill_lock_path = get_template_directory() . '/assets/js/dkg-mobile-homepage-product-image-fill-lock.js';
-    $dkg_mobile_fill_lock_uri  = get_template_directory_uri() . '/assets/js/dkg-mobile-homepage-product-image-fill-lock.js';
-
-    wp_enqueue_script(
-        'dkg-mobile-homepage-product-image-fill-lock',
-        $dkg_mobile_fill_lock_uri,
-        array(),
-        file_exists($dkg_mobile_fill_lock_path) ? filemtime($dkg_mobile_fill_lock_path) : null,
-        true
-    );
-}, 120);
-// === DKG MOBILE HOMEPAGE PRODUCT IMAGE FILL LOCK ENQUEUE END ===
