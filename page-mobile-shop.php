@@ -39,7 +39,7 @@ $mobile_collections = array(
     ),
 );
 
-$bg_file = 'cbricks.png';
+$bg_file = 'thebricks.webp';
 $bg_path = get_template_directory() . '/assets/images/' . $bg_file;
 $mobile_bg = file_exists($bg_path)
     ? get_template_directory_uri() . '/assets/images/' . $bg_file
