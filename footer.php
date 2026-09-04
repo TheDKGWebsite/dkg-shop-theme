@@ -1,38 +1,17 @@
-<footer class="site-footer dkg-site-footer">
+<?php defined('ABSPATH') || exit; ?>
+<footer class="dkg-footer">
   <div class="dkg-footer-inner">
-
-    <div class="dkg-footer-brand">
-      <a href="<?php echo esc_url(home_url('/')); ?>" class="dkg-footer-logo">
-        DKG ZONE
-      </a>
-      <p>
-        Independent online shop for important DKG.ZONE products
-      </p>
+    <div class="dkg-footer-mark">DKG.ZONE</div>
+    <div class="dkg-footer-links">
+      <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy</a>
+      <a href="<?php echo esc_url(home_url('/refund_returns/')); ?>">Returns</a>
+      <a href="<?php echo esc_url(home_url('/shipping-policy/')); ?>">Shipping</a>
+      <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms</a>
+      <a href="<?php echo esc_url(home_url('/contact/')); ?>">Contact</a>
     </div>
-
-    <div class="dkg-footer-column">
-      <h3>Policies</h3>
-      <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a>
-      <a href="<?php echo esc_url(home_url('/refund_returns/')); ?>">Refund and Returns Policy</a>
-      <a href="<?php echo esc_url(home_url('/shipping-policy/')); ?>">Shipping Policy</a>
-      <a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>">Terms of Service</a>
-    </div>
-
-    <div class="dkg-footer-column">
-      <h3>Contact</h3>
-      <p>Questions about an order or product?</p>
-      <a href="mailto:sbcoddj@gmail.com">sbcoddj@gmail.com</a>
-    </div>
-
-  </div>
-
-  <div class="dkg-footer-bottom">
-    <span>© <?php echo date('Y'); ?> DKG ZONE. All rights reserved.</span>
+    <div class="dkg-footer-copy">© <?php echo esc_html(wp_date('Y')); ?> DKG ZONE</div>
   </div>
 </footer>
-
-<!-- === DKG HEADER PICTURE ROTATOR SCRIPT === -->
-<script src="<?php echo esc_url(get_template_directory_uri() . '/assets/js/header-picture-rotator.js?v=' . filemtime(get_template_directory() . '/assets/js/header-picture-rotator.js')); ?>"></script>
 <?php wp_footer(); ?>
 </body>
 </html>

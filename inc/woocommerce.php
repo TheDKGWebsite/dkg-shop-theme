@@ -1,21 +1,30 @@
 <?php
 
-function dkg_shop_woocommerce_setup() {
-    add_theme_support('woocommerce', [
-        'thumbnail_image_width' => 400,
-        'single_image_width'    => 800,
-        'product_grid'          => [
-            'default_rows'    => 4,
-            'min_rows'        => 1,
-            'default_columns' => 4,
-            'min_columns'     => 1,
-            'max_columns'     => 4,
-        ],
-    ]);
-}
-add_action('after_setup_theme', 'dkg_shop_woocommerce_setup');
+defined('ABSPATH') || exit;
 
-function dkg_shop_loop_columns() {
-    return 4;
+/**
+ * Remove the default WooCommerce sidebar for this stripped-down theme.
+ */
+function dkg_remove_woocommerce_sidebar() {
+    remove_action('woocommerce_sidebar', 'woocommerce_get_sidebar', 10);
 }
-add_filter('loop_shop_columns', 'dkg_shop_loop_columns');
+add_action('wp', 'dkg_remove_woocommerce_sidebar');
+
+/**
+ * Use our simple content wrapper on standard WooCommerce routes.
+ */
+function dkg_woocommerce_wrapper_start() {
+    echo '<main class="dkg-standard-main"><div class="dkg-standard-shell">';
+}
+
+function dkg_woocommerce_wrapper_end() {
+    echo '</div></main>';
+}
+
+function dkg_replace_woocommerce_wrappers() {
+    remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
+    remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
+    add_action('woocommerce_before_main_content', 'dkg_woocommerce_wrapper_start', 10);
+    add_action('woocommerce_after_main_content', 'dkg_woocommerce_wrapper_end', 10);
+}
+add_action('after_setup_theme', 'dkg_replace_woocommerce_wrappers', 20);

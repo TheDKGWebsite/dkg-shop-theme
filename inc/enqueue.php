@@ -1,47 +1,48 @@
 <?php
 
-function dkg_shop_enqueue_assets() {
-    $theme_version = wp_get_theme()->get('Version');
+defined('ABSPATH') || exit;
+
+function dkg_enqueue_assets() {
+    $style_path = get_stylesheet_directory() . '/style.css';
+    $site_path  = get_template_directory() . '/assets/css/site.css';
+    $home_path  = get_template_directory() . '/assets/css/one-product-home.css';
+    $js_path    = get_template_directory() . '/assets/js/one-product-home.js';
 
     wp_enqueue_style(
-        'dkg-shop-style',
+        'dkg-style',
         get_stylesheet_uri(),
-        [],
-        file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : $theme_version
-    );
-
-    wp_enqueue_style(
-        'dkg-shop-main',
-        get_template_directory_uri() . '/assets/css/main.css',
-        ['dkg-shop-style'],
-        file_exists(get_template_directory() . '/assets/css/main.css') ? filemtime(get_template_directory() . '/assets/css/main.css') : $theme_version
-    );
-
-    wp_enqueue_style(
-        'dkg-shop-woocommerce',
-        get_template_directory_uri() . '/assets/css/woocommerce.css',
-        ['dkg-shop-main'],
-        file_exists(get_template_directory() . '/assets/css/woocommerce.css') ? filemtime(get_template_directory() . '/assets/css/woocommerce.css') : $theme_version
-    );
-
-    wp_enqueue_script(
-        'dkg-shop-main',
-        get_template_directory_uri() . '/assets/js/main.js',
-        [],
-        $theme_version,
-        true
-    );
-}
-add_action('wp_enqueue_scripts', 'dkg_shop_enqueue_assets');
-
-// === DKG GLOBAL STYLE ENQUEUE START ===
-function dkg_global_theme_styles() {
-    wp_enqueue_style(
-        'dkg-front-page',
-        get_template_directory_uri() . '/assets/css/front-page.css',
         array(),
-        filemtime(get_template_directory() . '/assets/css/front-page.css')
+        file_exists($style_path) ? filemtime($style_path) : wp_get_theme()->get('Version')
     );
+
+    wp_enqueue_style(
+        'dkg-site',
+        get_template_directory_uri() . '/assets/css/site.css',
+        array('dkg-style'),
+        file_exists($site_path) ? filemtime($site_path) : wp_get_theme()->get('Version')
+    );
+
+    if (is_front_page()) {
+        wp_enqueue_style(
+            'dkg-one-product-home',
+            get_template_directory_uri() . '/assets/css/one-product-home.css',
+            array('dkg-site'),
+            file_exists($home_path) ? filemtime($home_path) : wp_get_theme()->get('Version')
+        );
+
+        wp_enqueue_script(
+            'dkg-one-product-home',
+            get_template_directory_uri() . '/assets/js/one-product-home.js',
+            array(),
+            file_exists($js_path) ? filemtime($js_path) : wp_get_theme()->get('Version'),
+            true
+        );
+
+        // Variable-product add-to-cart forms need WooCommerce's variation script
+        // because the homepage is not technically a single-product route.
+        if (class_exists('WooCommerce')) {
+            wp_enqueue_script('wc-add-to-cart-variation');
+        }
+    }
 }
-add_action('wp_enqueue_scripts', 'dkg_global_theme_styles');
-// === DKG GLOBAL STYLE ENQUEUE END ===
+add_action('wp_enqueue_scripts', 'dkg_enqueue_assets', 20);
