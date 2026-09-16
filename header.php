@@ -23,7 +23,6 @@ defined('ABSPATH') || exit;
       <?php endif; ?>
     </a>
 
-    <div class="dkg-header-statement" aria-hidden="true">ONE PRODUCT. FULL ATTENTION.</div>
 
     <nav class="dkg-header-actions" aria-label="Store navigation">
       <?php if (class_exists('WooCommerce')) : ?>

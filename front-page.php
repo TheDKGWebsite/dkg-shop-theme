@@ -46,24 +46,33 @@ $GLOBALS['product'] = $product;
 $main_image_id = $product->get_image_id();
 $gallery_ids   = $product->get_gallery_image_ids();
 $image_ids     = array_values(array_unique(array_filter(array_merge(array($main_image_id), $gallery_ids))));
+
+// If the product gallery contains an animated GIF, make it the default homepage media.
+// Using the full-size attachment preserves GIF animation; the remaining product images
+// stay available as selectable thumbnails.
+$default_image_id = $main_image_id;
+foreach ($image_ids as $image_id) {
+    if ('image/gif' === get_post_mime_type($image_id)) {
+        $default_image_id = $image_id;
+        break;
+    }
+}
+if ($default_image_id) {
+    $image_ids = array_values(array_unique(array_merge(array($default_image_id), $image_ids)));
+}
+
 $short_desc    = $product->get_short_description();
 $full_desc     = $product->get_description();
 $sku           = $product->get_sku();
-$categories    = wc_get_product_category_list($product_id, ', ');
 ?>
 
 <main class="dkg-product-home" data-product-id="<?php echo esc_attr($product_id); ?>">
   <section class="dkg-product-media" aria-label="Product images">
-    <div class="dkg-product-media-topline">
-      <span>DKG.ZONE</span>
-      <span><?php echo esc_html(sprintf('#%04d', $product_id)); ?></span>
-    </div>
-
     <div class="dkg-product-stage">
-      <?php if ($main_image_id) : ?>
+      <?php if ($default_image_id) : ?>
         <?php
         echo wp_get_attachment_image(
-            $main_image_id,
+            $default_image_id,
             'full',
             false,
             array(
@@ -104,15 +113,11 @@ $categories    = wc_get_product_category_list($product_id, ', ');
       </div>
     <?php endif; ?>
 
-    <div class="dkg-product-media-caption">
-      <span><?php echo esc_html($product->get_name()); ?></span>
-      <span><?php echo esc_html($product->is_in_stock() ? 'AVAILABLE' : 'SOLD OUT'); ?></span>
-    </div>
   </section>
 
   <section class="dkg-product-info" aria-label="Product information">
     <div class="dkg-product-info-inner">
-      <p class="dkg-kicker">CURRENT ITEM</p>
+      <p class="dkg-kicker">CURRENT PRODUCT</p>
       <h1 class="dkg-product-title"><?php echo esc_html($product->get_name()); ?></h1>
 
       <div class="dkg-product-price"><?php echo wp_kses_post($product->get_price_html()); ?></div>
@@ -154,18 +159,8 @@ $categories    = wc_get_product_category_list($product_id, ', ');
           </div>
         </details>
 
-        <?php if ($categories) : ?>
-          <details>
-            <summary>Product info</summary>
-            <div class="dkg-detail-body dkg-product-meta-line">
-              <?php if ($sku) : ?><p><strong>SKU:</strong> <?php echo esc_html($sku); ?></p><?php endif; ?>
-              <p><strong>Category:</strong> <?php echo wp_kses_post($categories); ?></p>
-            </div>
-          </details>
-        <?php endif; ?>
       </div>
 
-      <div class="dkg-end-note">ONE PRODUCT. NO GRID. NO DISTRACTIONS.</div>
     </div>
   </section>
 </main>
