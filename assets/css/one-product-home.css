@@ -34,7 +34,7 @@ body.front-page { background: var(--dkg-paper); }
   height: 100%;
   max-width: none;
   max-height: none;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   display: block;
   transition: opacity .15s ease, transform .22s ease;
