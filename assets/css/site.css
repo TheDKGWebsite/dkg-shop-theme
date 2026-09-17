@@ -6,7 +6,7 @@ body.admin-bar .dkg-header { top: 32px; }
   top: 0;
   z-index: 1000;
   height: 74px;
-  background: rgba(241, 239, 231, 0.94);
+  background: #000;
   border-bottom: 1px solid var(--dkg-line);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
