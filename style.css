@@ -3,13 +3,13 @@ Theme Name: DKG One Product
 Theme URI: https://shop.dkg.zone/
 Author: DKG
 Description: A deliberately minimal WooCommerce theme built around one product on the homepage.
-Version: 2.1.0
+Version: 2.2.0
 Text Domain: dkg-shop-theme
 */
 
 :root {
   --dkg-ink: #0b0b0b;
-  --dkg-paper: #e66c2c;
+  --dkg-paper: #f1efe7;
   --dkg-muted: #74716a;
   --dkg-line: rgba(11, 11, 11, 0.16);
   --dkg-accent: #ff3b30;

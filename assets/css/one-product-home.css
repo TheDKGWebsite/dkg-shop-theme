@@ -31,7 +31,7 @@ body.front-page { background: var(--dkg-paper); }
   padding: clamp(22px, 4vw, 64px);
 }
 
-.dkg-main-product-image {
+.dkg-main-product-media {
   width: 100%;
   height: 100%;
   max-width: 980px;
@@ -42,6 +42,8 @@ body.front-page { background: var(--dkg-paper); }
   transition: opacity .15s ease, transform .22s ease;
 }
 .dkg-main-product-image.is-changing { opacity: .2; transform: scale(.985); }
+.dkg-main-product-media[hidden] { display: none !important; }
+.dkg-main-product-video { background: #111; }
 
 .dkg-product-thumbs {
   position: relative;
@@ -67,6 +69,18 @@ body.front-page { background: var(--dkg-paper); }
 .dkg-thumb:hover,
 .dkg-thumb.is-active { opacity: 1; border-color: rgba(255,255,255,.9); }
 .dkg-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dkg-video-thumb { position: relative; }
+.dkg-video-thumb-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0,0,0,.26);
+  text-shadow: 0 1px 8px rgba(0,0,0,.75);
+}
 
 .dkg-product-info {
   min-width: 0;
@@ -226,7 +240,7 @@ body.front-page { background: var(--dkg-paper); }
     height: min(72svh, 760px);
     min-height: 520px;
   }
-  .dkg-main-product-image { max-height: calc(72svh - 115px); }
+  .dkg-main-product-media { max-height: calc(72svh - 115px); }
   .dkg-product-info-inner { width: 100%; }
 }
 
@@ -234,7 +248,7 @@ body.front-page { background: var(--dkg-paper); }
   .dkg-product-home { min-height: calc(100svh - 64px); }
   .dkg-product-media { height: 62svh; min-height: 440px; }
   .dkg-product-stage { padding: 22px; }
-  .dkg-main-product-image { max-height: calc(62svh - 105px); }
+  .dkg-main-product-media { max-height: calc(62svh - 105px); }
   .dkg-product-thumbs { padding: 0 14px 12px; }
   .dkg-thumb { flex-basis: 58px; width: 58px; height: 58px; }
   .dkg-product-info-inner { padding: 48px 20px 70px; }
@@ -244,7 +258,7 @@ body.front-page { background: var(--dkg-paper); }
 
 @media (max-width: 480px) {
   .dkg-product-media { height: 56svh; min-height: 400px; }
-  .dkg-main-product-image { max-height: calc(56svh - 100px); }
+  .dkg-main-product-media { max-height: calc(56svh - 100px); }
   .dkg-buy-zone form.cart { display: grid; grid-template-columns: 76px 1fr; }
   .dkg-buy-zone .quantity .qty { width: 76px; }
   .dkg-buy-zone .single_add_to_cart_button { min-width: 0; padding: 0 12px !important; }
