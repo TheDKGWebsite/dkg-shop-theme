@@ -53,7 +53,7 @@ $image_ids     = array_values(array_unique(array_filter(array_merge(array($main_
  * Example: https://shop.dkg.zone/wp-content/uploads/2026/09/product-video.mp4
  * Leave it blank to fall back to the normal WooCommerce product image.
  */
-$product_video_url = '';
+$product_video_url = 'https://imgur.com/a/veHWVVb';
 $has_product_video = !empty($product_video_url);
 
 $short_desc    = $product->get_short_description();
